@@ -1,0 +1,87 @@
+[
+ {
+  "name": "04_oled_stand | OLED 45°斜面支架",
+  "watertight": true,
+  "winding_consistent": true,
+  "volume_mm3": 17026.7,
+  "triangles": 44,
+  "bodies": 1,
+  "bbox_mm": [
+   36.0,
+   34.0,
+   27.0
+  ],
+  "z_min": 0.0,
+  "est_mass_g_PLA": 21.1,
+  "stl": "D:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_P1P2\\STL\\04_oled_stand_v1.stl",
+  "preview": "D:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_P1P2\\preview\\04_oled_stand.png"
+ },
+ {
+  "name": "05_led_diffuser | 双色LED灯罩",
+  "watertight": true,
+  "winding_consistent": true,
+  "volume_mm3": 517.3,
+  "triangles": 2152,
+  "bodies": 1,
+  "bbox_mm": [
+   12.0,
+   12.0,
+   9.0
+  ],
+  "z_min": 0.0,
+  "est_mass_g_PLA": 0.6,
+  "stl": "D:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_P1P2\\STL\\05_led_diffuser_v1.stl",
+  "preview": "D:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_P1P2\\preview\\05_led_diffuser.png"
+ },
+ {
+  "name": "06_electronics_base | 整合底板(电控托盘)",
+  "watertight": true,
+  "winding_consistent": true,
+  "volume_mm3": 62432.0,
+  "triangles": 1296,
+  "bodies": 1,
+  "bbox_mm": [
+   170.0,
+   120.0,
+   4.0
+  ],
+  "z_min": 0.0,
+  "est_mass_g_PLA": 77.4,
+  "stl": "D:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_P1P2\\STL\\06_electronics_base_v1.stl",
+  "preview": "D:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_P1P2\\preview\\06_electronics_base.png"
+ },
+ {
+  "name": "07_dht11_holder | DHT11 小座",
+  "watertight": true,
+  "winding_consistent": true,
+  "volume_mm3": 12051.7,
+  "triangles": 100,
+  "bodies": 1,
+  "bbox_mm": [
+   35.0,
+   34.0,
+   62.75
+  ],
+  "z_min": 0.0,
+  "est_mass_g_PLA": 14.9,
+  "stl": "D:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_P1P2\\STL\\07_dht11_holder_v1.stl",
+  "preview": "D:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_P1P2\\preview\\07_dht11_holder.png"
+ },
+ {
+  "name": "08_cable_clip | 扎线固定座",
+  "watertight": true,
+  "winding_consistent": true,
+  "volume_mm3": 3848.5,
+  "triangles": 688,
+  "bodies": 1,
+  "bbox_mm": [
+   30.0,
+   16.0,
+   14.0
+  ],
+  "z_min": 0.0,
+  "est_mass_g_PLA": 4.8,
+  "stl": "D:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_P1P2\\STL\\08_cable_clip_v1.stl",
+  "preview": "D:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_P1P2\\preview\\08_cable_clip.png"
+ }
+]
