@@ -15,7 +15,7 @@
 
 | 规则 | 具体做法 |
 |---|---|
-| **审计修 bug 必写报告** | `docs/审计报告/AR序号_项目名_修复报告_日期.md`，序号项目内递增（**已到 AR04，下一个 AR05**） |
+| **审计修 bug 必写报告** | `docs/审计报告/AR序号_项目名_修复报告_日期.md`，序号项目内递增（**已到 AR06，下一个 AR07**） |
 | **改动后同步 E 盘** | `E:\Documents\BU\第一学期\Introduction to Project Work\花房项目\`，cp 完必须 `ls` 验证（有首拷未落盘的前科） |
 | **删/移文件先问** | 包括"已被取代"的 STL——先标注"勿打印"，等领导明确说要删再删 |
 | **大文档整份重建** | 多处改动时重写源文件再落盘，不要逐处 find/replace（换行符 CRLF/LF 和中文路径会坑你） |
@@ -44,7 +44,8 @@ NODE="C:/Users/junbo/.workbuddy/binaries/node/versions/22.22.2-6/node.exe"
 # HTML 验证：NODE_PATH=C:/Users/junbo/.workbuddy/binaries/node/workspace/node_modules $NODE verify_html.js
 ```
 
-- Arduino：`arduino-cli 1.5.1` + `esp32:esp32@2.0.17`（fqbn `esp32:esp32:esp32`）。编译缓存被强杀损坏时用 `--build-path` 换新目录，别怀疑代码。
+- Arduino：`outputs/.tools/arduino-cli/arduino-cli.exe`（1.5.2-rc.1）+ `esp32:esp32@2.0.17`（fqbn `esp32:esp32:esp32`）。编译缓存被强杀损坏时用 `--build-path` 换新目录，别怀疑代码。
+- 固件版本：**v1.3**（v1.2 异常保护 + v1.3 继电器上电毛刺修复），编译字节数以 `outputs/花房代码/GreenHouse_v1/README.md` 为准。
 - 固件源码唯一真相源：`outputs/花房代码/GreenHouse_v1/`。
 
 ## 5. 凭据与隐私
