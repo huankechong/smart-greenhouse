@@ -18,6 +18,7 @@
  *  手动浇水改非阻塞、凭据移入 config.h、魔法数字常量化、标定防呆自检。
  *  详见《AR01_GreenHouse代码审计修复报告_2026-10-17.md》
  *
+ *  v1.3（2026-10-19 上电毛刺）：继电器"先锁电平再开输出"，避免低电平触发模块上电误吸合
  *  v1.2（2026-10-19 异常保护）：补两条"长期跑会出事"的缺口——
  *    ① 连浇上限：连续 MAX_ROUNDS_PER_CYCLE 轮仍判缺水 → 停水冷却 10 分钟并红灯快闪
  *       （防传感器脱土/线松导致每 33 秒一轮、无限浇下去）
@@ -337,7 +338,7 @@ void handleRoot() {                             // 局域网保底网页（答�
 
 void setup() {
   Serial.begin(115200);
-  Serial.println("\n===== 智能花房养护站 v1.2 启动 =====");
+  Serial.println("\n===== 智能花房养护站 v1.3 启动 =====");
   Serial.printf("功能开关: DHT=%d OLED=%d WATER=%d LEVEL=%d WIFI=%d MQTT=%d WEB=%d\n",
                 EN_DHT, EN_OLED, EN_WATER, EN_LEVEL, EN_WIFI, EN_MQTT, EN_WEB);   // v1.1：排障先看烧的是哪套配置
   Serial.printf("标定: dry=%d wet=%d 缺水阈值=%d%%\n", SOIL_RAW_DRY, SOIL_RAW_WET, SOIL_THRESHOLD_PCT);
@@ -354,7 +355,12 @@ void setup() {
 
   pinMode(PIN_LED_R, OUTPUT); digitalWrite(PIN_LED_R, LOW);
   pinMode(PIN_LED_G, OUTPUT); digitalWrite(PIN_LED_G, LOW);
-  pinMode(PIN_RELAY, OUTPUT); relayOff();       // 上电继电器必须断开
+  // v1.3：先把"断开"电平锁进输出寄存器，再打开输出驱动。
+  // 低电平触发的继电器模块，若先 pinMode 再写电平，中间有几微秒是浮空/低电平 → 会"咔"一下吸合，
+  // 表现就是"一上电水泵就转"。顺序反过来可以消掉这个毛刺。
+  digitalWrite(PIN_RELAY, RELAY_ACTIVE_HIGH ? LOW : HIGH);
+  pinMode(PIN_RELAY, OUTPUT);
+  relayOff();                                   // 上电继电器必须断开
 
 #if EN_DHT
   dht.begin();

@@ -169,10 +169,11 @@ add(place(water, TANK[0], TANK[1] - 1.0, 3.0 + TT + 10.0), "water", "水体")
 # ---------- 5. 水泵座 + 水泵 ----------
 PUMP = (85.0, 8.0)
 add(place(M_P0.build_pump_mount(M_P0.PARAMS["pump"]), PUMP[0], PUMP[1], 3.0 + TT), "white", "水泵固定座")
-add(place(cylinder(radius=19.0, height=26.0, sections=64), PUMP[0], PUMP[1], 3.0 + TT + 16.0),
-    "pump", "水泵")
-add(place(cylinder(radius=12.0, height=4.0, sections=64), PUMP[0], PUMP[1], 3.0 + TT + 31.0),
-    "pump", "泵头")
+# 实物泵体 41 × 39 × 30（含出水嘴 37），底脚 32 × 28 —— 方块 + 顶面出水嘴
+_PZ = 3.0 + TT + 3.0          # 泵体底面（座底板 3 之上）
+add(place(box([41.0, 39.0, 30.0]), PUMP[0], PUMP[1], _PZ + 15.0), "pump", "水泵")
+add(place(cylinder(radius=6.0, height=7.0, sections=32), PUMP[0] - 2.0, PUMP[1], _PZ + 33.5),
+    "pump", "泵出水嘴")
 
 # ---------- 6. 水管（v2：末端竖直穿过夹孔，孔径 8.6 / 管径 8，全程不蹭夹壁）----------
 # 管孔世界坐标在夹子放置后算出（第 8 节），这里先按 AZ_CLIP 推导
@@ -334,9 +335,9 @@ for k in range(3):
     add(_bx(-45.0, -45.4, 66.0 + k * 3.0, 9.0, 0.5, 1.1), "mcu", "DHT11 格栅%d" % k)
 
 # ---------- 20. 水泵进水格栅 / 出水嘴 / 电源线 ----------
-grille = [_cyl(19.2, 0.8, 40, z=10.5 + k * 3.2, x=85.0, y=8.0) for k in range(5)]
-add(_cat(grille), "mcu", "水泵进水格栅")
-add(_cyl(4.0, 8.0, 16, z=37.0, x=85.0, y=8.0), "pump", "水泵出水嘴")
+# 底吸口：泵体正下方的方形格栅（泵座底板中间已开 34×30 的孔）
+_g = [_bx(85.0, 8.0 - 12.0 + k * 6.0, _PZ - 0.6, 30.0, 2.0, 1.2) for k in range(5)]
+add(_cat(_g), "mcu", "水泵进水格栅")
 
 # ---------- 21. 8 颗 M3×6 螺丝（底盘连接块，头面齐平 z=8） ----------
 for jy in (70.0, -70.0):

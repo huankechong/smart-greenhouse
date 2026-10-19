@@ -83,7 +83,7 @@ for name, stl in [("01b_sensor_rim_hook", "01b_sensor_rim_hook_v2.stl"),
     checks.append((f"P0 文档 {stl} 估重 {g}g 是否出现", str(g) in d))
     bb = [round(x, 2) for x in m.extents]
     expect = {"01b_sensor_rim_hook_v2.stl": "30 × 19.78 × 32.78",
-              "02_pump_mount_v1.stl": "⌀58 × 28",
+              "02_pump_mount_v1.stl": "57 × 55 × 25",
               "03_tube_clip_v1.stl": "22 × 21 × 33.75"}[stl]
     checks.append((f"P0 文档 {stl} 外形写作「{expect}」", expect in d))
 

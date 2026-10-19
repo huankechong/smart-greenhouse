@@ -53,22 +53,25 @@ PARAMS = {
         "m3_x": 10.0,            # 两孔 X 间距的一半
         "m3_y": 12.0,            # 孔心距立臂的 Y 位置
     },
-    # ---------- 件 2: 水泵固定座 ----------
+    # ---------- 件 2: 水泵固定座（2026-10-19 按实物改：方形泵体）----------
+    # 实物：3W USB 底吸泵，泵体 41 × 39 × 30，含出水嘴高 37；底脚（吸盘）32 × 28
+    # v1 按"φ38 圆柱泵"做的圆筒座，实物是方的，整套重做
     "pump": {
-        "pump_d": 38.0,          # [市售常见值 微型潜水泵泵体直径 phi38, 实物卡尺待测]
-        "radial_clear": 0.4,     # 单边径向间隙 [设计决策: 卡紧但要能塞进去]
+        "body_x": 41.0,          # [实测] 泵体长
+        "body_y": 39.0,          # [实测] 泵体宽
+        "body_h": 30.0,          # [实测] 泵体高（不含出水嘴）
+        "clear": 0.5,            # 单边间隙
         "wall": 3.5,             # 座壁厚
-        "socket_h": 25.0,        # 座筒高 [设计决策: 覆盖泵体 2/3 高防倾倒]
-        "base_d": 58.0,          # 圆底板直径 [设计决策: 圆形比方形更容易塞进瓶口]
+        "wall_h": 22.0,          # 座壁高（覆盖泵体 2/3，防倾倒且不挡出水嘴）
         "base_t": 3.0,           # 底板厚
-        "intake_hole_d": 34.0,   # 底部进水开孔 [设计决策: 让泵底吸口直接触水]
-        "outlet_notch_w": 12.0,  # 出水嘴让位口宽 [市售常见值 出水嘴 phi8 + 余量]
-        "outlet_notch_h": 14.0,  # 让位口高
-        "rib_w": 7.0,            # 加强筋宽 (切向)
-        "rib_t": 4.0,            # 加强筋外伸 (径向)
-        "rib_h": 18.0,           # 加强筋高
+        "base_margin": 4.0,      # 底板比外壁外扩
+        "intake_x": 34.0,        # 底部进水开孔（让底吸口触水）
+        "intake_y": 30.0,
+        "rib_w": 6.0,            # 角部加强筋宽
+        "rib_h": 16.0,           # 加强筋高
         "m3_d": 3.2,             # 底板安装孔
-        "m3_r": 25.5,            # 安装孔分布半径 (必须落在座筒外壁之外, 否则孔被筒壁堵死)
+        "m3_dx": 23.0,           # 孔位 X（外壁外，避免被壁堵死）
+        "m3_dy": 21.5,
     },
     # ---------- 件 3: 水管末端固定夹 ----------
     # v2 设计（2026-10-19，AR05）：原方案"立板跨盆壁 + 锥形楔紧槽"在锥形盆上必然咬入盆壁
@@ -202,37 +205,25 @@ def build_sensor_bracket(p):
 # 件 2: 水泵固定座
 # ============================================================
 def build_pump_mount(p):
-    r_in = p["pump_d"] / 2 + p["radial_clear"]
-    r_out = r_in + p["wall"]
-    bt = p["base_t"]
-    sh = p["socket_h"]
+    """方形底吸泵的固定座：底板（中间开孔让底吸口触水）+ 四面围壁 + 角部斜筋。"""
+    cx = p["body_x"] + 2 * p["clear"]          # 内腔
+    cy = p["body_y"] + 2 * p["clear"]
+    wall, bt, h = p["wall"], p["base_t"], p["wall_h"]
+    ox, oy = cx + 2 * wall, cy + 2 * wall      # 外壁
+    bx, by = ox + 2 * p["base_margin"], oy + 2 * p["base_margin"]
 
-    # 圆底板 + 座筒 (底板留中心大孔让泵底吸口触水)
-    body = C(0, 0, bt / 2, p["base_d"] / 2, bt, sections=96)
-    body = cut(body, [C(0, 0, bt / 2, p["intake_hole_d"] / 2, bt + 4, sections=96)])
-    ring = cut(
-        C(0, 0, bt + sh / 2, r_out, sh, sections=96),
-        [C(0, 0, bt + sh / 2, r_in, sh + 4, sections=96)],
-    )
-    body = add(body, [ring])
+    body = B(0, 0, bt / 2, bx, by, bt)
+    body = cut(body, [B(0, 0, bt / 2, p["intake_x"], p["intake_y"], bt + 4)])
 
-    # 四条三角加强筋 (斜撑座筒, 打印无支撑)
-    for ang in (45, 135, 225, 315):
-        prof = [(r_out - 0.6, bt + p["rib_h"]), (r_out - 0.6, bt), (r_out + p["rib_t"], bt)]
-        rb = prism_yz(prof, -p["rib_w"] / 2, p["rib_w"] / 2)
-        rb.apply_transform(trimesh.transformations.rotation_matrix(
-            np.deg2rad(ang), [0, 0, 1]))
-        body = add(body, [rb])
+    # 四面围壁（用外壳减内腔，避免四块拼接留缝）
+    shell = B(0, 0, bt + h / 2, ox, oy, h)
+    cavity = B(0, 0, bt + h / 2, cx, cy, h + 4)
+    body = add(body, [cut(shell, [cavity])])
 
-    # 出水嘴让位 U 型槽 (开口朝 +Y)
-    notch = B(0, r_out, bt + sh - p["outlet_notch_h"] / 2,
-              p["outlet_notch_w"], p["rib_t"] + p["wall"] + 6, p["outlet_notch_h"])
-    body = cut(body, [notch])
-
-    # 底板四个 M3 安装孔 (0/90/180/270, 避开 45 度加强筋)
-    holes = []
-    for sx, sy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
-        holes.append(C(sx * p["m3_r"], sy * p["m3_r"], bt / 2, p["m3_d"] / 2, bt + 4))
+    # 角部斜筋从简：四面 3.5 壁 + 3mm 底板已足够防倾倒，避免四角各做一块导致多体
+    # 四个 M3 安装孔（落在底板四角、外壁之外）
+    holes = [C(sx * p["m3_dx"], sy * p["m3_dy"], bt / 2, p["m3_d"] / 2, bt + 4)
+             for sx in (-1, 1) for sy in (-1, 1)]
     body = cut(body, holes)
     return body
 
