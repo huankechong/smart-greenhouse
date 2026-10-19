@@ -17,6 +17,13 @@
  *  v1.1（2026-10-17 代码审计修复）：修复 0% 哨兵误判、WiFi 掉线不重连、
  *  手动浇水改非阻塞、凭据移入 config.h、魔法数字常量化、标定防呆自检。
  *  详见《AR01_GreenHouse代码审计修复报告_2026-10-17.md》
+ *
+ *  v1.2（2026-10-19 异常保护）：补两条"长期跑会出事"的缺口——
+ *    ① 连浇上限：连续 MAX_ROUNDS_PER_CYCLE 轮仍判缺水 → 停水冷却 10 分钟并红灯快闪
+ *       （防传感器脱土/线松导致每 33 秒一轮、无限浇下去）
+ *    ② 低水位保护：EN_LEVEL=1 时读雨滴/浮球开关，水位低则拒绝启动、浇到一半也会停泵
+ *       （防水箱空了泵空转干烧）
+ *  两条都是"默认关闭"，接好传感器再开，不影响 W1/W2 的既有节奏。
  */
 
 // ==================== 功能开关（按周开启） ====================
@@ -26,6 +33,7 @@
 #define EN_WIFI   0   // W3-D11：上云时改 1 → 需装 PubSubClient
 #define EN_MQTT   0   // 依赖 EN_WIFI=1：数据上报 + 远程浇水
 #define EN_WEB    0   // 依赖 EN_WIFI=1：局域网保底网页（断外网手机也能看）
+#define EN_LEVEL  0   // v1.2：接好水位检测（雨滴26号贴瓶壁 / 浮球开关）后改 1 → 低水位停泵
 
 // ==================== 引脚定义（对照《花房接线规划表.md》） ====================
 #define PIN_SOIL    34   // 土壤湿度 AO → ADC1（只读脚，不能接输出设备）
@@ -34,6 +42,7 @@
 #define PIN_RELAY   26   // 继电器 IN（16号）
 #define PIN_LED_R   25   // 双色LED 红（13号，课堂双色LED实验件复用为状态灯）
 #define PIN_LED_G   27   // 双色LED 绿（13号）
+#define PIN_RAIN    32   // v1.2 水位检测 AO（26号雨滴模块 / 水位开关）→ ADC1，EN_LEVEL=1 才读
 
 // ==================== 标定/浇水参数（到货实测后改这里） ====================
 const int SOIL_RAW_DRY = 3200;        // 探针全干的 raw 读数 → W1-4.1 实测后修改！
@@ -43,6 +52,12 @@ const unsigned long WATER_MS  = 3000;    // 每轮浇水 3 秒
 const unsigned long SETTLE_MS = 30000;   // 浇完等 30 秒复测（防反复触发）
 const unsigned long MANUAL_WATER_MS = 5000; // 远程手动浇水 5 秒
 const int RELAY_ACTIVE_HIGH = 1;  // 继电器触发极性：吸合=高电平填1；实测相反就改0
+
+// ---------- v1.2 异常保护参数 ----------
+const int           MAX_ROUNDS_PER_CYCLE = 6;        // 一次处理最多连浇 6 轮（6×3s=18s 水）
+const unsigned long COOLDOWN_MS  = 600000;           // 触发上限后冷却 10 分钟再恢复自动
+const int           LEVEL_DRY_RAW = 2500;            // [实测标定] 水位检测 raw 高于此值 → 判定缺水
+                                                     // 电阻式雨滴模块：干=高、湿=低；浮球开关请改判断极性
 
 // ---------- 运行周期参数（v1.1 常量化，改节奏只动这里） ----------
 const unsigned long SENSOR_INTERVAL_MS  = 5000;   // 传感器采样 + 串口打印周期
@@ -89,9 +104,12 @@ int   gSoilRaw = 0, gSoilPct = 0;
 int   gLightRaw = 0;
 float gTemp = NAN, gHum = NAN;
 bool  gSensorReady = false;     // 首次读数完成标志：0% 是合法湿度，不能拿 0 当"无数据"哨兵（v1.1 修复）
-int   waterState = 0;          // 0=监视 1=浇水中 2=停水复测中 3=远程手动浇水中
+bool  gLevelLow = false;        // v1.2：水位过低标志（EN_LEVEL=1 时才更新）
+int   waterState = 0;          // 0=监视 1=浇水中 2=停水复测中 3=远程手动浇水中 4=冷却保护中
+int   waterRounds = 0;         // v1.2：本处理周期已连浇轮数，恢复湿度或冷却结束时清零
 unsigned long waterTimer = 0;
 unsigned long manualMs = 0;     // 状态3手动浇水的时长
+unsigned long lastLevelWarn = 0; // v1.2：低水位日志节流（10 秒一条，防串口刷屏）
 
 // ---------- 继电器极性封装（低电平触发的模块只需改 RELAY_ACTIVE_HIGH） ----------
 void relayOn()  { digitalWrite(PIN_RELAY, RELAY_ACTIVE_HIGH ? HIGH : LOW); }
@@ -109,6 +127,10 @@ void readSensors() {
   // 电容式传感器：干=高raw 湿=低raw → 映射成 0-100%
   gSoilPct  = constrain(map(gSoilRaw, SOIL_RAW_WET, SOIL_RAW_DRY, 100, 0), 0, 100);
   gLightRaw = readAverage(PIN_LIGHT);
+#if EN_LEVEL
+  // 电阻式雨滴/水位板：干（无水）= 高 raw；湿（泡到水）= 低 raw
+  gLevelLow = (readAverage(PIN_RAIN) > LEVEL_DRY_RAW);
+#endif
 #if EN_DHT
   gHum  = dht.readHumidity();
   gTemp = dht.readTemperature();
@@ -118,28 +140,54 @@ void readSensors() {
 // ---------- 串口打印：W1 全部"串口截图"素材都从这里来 ----------
 void printSensors() {
   Serial.printf("[数据] 土壤raw=%d 湿度=%d%% | 光照raw=%d", gSoilRaw, gSoilPct, gLightRaw);
+#if EN_LEVEL
+  Serial.printf(" | 水位=%s", gLevelLow ? "低!!" : "正常");
+#endif
 #if EN_DHT
   if (!isnan(gTemp)) Serial.printf(" | 温度=%.1fC 气湿=%.0f%%", gTemp, gHum);
 #endif
   Serial.println();
 }
 
-// ---------- 状态灯：绿=正常 / 红=缺水 / 浇水中红闪 ----------
+// ---------- 状态灯：绿=正常 / 红=缺水 / 红300ms闪=浇水中 / 红100ms快闪=保护冷却 / 红1s慢闪=水位低 ----------
 void updateStatusLed() {
   if (waterState == 1) {                        // 浇水中：红灯 300ms 闪烁
     digitalWrite(PIN_LED_R, (millis() / 300) % 2);
     digitalWrite(PIN_LED_G, LOW);
     return;
   }
+  if (waterState == 4) {                        // v1.2 冷却保护：红灯 100ms 快闪（一眼看出"出事了"）
+    digitalWrite(PIN_LED_R, (millis() / 100) % 2);
+    digitalWrite(PIN_LED_G, LOW);
+    return;
+  }
+#if EN_LEVEL
+  if (gLevelLow) {                              // v1.2 水位低：红灯 1s 慢闪，与"缺水常亮"区分
+    digitalWrite(PIN_LED_R, (millis() / 1000) % 2);
+    digitalWrite(PIN_LED_G, LOW);
+    return;
+  }
+#endif
   digitalWrite(PIN_LED_R, (gSensorReady && gSoilPct < SOIL_THRESHOLD_PCT) ? HIGH : LOW);  // v1.1：0% 也亮红灯
   digitalWrite(PIN_LED_G, (gSoilPct >= SOIL_THRESHOLD_PCT) ? HIGH : LOW);
 }
 
-// ---------- 自动浇水状态机：监视 → 浇3秒 → 停30秒复测 → 仍干再浇 ----------
+// ---------- 自动浇水状态机：监视 → 浇3秒 → 停30秒复测 → 仍干再浇（最多 6 轮）→ 冷却 ----------
 void waterTick() {
 #if EN_WATER
   unsigned long now = millis();
-  if (waterState == 3) {                        // 远程手动浇水（v1.1 改非阻塞：期间 MQTT/Web 照常响应）
+
+  // ---- 状态 4：冷却保护（v1.2）----
+  if (waterState == 4) {
+    if (now - waterTimer >= COOLDOWN_MS) {
+      waterRounds = 0; waterState = 0; waterTimer = now;
+      Serial.println("[保护] 冷却结束，恢复自动监测");
+    }
+    return;
+  }
+
+  // ---- 状态 3：远程手动浇水（v1.1 非阻塞：期间 MQTT/Web 照常响应）----
+  if (waterState == 3) {
     if (now - waterTimer >= manualMs) {
       relayOff(); waterState = 0; waterTimer = now;
       digitalWrite(PIN_LED_R, LOW);
@@ -147,25 +195,59 @@ void waterTick() {
     }
     return;
   }
+
+  // ---- 状态 0：监视 ----
   if (waterState == 0) {
-    if (gSensorReady && gSoilPct < SOIL_THRESHOLD_PCT) {   // v1.1：去掉 >0 哨兵，0% 也触发
-      Serial.println("[自动] 判定缺水，开始浇水");
+    if (!gSensorReady) return;
+#if EN_LEVEL
+    if (gLevelLow) {                            // v1.2：水箱没水就绝不启动，日志 10s 一条防刷屏
+      if (now - lastLevelWarn >= 10000) {
+        lastLevelWarn = now;
+        Serial.println("[保护] 水位过低，暂停自动浇水（请给蓄水瓶补水）");
+      }
+      return;
+    }
+#endif
+    if (gSoilPct < SOIL_THRESHOLD_PCT) {        // v1.1：去掉 >0 哨兵，0% 也触发
+      waterRounds++;
+      Serial.printf("[自动] 判定缺水，开始第 %d/%d 轮浇水\n", waterRounds, MAX_ROUNDS_PER_CYCLE);
       relayOn(); waterState = 1; waterTimer = now;
     }
-  } else if (waterState == 1) {
+    return;
+  }
+
+  // ---- 状态 1：浇水中 ----
+  if (waterState == 1) {
+#if EN_LEVEL
+    if (gLevelLow) {                            // v1.2：浇到一半水抽干了 → 立刻停泵
+      relayOff(); waterState = 0; waterRounds = 0; waterTimer = now;
+      Serial.println("[保护] 浇水过程中水位过低，已立即停泵");
+      return;
+    }
+#endif
     if (now - waterTimer >= WATER_MS) {
       relayOff(); waterState = 2; waterTimer = now;
       Serial.println("[自动] 本轮浇完，30秒后复测");
     }
-  } else {
+    return;
+  }
+
+  // ---- 状态 2：停水复测 ----
+  if (waterState == 2) {
     if (now - waterTimer >= SETTLE_MS) {
       readSensors();                            // 复测（"浇一段—停—复测"策略）
       if (gSoilPct < SOIL_THRESHOLD_PCT) {
-        Serial.println("[自动] 复测仍缺水，再浇一轮");
-        relayOn(); waterState = 1; waterTimer = now;
+        if (waterRounds >= MAX_ROUNDS_PER_CYCLE) {          // v1.2 上限保护
+          waterState = 4; waterTimer = now;
+          Serial.printf("[保护] 已连浇 %d 轮仍判缺水 —— 传感器可能脱土/线松/故障，停止浇水并冷却 %lu 分钟\n",
+                        waterRounds, COOLDOWN_MS / 60000UL);
+        } else {
+          Serial.println("[自动] 复测仍缺水，再浇一轮");
+          relayOn(); waterState = 1; waterTimer = now;
+        }
       } else {
         Serial.println("[自动] 湿度已恢复，本轮结束");
-        waterState = 0;
+        waterState = 0; waterRounds = 0;
       }
     }
   }
@@ -174,6 +256,12 @@ void waterTick() {
 
 #if EN_WATER
 void manualWaterStart(unsigned long ms) {       // 远程手动浇水启动（v1.1 改非阻塞，实际计时在 waterTick 状态3）
+#if EN_LEVEL
+  if (gLevelLow) {                              // v1.2：没水就别让泵空转
+    Serial.println("[远程] 拒绝：水位过低，请先给蓄水瓶补水");
+    return;
+  }
+#endif
   Serial.println("[远程] 手动浇水开始");
   digitalWrite(PIN_LED_R, HIGH);
   relayOn();
@@ -217,6 +305,17 @@ void publishData() {                            // 巴法云004格式：字段#�
 #if EN_DHT
   if (!isnan(gTemp)) p += "|温度#" + String(gTemp, 1) + "|气湿#" + String(gHum, 0);
 #endif
+#if EN_WATER
+  const char* st = "正常";
+  if (waterState == 1) st = "浇水中";
+  else if (waterState == 2) st = "复测中";
+  else if (waterState == 3) st = "手动";
+  else if (waterState == 4) st = "冷却保护";
+  p += "|状态#" + String(st);
+#endif
+#if EN_LEVEL
+  p += "|水位#" + String(gLevelLow ? "低" : "正常");
+#endif
   publishTo(TOPIC_DATA, p.c_str());
   Serial.println("[MQTT] 上行: " + p);
 }
@@ -229,16 +328,25 @@ void handleRoot() {                             // 局域网保底网页（答�
 #if EN_DHT
   if (!isnan(gTemp)) h += "<p>温度: " + String(gTemp, 1) + " C | 气湿: " + String(gHum, 0) + "%</p>";
 #endif
+#if EN_LEVEL
+  h += String("<p>水位: ") + (gLevelLow ? "<b style='color:#c00'>过低</b>" : "正常") + "</p>";
+#endif
   server.send(200, "text/html", h);
 }
 #endif
 
 void setup() {
   Serial.begin(115200);
-  Serial.println("\n===== 智能花房养护站 v1.1 启动 =====");
-  Serial.printf("功能开关: DHT=%d OLED=%d WATER=%d WIFI=%d MQTT=%d WEB=%d\n",
-                EN_DHT, EN_OLED, EN_WATER, EN_WIFI, EN_MQTT, EN_WEB);   // v1.1：排障先看烧的是哪套配置
+  Serial.println("\n===== 智能花房养护站 v1.2 启动 =====");
+  Serial.printf("功能开关: DHT=%d OLED=%d WATER=%d LEVEL=%d WIFI=%d MQTT=%d WEB=%d\n",
+                EN_DHT, EN_OLED, EN_WATER, EN_LEVEL, EN_WIFI, EN_MQTT, EN_WEB);   // v1.1：排障先看烧的是哪套配置
   Serial.printf("标定: dry=%d wet=%d 缺水阈值=%d%%\n", SOIL_RAW_DRY, SOIL_RAW_WET, SOIL_THRESHOLD_PCT);
+#if EN_WATER
+  Serial.printf("浇水保护: 最多 %d 轮 / 冷却 %lu 分钟\n", MAX_ROUNDS_PER_CYCLE, COOLDOWN_MS / 60000UL);
+#endif
+#if EN_LEVEL
+  Serial.printf("水位判据: raw > %d 视为缺水（实测后改 LEVEL_DRY_RAW）\n", LEVEL_DRY_RAW);
+#endif
 
   if (SOIL_RAW_DRY <= SOIL_RAW_WET) {           // v1.1 标定防呆：干点必须大于湿点，填反立刻报错
     Serial.println("!! [自检失败] SOIL_RAW_DRY <= SOIL_RAW_WET，标定值疑似填反，请检查后重烧 !!");
