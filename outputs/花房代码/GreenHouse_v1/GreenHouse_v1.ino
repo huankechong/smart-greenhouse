@@ -18,11 +18,18 @@
  *  手动浇水改非阻塞、凭据移入 config.h、魔法数字常量化、标定防呆自检。
  *  详见《AR01_GreenHouse代码审计修复报告_2026-10-17.md》
  *
+ *  v1.4（2026-10-19 水位检测换浮球开关）：EN_LEVEL 从"读模拟量比阈值"改成
+ *    "读干接点 + 消抖"。浮球开关是无源干接点（P52 / M10 / 常开 / 0~110V，
+ *    43→52mm 修正：P43 报警点太高，1L 桶可用余量不足 650ml；P52 报警点 52mm，
+ *    余量 700ml 够单轮浇灌上限），
+ *    比电阻式雨滴板可靠：不电解、不受瓶壁影响、断线默认判"没水"（fail-safe）。
+ *    删除 LEVEL_DRY_RAW；新增 LEVEL_WET_CLOSED 极性宏 + LEVEL_INTERVAL_MS 节流 +
+ *    连续 3 次一致才认（水面波动会让干接点抖）。
  *  v1.3（2026-10-19 上电毛刺）：继电器"先锁电平再开输出"，避免低电平触发模块上电误吸合
  *  v1.2（2026-10-19 异常保护）：补两条"长期跑会出事"的缺口——
  *    ① 连浇上限：连续 MAX_ROUNDS_PER_CYCLE 轮仍判缺水 → 停水冷却 10 分钟并红灯快闪
  *       （防传感器脱土/线松导致每 33 秒一轮、无限浇下去）
- *    ② 低水位保护：EN_LEVEL=1 时读雨滴/浮球开关，水位低则拒绝启动、浇到一半也会停泵
+ *    ② 低水位保护：EN_LEVEL=1 时读浮球开关（v1.4 改为干接点），水位低则拒绝启动、浇到一半也会停泵
  *       （防水箱空了泵空转干烧）
  *  两条都是"默认关闭"，接好传感器再开，不影响 W1/W2 的既有节奏。
  */
@@ -34,7 +41,7 @@
 #define EN_WIFI   0   // W3-D11：上云时改 1 → 需装 PubSubClient
 #define EN_MQTT   0   // 依赖 EN_WIFI=1：数据上报 + 远程浇水
 #define EN_WEB    0   // 依赖 EN_WIFI=1：局域网保底网页（断外网手机也能看）
-#define EN_LEVEL  0   // v1.2：接好水位检测（雨滴26号贴瓶壁 / 浮球开关）后改 1 → 低水位停泵
+#define EN_LEVEL  0   // v1.4：接好浮球开关（第 10 件替换盖 + P52 浮球）后改 1 → 低水位停泵
 
 // ==================== 引脚定义（对照《花房接线规划表.md》） ====================
 #define PIN_SOIL    34   // 土壤湿度 AO → ADC1（只读脚，不能接输出设备）
@@ -43,7 +50,7 @@
 #define PIN_RELAY   26   // 继电器 IN（16号）
 #define PIN_LED_R   25   // 双色LED 红（13号，课堂双色LED实验件复用为状态灯）
 #define PIN_LED_G   27   // 双色LED 绿（13号）
-#define PIN_RAIN    32   // v1.2 水位检测 AO（26号雨滴模块 / 水位开关）→ ADC1，EN_LEVEL=1 才读
+#define PIN_LEVEL   32   // v1.4 浮球开关干接点（第 10 件替换盖中心孔穿出）→ 数字输入，1kΩ 上拉到 3V3
 
 // ==================== 标定/浇水参数（到货实测后改这里） ====================
 const int SOIL_RAW_DRY = 3200;        // 探针全干的 raw 读数 → W1-4.1 实测后修改！
@@ -57,8 +64,14 @@ const int RELAY_ACTIVE_HIGH = 1;  // 继电器触发极性：吸合=高电平填
 // ---------- v1.2 异常保护参数 ----------
 const int           MAX_ROUNDS_PER_CYCLE = 6;        // 一次处理最多连浇 6 轮（6×3s=18s 水）
 const unsigned long COOLDOWN_MS  = 600000;           // 触发上限后冷却 10 分钟再恢复自动
-const int           LEVEL_DRY_RAW = 2500;            // [实测标定] 水位检测 raw 高于此值 → 判定缺水
-                                                     // 电阻式雨滴模块：干=高、湿=低；浮球开关请改判断极性
+
+// ---------- v1.4 水位检测（浮球开关，干接点） ----------
+const bool          LEVEL_WET_CLOSED = true;         // [实测确认] true=有水时触点闭合（常开型）
+                                                     //   万用表蜂鸣档：浮子推上端应"响"，拉下端"不响"
+const unsigned long LEVEL_INTERVAL_MS = 100;         // 干接点采样周期（100ms 足够，远快于 3s 浇一轮）
+const uint8_t       LEVEL_STABLE_N = 3;              // 连续 3 次一致才认（水面波动会抖，别只看 1 次）
+const bool          LEVEL_USE_INTERNAL_PULLUP = false; // 外部 1kΩ 上拉时填 false（内部 45kΩ 太弱，
+                                                       //   干簧管湿电流不够会在触点氧化后时通时断）
 
 // ---------- 运行周期参数（v1.1 常量化，改节奏只动这里） ----------
 const unsigned long SENSOR_INTERVAL_MS  = 5000;   // 传感器采样 + 串口打印周期
@@ -106,11 +119,15 @@ int   gLightRaw = 0;
 float gTemp = NAN, gHum = NAN;
 bool  gSensorReady = false;     // 首次读数完成标志：0% 是合法湿度，不能拿 0 当"无数据"哨兵（v1.1 修复）
 bool  gLevelLow = false;        // v1.2：水位过低标志（EN_LEVEL=1 时才更新）
+bool  gLevelReady = false;      // v1.4：首次稳定判定完成前，保护逻辑按"未知"处理（不启动浇水）
 int   waterState = 0;          // 0=监视 1=浇水中 2=停水复测中 3=远程手动浇水中 4=冷却保护中
 int   waterRounds = 0;         // v1.2：本处理周期已连浇轮数，恢复湿度或冷却结束时清零
 unsigned long waterTimer = 0;
 unsigned long manualMs = 0;     // 状态3手动浇水的时长
 unsigned long lastLevelWarn = 0; // v1.2：低水位日志节流（10 秒一条，防串口刷屏）
+unsigned long tLevel = 0;        // v1.4：干接点采样计时
+bool          levelLast = false; // v1.4：上一次原始采样
+uint8_t       levelSame = 0;     // v1.4：连续一致次数
 
 // ---------- 继电器极性封装（低电平触发的模块只需改 RELAY_ACTIVE_HIGH） ----------
 void relayOn()  { digitalWrite(PIN_RELAY, RELAY_ACTIVE_HIGH ? HIGH : LOW); }
@@ -128,13 +145,42 @@ void readSensors() {
   // 电容式传感器：干=高raw 湿=低raw → 映射成 0-100%
   gSoilPct  = constrain(map(gSoilRaw, SOIL_RAW_WET, SOIL_RAW_DRY, 100, 0), 0, 100);
   gLightRaw = readAverage(PIN_LIGHT);
-#if EN_LEVEL
-  // 电阻式雨滴/水位板：干（无水）= 高 raw；湿（泡到水）= 低 raw
-  gLevelLow = (readAverage(PIN_RAIN) > LEVEL_DRY_RAW);
-#endif
 #if EN_DHT
   gHum  = dht.readHumidity();
   gTemp = dht.readTemperature();
+#endif
+}
+
+// ---------- v1.4 浮球开关读取：干接点 + 100ms 节流 + 连续 3 次一致消抖 ----------
+// 为什么不用内部上拉：干簧管有"湿电流"门槛（小信号型号约 1~10mA），
+// 内部 45kΩ 只有 0.07mA，触点氧化后会出现"时通时断"；外部 1kΩ 给到 3.3mA 才稳。
+void levelTick() {
+#if EN_LEVEL
+  unsigned long now = millis();
+  if (now - tLevel < LEVEL_INTERVAL_MS) return;
+  tLevel = now;
+
+  // 常开型(有水闭合)：有水→闭合→读到 LOW；没水/线断→断开→被 1kΩ 上拉到 HIGH
+  bool rawLow = (digitalRead(PIN_LEVEL) == (LEVEL_WET_CLOSED ? HIGH : LOW));
+
+  if (rawLow == levelLast) {
+    if (levelSame < LEVEL_STABLE_N) levelSame++;
+  } else {
+    levelLast = rawLow;
+    levelSame = 0;
+  }
+  if (levelSame >= LEVEL_STABLE_N - 1) {          // 连续 3 次一致才采信
+    if (!gLevelReady) {
+      gLevelReady = true;
+      Serial.printf("[水位] 首次判定：%s（%s）\n",
+                    rawLow ? "低" : "正常",
+                    LEVEL_WET_CLOSED ? "常开型/有水闭合" : "常闭型/没水闭合");
+    }
+    if (gLevelLow != rawLow) {
+      gLevelLow = rawLow;
+      Serial.println(gLevelLow ? "[水位] 变为【低】→ 停泵保护" : "[水位] 恢复【正常】");
+    }
+  }
 #endif
 }
 
@@ -201,6 +247,7 @@ void waterTick() {
   if (waterState == 0) {
     if (!gSensorReady) return;
 #if EN_LEVEL
+    if (!gLevelReady) return;                   // v1.4：水位还没判稳，先别开泵
     if (gLevelLow) {                            // v1.2：水箱没水就绝不启动，日志 10s 一条防刷屏
       if (now - lastLevelWarn >= 10000) {
         lastLevelWarn = now;
@@ -338,7 +385,7 @@ void handleRoot() {                             // 局域网保底网页（答�
 
 void setup() {
   Serial.begin(115200);
-  Serial.println("\n===== 智能花房养护站 v1.3 启动 =====");
+  Serial.println("\n===== 智能花房养护站 v1.4 启动 =====");
   Serial.printf("功能开关: DHT=%d OLED=%d WATER=%d LEVEL=%d WIFI=%d MQTT=%d WEB=%d\n",
                 EN_DHT, EN_OLED, EN_WATER, EN_LEVEL, EN_WIFI, EN_MQTT, EN_WEB);   // v1.1：排障先看烧的是哪套配置
   Serial.printf("标定: dry=%d wet=%d 缺水阈值=%d%%\n", SOIL_RAW_DRY, SOIL_RAW_WET, SOIL_THRESHOLD_PCT);
@@ -346,7 +393,11 @@ void setup() {
   Serial.printf("浇水保护: 最多 %d 轮 / 冷却 %lu 分钟\n", MAX_ROUNDS_PER_CYCLE, COOLDOWN_MS / 60000UL);
 #endif
 #if EN_LEVEL
-  Serial.printf("水位判据: raw > %d 视为缺水（实测后改 LEVEL_DRY_RAW）\n", LEVEL_DRY_RAW);
+  pinMode(PIN_LEVEL, LEVEL_USE_INTERNAL_PULLUP ? INPUT_PULLUP : INPUT);
+  Serial.printf("水位检测: 浮球开关 %s | 上拉=%s | 消抖 %d×%lu ms\n",
+                LEVEL_WET_CLOSED ? "常开(有水闭合)" : "常闭(没水闭合)",
+                LEVEL_USE_INTERNAL_PULLUP ? "内部45k(仅应急)" : "外部1k",
+                (int)LEVEL_STABLE_N, LEVEL_INTERVAL_MS);
 #endif
 
   if (SOIL_RAW_DRY <= SOIL_RAW_WET) {           // v1.1 标定防呆：干点必须大于湿点，填反立刻报错
@@ -410,6 +461,7 @@ void loop() {
   server.handleClient();
 #endif
   waterTick();
+  levelTick();                                   // v1.4：干接点采样 + 消抖
   updateStatusLed();
 
   unsigned long now = millis();
