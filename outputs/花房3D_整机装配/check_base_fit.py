@@ -48,7 +48,7 @@ fails = []
 seen = {}
 for m, ck, nm in BA.items:
     lo, hi = m.bounds
-    if lo[2] > PT + 1.0 or not nm or nm.startswith("底盘"):
+    if lo[2] > PT + 1.0 or not nm or nm.startswith(("底盘", "M3×6", "跳线", "面包板孔", "面包板中", "面包板电", "ESP32 U", "ESP32 按", "ESP32 E", "ESP32 天", "ESP32 屏", "继电器端", "继电器指", "光耦", "排针", "OLED 排针", "水管")):
         continue
     key = nm
     if key in seen:            # 连接块/叶片等同名件只报一次

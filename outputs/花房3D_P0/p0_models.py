@@ -71,23 +71,24 @@ PARAMS = {
         "m3_r": 25.5,            # 安装孔分布半径 (必须落在座筒外壁之外, 否则孔被筒壁堵死)
     },
     # ---------- 件 3: 水管末端固定夹 ----------
+    # v2 设计（2026-10-19，AR05）：原方案"立板跨盆壁 + 锥形楔紧槽"在锥形盆上必然咬入盆壁
+    # （审计实测 花盆×夹 12.3mm³、土壤×夹 381mm³）。改为复刻 01b 已验证的"盆沿双爪"夹持
+    # （01b 与花盆干涉 = 0），爪只下探 7mm（土面在盆沿下 8mm），管环上置，管孔竖直贯穿。
     "clip": {
-        "tube_od": 8.0,          # [市售常见值 硅胶管内径4/外径8, 实物卡尺待测]
-        "ring_inner_d": 8.6,     # 管孔内径 = 管外径 + 0.6 [设计决策: 能进能出]
-        "ring_y": 12.0,          # 管孔中心距立板
-        "slot_open_w": 6.2,      # 侧面开口宽 < 孔径, 管子压进去不脱落 [设计决策]
-        "jaw_x": 22.0,           # 立板宽
-        "jaw_t": 5.0,            # 立板厚 (Y 向) —— 太薄会被孔切断/易断
-        "jaw_h": 26.0,           # 立板高
-        "rim_mouth": 7.5,        # 盆沿夹口下端开口宽 (大, 好插)
-        "rim_top": 4.5,          # 盆沿夹口顶端窄口 (小, 自锁) —— 锥形楔紧, 免螺丝
-        "rim_depth": 18.0,       # 夹口深
-        "shelf_x": 20.0,         # 顶部平台宽
-        "shelf_reach": 16.0,     # 顶部平台向前伸出 (越短越好打)
-        "shelf_t": 8.0,          # 顶部平台厚
-        "gusset_x0": 5.0,        # 平台下方斜撑内侧 X
-        "gusset_x1": 9.0,        # 平台下方斜撑外侧 X
-        "gusset_h": 12.0,        # 斜撑在立板上的高度
+        "tube_od": 8.0,          # [市售常见值] 硅胶管外径
+        "ring_inner_d": 8.6,     # 管孔内径 = 管外径 + 0.6
+        "rim_gap": 6.2,          # 盆沿夹口 = 盆壁 4.0 + 2.2 余量（AR05: 2.9mm³ 残差后加宽）
+        "taper": 8.5,            # 盆壁锥度: 爪必须跟着斜, 8.5° 略大于模型盆 8.04°, 越往下越让开
+        "jaw_down": 7.0,         # 爪下探长度 = 土面深度 8 - 1（不入土）
+        "jaw_w": 20.0,           # 爪宽（切向，30mm 会因弦高切进盆壁）
+        "jaw_t": 3.5,            # 爪厚
+        "bridge_x": 26.0,        # 顶桥宽（X）
+        "ring_reach": 12.0,      # 顶桥向内伸出量
+        "ring_y_local": -11.0,   # 管孔中心 Y（负=盆内方向；AR05: -6 会与内爪同域）
+        "col_x": 20.0,           # 管环柱宽
+        "col_y": 18.0,           # 管环柱深
+        "col_h": 20.0,           # 管环柱高（桥面以上）
+        "bridge_h": 6.0,         # 顶桥厚
     },
 }
 
@@ -240,46 +241,44 @@ def build_pump_mount(p):
 # 件 3: 水管末端固定夹
 # ============================================================
 def build_tube_clip(p):
-    jx, jt, jh = p["jaw_x"], p["jaw_t"], p["jaw_h"]
-    st, sr = p["shelf_t"], p["shelf_reach"]
-    eps = 0.5  # 实体间 0.5mm 互穿, 避免共面接触导致布尔union分成多体
+    """v2 盆沿双爪式（2026-10-19 AR05）
+    局部坐标：原点 = 盆沿壁中线与盆沿顶面交点；+Y 向外径向；+Z 向上。
+    结构：外爪 + 内爪（随盆壁锥度下探 7mm，不入土）→ 顶桥 → 管环柱（管孔竖直贯穿）。
+    """
+    jt = p["jaw_t"]
+    jd = p["jaw_down"]
+    bh = p["bridge_h"]
+    g = p["rim_gap"] / 2
+    tp = np.deg2rad(p["taper"])
+    d = np.array([-np.sin(tp), -np.cos(tp)])      # 爪轴：向下并随锥度内收
+    nj = np.array([-d[1], d[0]])
 
-    # 立板 (抱住盆沿) + 顶部平台 (管子穿过的夹持块)
-    body = B(0, 0, jh / 2, jx, jt, jh)
-    body = add(body, [
-        B(0, (sr - jt) / 2, jh + st / 2 - eps, p["shelf_x"], sr + jt, st + eps)
-    ])
+    def slab(c_top, half_t, length, x0, x1):
+        c = np.asarray(c_top, float) + d * (length / 2)
+        pts = [c + nj * half_t + d * length / 2, c - nj * half_t + d * length / 2,
+               c - nj * half_t - d * length / 2, c + nj * half_t - d * length / 2]
+        return prism_yz(pts, x0, x1)
 
-    # 平台下方两条三角斜撑 (打断悬空, 减少支撑需求)
-    for sx in (1, -1):
-        x0, x1 = sorted([sx * p["gusset_x0"], sx * p["gusset_x1"]])
-        prof = [
-            (jt / 2, jh - p["gusset_h"]),
-            (jt / 2, jh),
-            (p["ring_y"] - 3, jh),
-        ]
-        body = add(body, [prism_yz(prof, x0, x1)])
+    jw = p["jaw_w"]
+    outer = slab((g + jt / 2, bh * 0.3), jt / 2, jd, -jw / 2, jw / 2)
+    inner = slab((-(g + jt / 2), bh * 0.3), jt / 2, jd, -jw / 2, jw / 2)
+    reach = p["ring_reach"]
+    bridge = B(0, (6.3 - reach) / 2, bh / 2, p["bridge_x"], 6.3 + reach, bh)
+    body = add(outer, [inner, bridge])
 
-    # 平台前下沿不做整块切除: 两条斜撑把悬空打断后, 剩余 7mm 跨距可直接桥接打印
+    # 管环柱（桥面上方，管孔竖直贯穿整机）
+    ry = p["ring_y_local"]
+    ch = p["col_h"]
+    col = B(0, ry, bh + ch / 2 - 0.5, p["col_x"], p["col_y"], ch + 1.0)
+    body = add(body, [col])
 
-    # 盆沿夹口: 锥形楔紧槽 (下口 7.5 -> 顶口 4.5), 盆沿越插越紧, 免螺丝
-    rw_m, rw_t = p["rim_mouth"] / 2, p["rim_top"] / 2
-    jaw_slot = prism_xz(
-        [(-rw_m, -2.0), (rw_m, -2.0), (rw_t, p["rim_depth"]), (-rw_t, p["rim_depth"])],
-        -jt / 2 - 2, jt / 2 + 2,
-    )
-    body = cut(body, [jaw_slot])
+    # 管孔：从桥下方 2mm 直通柱顶，管子在孔内全程竖直
+    body = cut(body, [C(0, ry, (bh + ch) / 2 - 1.0, p["ring_inner_d"] / 2, bh + ch + 6, sections=64)])
 
-    # 管孔: 直接从上平台挖通 -> 管子竖直穿过, 出水口高度固定
-    r_hole = p["ring_inner_d"] / 2
-    ring_cz = jh + st / 2
-    body = cut(body, [C(0, p["ring_y"], ring_cz, r_hole, st + 8)])
-
-    # 侧面开口 (朝 +Y): 宽度 < 孔径 => 管子压进去后被弹性夹住
-    open_len = sr + 10
-    opening = B(0, p["ring_y"] + open_len / 2, ring_cz,
-                p["slot_open_w"], open_len, st + 10)
-    body = cut(body, [opening])
+    # 落床归一化：z_min -> 0，并把"盆沿顶面在局部坐标的高度"记进 metadata
+    zmin = float(body.bounds[0][2])
+    body.apply_translation([0, 0, -zmin])
+    body.metadata["rim_top_z"] = -zmin
     return body
 
 

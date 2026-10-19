@@ -174,19 +174,24 @@ add(place(cylinder(radius=19.0, height=26.0, sections=64), PUMP[0], PUMP[1], 3.0
 add(place(cylinder(radius=12.0, height=4.0, sections=64), PUMP[0], PUMP[1], 3.0 + TT + 31.0),
     "pump", "泵头")
 
-# ---------- 6. 水管 ----------
+# ---------- 6. 水管（v2：末端竖直穿过夹孔，孔径 8.6 / 管径 8，全程不蹭夹壁）----------
+# 管孔世界坐标在夹子放置后算出（第 8 节），这里先按 AZ_CLIP 推导
+_AZR = np.deg2rad(-12.0)
+_RIM_R = (37.0 + 41.0) / 2
+_CLIP_X = -105.0 + _RIM_R * np.cos(_AZR)
+_CLIP_Y = 60.0 + _RIM_R * np.sin(_AZR)
+_HOLE_X = _CLIP_X + (-11.0) * np.cos(_AZR)
+_HOLE_Y = _CLIP_Y + (-11.0) * np.sin(_AZR)
 tube_pts = [
-    (85.0, 8.0, 39.0),        # 泵顶出水
+    (85.0, 8.0, 39.0),              # 泵顶出水
     (85.0, 8.0, 58.0),
     (58.0, 8.0, 70.0),
-    (15.0, 10.0, 70.0),       # 越过水箱壁 (壁高 62, 走 70)
-    (-25.0, 30.0, 55.0),
-    (-52.0, 42.0, 80.0),
-    (-46.0, 56.0, 112.0),     # 绕到夹子外侧再抬高
-    (-65.5, 58.4, 112.0),     # 从正上方对准管孔 (夹子顶面 103)
-    (-65.5, 58.4, 96.0),      # 垂直穿进管孔
-    (-74.0, 51.0, 87.0),      # 出孔后立刻向内收 (避开夹爪内侧面)
-    (-78.0, 50.0, 80.0),
+    (15.0, 14.0, 76.0),             # 越过水箱壁（壁高 62，走 76）
+    (-30.0, 35.0, 92.0),
+    (-58.0, 50.0, 118.0),
+    (-58.0, 55.0, 126.0),           # 抬到管环顶部以上绕行
+    (_HOLE_X, _HOLE_Y, 126.0),      # 到管孔正上方
+    (_HOLE_X, _HOLE_Y, 81.0),       # 竖直下穿管孔（全程同轴，不蹭壁）
 ]
 add(tube_path(tube_pts, r=4.0), "tube", "水管")
 
@@ -209,9 +214,19 @@ brow.apply_transform(hook_rot)
 brow.apply_translation([rim_pt[0], rim_pt[1], RIM_Z])
 add(brow, "pcb_green", "土壤传感器板")
 
-# ---------- 8. P0: 水管末端固定夹 ----------
-add(place(M_P0.build_tube_clip(M_P0.PARAMS["clip"]), -69.6, 47.1, 69.0, rz=-20), "white",
-    "水管末端夹")
+# ---------- 8. P0: 水管末端固定夹 v2（盆沿双爪式，原点=盆沿壁中线&顶面） ----------
+AZ_CLIP = -12.0                     # 朝向水箱一侧（盆心→水箱方位 -11.9°）
+clip_rot = trimesh.transformations.rotation_matrix(np.deg2rad(AZ_CLIP - 90.0), [0, 0, 1])
+clip_pt = (POT[0] + RIM_R * np.cos(np.deg2rad(AZ_CLIP)),
+           POT[1] + RIM_R * np.sin(np.deg2rad(AZ_CLIP)))
+clip_mesh = M_P0.build_tube_clip(M_P0.PARAMS["clip"])
+clip_mesh.apply_transform(clip_rot)
+clip_mesh.apply_translation([clip_pt[0], clip_pt[1], RIM_Z - clip_mesh.metadata["rim_top_z"]])
+add(clip_mesh, "white", "水管末端夹")
+# 管孔世界坐标：局部 (0, ring_y_local) 经旋转平移到盆沿点
+CLIP_RY = M_P0.PARAMS["clip"]["ring_y_local"]
+hole_xy = (clip_pt[0] + CLIP_RY * np.cos(np.deg2rad(AZ_CLIP)),
+           clip_pt[1] + CLIP_RY * np.sin(np.deg2rad(AZ_CLIP)))
 
 # ---------- 9. P1: OLED 支架 + 屏 ----------
 OLED = (-45.0, 38.0)

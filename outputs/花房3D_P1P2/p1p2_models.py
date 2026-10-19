@@ -204,6 +204,16 @@ def build_oled_stand(p):
     pocket = B(0, upslope_edge + pocket_len / 2, 0, pw, pocket_len, d * 2)
     pocket = frame_part(pocket, ang, slope_mid)
     body = cut(body, [pocket])
+
+    # v2 防脱卡爪（2026-10-19 AR05，落实"碰倒屏幕脱出"限制）：
+    # 上坡端两只 1.2mm 厚弹性爪，向槽内悬伸 1.5mm，压住板上缘（0.6 过盈，PLA 弹性扣入）
+    claw_h, claw_w, claw_over = 1.2, 4.0, 1.5
+    claws = []
+    for sx in (-1, 1):
+        c = B(sx * 7.5, upslope_edge + claw_over / 2, -claw_h / 2 + 0.2,
+              claw_w, claw_over + 1.2, claw_h)
+        claws.append(frame_part(c, ang, slope_mid))
+    body = add(body, claws)
     return body
 
 

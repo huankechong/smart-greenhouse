@@ -1,0 +1,258 @@
+{
+  "files": [
+    {
+      "ok": true,
+      "src": "docs/index.md",
+      "dst": "01_项目文档/01-01_index.md",
+      "size": 3529,
+      "md5_ok": true
+    },
+    {
+      "ok": true,
+      "src": "docs/花房项目_AI工作交接文档_2026-10-18.md",
+      "dst": "01_项目文档/01-02_花房项目_AI工作交接文档_2026-10-18.md",
+      "size": 15153,
+      "md5_ok": true
+    },
+    {
+      "ok": true,
+      "src": "docs/花房FinalProject方案书.md",
+      "dst": "01_项目文档/01-03_花房FinalProject方案书.md",
+      "size": 14027,
+      "md5_ok": true
+    },
+    {
+      "ok": true,
+      "src": "docs/花房30天执行计划.md",
+      "dst": "01_项目文档/01-04_花房30天执行计划.md",
+      "size": 14190,
+      "md5_ok": true
+    },
+    {
+      "ok": true,
+      "src": "docs/花房接线规划表.md",
+      "dst": "01_项目文档/01-05_花房接线规划表.md",
+      "size": 6013,
+      "md5_ok": true
+    },
+    {
+      "ok": true,
+      "src": "docs/花房借用与自购清单.md",
+      "dst": "01_项目文档/01-06_花房借用与自购清单.md",
+      "size": 1973,
+      "md5_ok": true
+    },
+    {
+      "ok": true,
+      "src": "docs/花房3D建模入门路线_SolidWorks.md",
+      "dst": "01_项目文档/01-07_花房3D建模入门路线_SolidWorks.md",
+      "size": 12417,
+      "md5_ok": true
+    },
+    {
+      "ok": true,
+      "src": "AGENTS.md",
+      "dst": "01_项目文档/01-08_AGENTS.md",
+      "size": 5992,
+      "md5_ok": true
+    },
+    {
+      "ok": true,
+      "src": "README.md",
+      "dst": "01_项目文档/01-09_README.md",
+      "size": 6388,
+      "md5_ok": true
+    },
+    {
+      "ok": true,
+      "src": "docs/审计报告/AR02_GreenHouse3D模型审计修复报告_2026-10-18.md",
+      "dst": "01_项目文档/01-10_AR02_GreenHouse3D模型审计修复报告_2026-10-18.md",
+      "size": 6942,
+      "md5_ok": true
+    },
+    {
+      "ok": true,
+      "src": "docs/审计报告/AR03_GreenHouse底板装配一致性修复报告_2026-10-18.md",
+      "dst": "01_项目文档/01-11_AR03_GreenHouse底板装配一致性修复报告_2026-10-18.md",
+      "size": 7516,
+      "md5_ok": true
+    },
+    {
+      "ok": true,
+      "src": "docs/审计报告/AR04_GreenHouse拼缝连接件隐蔽化_2026-10-18.md",
+      "dst": "01_项目文档/01-12_AR04_GreenHouse拼缝连接件隐蔽化_2026-10-18.md",
+      "size": 5252,
+      "md5_ok": true
+    },
+    {
+      "ok": true,
+      "src": "outputs/花房3D_P0/STL/01b_sensor_rim_hook_v1.stl",
+      "dst": "02_3D模型/02-01b_sensor_rim_hook_v1.stl",
+      "size": 4684,
+      "md5_ok": true
+    },
+    {
+      "ok": true,
+      "src": "outputs/花房3D_P0/STL/02_pump_mount_v1.stl",
+      "dst": "02_3D模型/02-02_pump_mount_v1.stl",
+      "size": 132084,
+      "md5_ok": true
+    },
+    {
+      "ok": true,
+      "src": "outputs/花房3D_P0/STL/03_tube_clip_v1.stl",
+      "dst": "02_3D模型/02-03_tube_clip_v1.stl",
+      "size": 14484,
+      "md5_ok": true
+    },
+    {
+      "ok": true,
+      "src": "outputs/花房3D_P1P2/STL/04_oled_stand_v1.stl",
+      "dst": "02_3D模型/02-04_oled_stand_v1.stl",
+      "size": 2284,
+      "md5_ok": true
+    },
+    {
+      "ok": true,
+      "src": "outputs/花房3D_整机底盘/STL/06a_base_left_v1.stl",
+      "dst": "02_3D模型/02-06a_base_left_v1.stl",
+      "size": 85184,
+      "md5_ok": true
+    },
+    {
+      "ok": true,
+      "src": "outputs/花房3D_整机底盘/STL/06b_base_right_v1.stl",
+      "dst": "02_3D模型/02-06b_base_right_v1.stl",
+      "size": 55184,
+      "md5_ok": true
+    },
+    {
+      "ok": true,
+      "src": "outputs/花房3D_整机底盘/STL/06c_joint_block_v1.stl",
+      "dst": "02_3D模型/02-06c_joint_block_v1.stl",
+      "size": 78284,
+      "md5_ok": true
+    },
+    {
+      "ok": true,
+      "src": "outputs/花房3D_P1P2/STL/07_dht11_holder_v1.stl",
+      "dst": "02_3D模型/02-07_dht11_holder_v1.stl",
+      "size": 5084,
+      "md5_ok": true
+    },
+    {
+      "ok": true,
+      "src": "outputs/花房3D_P1P2/STL/08_cable_clip_v1.stl",
+      "dst": "02_3D模型/02-08_cable_clip_v1.stl",
+      "size": 34484,
+      "md5_ok": true
+    },
+    {
+      "ok": true,
+      "src": "outputs/花房3D_整机装配/花房整机示意模型.glb",
+      "dst": "02_3D模型/02-10_花房整机示意模型.glb",
+      "size": 377256,
+      "md5_ok": true
+    },
+    {
+      "ok": true,
+      "src": "outputs/花房3D_P0/p0_models.py",
+      "dst": "03_代码固件/03a_阶段P0/p0_models.py",
+      "size": 19165,
+      "md5_ok": true
+    },
+    {
+      "ok": true,
+      "src": "outputs/花房3D_P0/p0b_sensor_hook.py",
+      "dst": "03_代码固件/03a_阶段P0/p0b_sensor_hook.py",
+      "size": 7378,
+      "md5_ok": true
+    },
+    {
+      "ok": true,
+      "src": "outputs/花房3D_P1P2/p1p2_models.py",
+      "dst": "03_代码固件/03b_阶段P1P2/p1p2_models.py",
+      "size": 19329,
+      "md5_ok": true
+    },
+    {
+      "ok": true,
+      "src": "outputs/花房3D_整机底盘/base_2pc_models.py",
+      "dst": "03_代码固件/03c_整机底盘/base_2pc_models.py",
+      "size": 13467,
+      "md5_ok": true
+    },
+    {
+      "ok": true,
+      "src": "outputs/花房3D_整机装配/build_assembly.py",
+      "dst": "03_代码固件/03d_整机装配/build_assembly.py",
+      "size": 14875,
+      "md5_ok": true
+    },
+    {
+      "ok": true,
+      "src": "outputs/花房3D_整机装配/audit.py",
+      "dst": "03_代码固件/03d_整机装配/audit.py",
+      "size": 4355,
+      "md5_ok": true
+    },
+    {
+      "ok": true,
+      "src": "outputs/花房3D_整机装配/check_base_fit.py",
+      "dst": "03_代码固件/03d_整机装配/check_base_fit.py",
+      "size": 5062,
+      "md5_ok": true
+    },
+    {
+      "ok": true,
+      "src": "outputs/花房3D_整机装配/check_occlusion.py",
+      "dst": "03_代码固件/03d_整机装配/check_occlusion.py",
+      "size": 3689,
+      "md5_ok": true
+    },
+    {
+      "ok": true,
+      "src": "outputs/花房3D_整机装配/annotate.py",
+      "dst": "03_代码固件/03d_整机装配/annotate.py",
+      "size": 5134,
+      "md5_ok": true
+    },
+    {
+      "ok": true,
+      "src": "outputs/花房3D_整机装配/build_html.py",
+      "dst": "03_代码固件/03d_整机装配/build_html.py",
+      "size": 14941,
+      "md5_ok": true
+    },
+    {
+      "ok": true,
+      "src": "outputs/花房3D概念模型/build_greenhouse_model.py",
+      "dst": "03_代码固件/03e_概念模型/build_greenhouse_model.py",
+      "size": 16688,
+      "md5_ok": true
+    },
+    {
+      "ok": true,
+      "src": "outputs/花房3D概念模型/gen_isometric_diagram.py",
+      "dst": "03_代码固件/03e_概念模型/gen_isometric_diagram.py",
+      "size": 11338,
+      "md5_ok": true
+    },
+    {
+      "ok": true,
+      "src": "outputs/花房代码/GreenHouse_v1/GreenHouse_v1.ino",
+      "dst": "03_代码固件/03f_固件/GreenHouse_v1.ino",
+      "size": 13613,
+      "md5_ok": true
+    },
+    {
+      "ok": true,
+      "src": "outputs/花房代码/GreenHouse_v1/config.h",
+      "dst": "03_代码固件/03f_固件/config.h",
+      "size": 613,
+      "md5_ok": true
+    }
+  ],
+  "failed": [],
+  "total_bytes": 1038051
+}

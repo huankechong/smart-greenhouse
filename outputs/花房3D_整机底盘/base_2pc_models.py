@@ -55,6 +55,13 @@ P = {
     "tank_pos": (85.0, 20.0),
     "tank_depth": 5.0,          # 槽底仍 z=3
 
+    # 槽底排水孔：水箱漏的水从这里穿板滴到桌面，不进电控区
+    "drain_pos": (120.0, 52.0),
+    "drain_d": 5.0,
+    # 挡水堤（v1.3 AR05）：沿水箱槽的电控侧两边竖起 3mm 高堤，拦住横向漫流
+    "dam_w": 3.0,
+    "dam_h": 3.0,
+
     # 拼接
     "joint_y": (70.0, -70.0),   # 两处连接块 Y 位置
     "block_x": 45.0,
@@ -163,11 +170,22 @@ def build_half(p, side):
         holes.append(B(p["tank_pos"][0], p["tank_pos"][1], pt - p["tank_depth"] / 2,
                        p["tank_w"] + p["pocket_clear"], p["tank_h"] + p["pocket_clear"],
                        p["tank_depth"] + 2))
+        # 槽底排水孔（通板，漏水直落桌面）
+        holes.append(C(p["drain_pos"][0], p["drain_pos"][1], pt / 2,
+                       p["drain_d"] / 2, pt + 4, sections=32))
         for yy in (-80, 75):
             for xx in (45, 125):
                 holes.append(B(xx, yy, pt / 2, p["slot_l"], p["slot_w"], pt + 4))
 
     body = cut(body, holes)
+
+    # 挡水堤：水箱槽靠电控区一侧（-Y 边）与接缝侧（-X 边）各一道 3×3 堤
+    if side > 0:
+        tx, ty = p["tank_pos"]
+        dw, dh = p["dam_w"], p["dam_h"]
+        dam = add(B(tx, ty - p["tank_h"] / 2 - dw / 2, pt + dh / 2, p["tank_w"] + 6, dw, dh),
+                  [B(tx - p["tank_w"] / 2 - dw / 2, ty, pt + dh / 2, dw, p["tank_h"] + 6, dh)])
+        body = add(body, [dam])
     return body
 
 

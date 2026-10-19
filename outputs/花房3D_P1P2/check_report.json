@@ -3,8 +3,8 @@
   "name": "04_oled_stand | OLED 45°斜面支架",
   "watertight": true,
   "winding_consistent": true,
-  "volume_mm3": 17026.7,
-  "triangles": 44,
+  "volume_mm3": 17047.8,
+  "triangles": 92,
   "bodies": 1,
   "bbox_mm": [
    36.0,
