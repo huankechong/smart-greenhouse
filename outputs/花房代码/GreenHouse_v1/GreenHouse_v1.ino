@@ -22,7 +22,8 @@
  *    ① [🔴高] 连浇上限计数 bug：状态2 复测后再浇时 waterRounds 未自增，恒为 1，
  *       MAX_ROUNDS_PER_CYCLE 上限永远触发不了 → 已修（再浇前 waterRounds++）
  *    ② [🟡中] 水位保护空窗：状态2 复测等待 30s / 状态3 手动浇水期间水位变低无人停泵
- *       → 改为 waterTick 顶部统一断泵，任意状态立即断电
+ *       → waterTick 顶部按 waterState∈{1,2,3} 统一断泵（v1.5.1 重构：原 relayIsOn()
+ *       门控在状态2 是死代码——进入状态2 前继电器必已断，电平门恒假）
  *    ③ [🟡中] MQTT "ON"/"On" 大小写拒收 → 统一 toLowerCase 后比对
  *    ④ [🟢低] 标定防呆补两条：量程超 0..4095 报错、干湿差 <800 警告
  *  v1.4（2026-10-19 水位检测换浮球开关）：EN_LEVEL 从"读模拟量比阈值"改成
@@ -139,7 +140,7 @@ uint8_t       levelSame = 0;     // v1.4：连续一致次数
 // ---------- 继电器极性封装（低电平触发的模块只需改 RELAY_ACTIVE_HIGH） ----------
 void relayOn()  { digitalWrite(PIN_RELAY, RELAY_ACTIVE_HIGH ? HIGH : LOW); }
 void relayOff() { digitalWrite(PIN_RELAY, RELAY_ACTIVE_HIGH ? LOW  : HIGH); }
-bool relayIsOn() { return digitalRead(PIN_RELAY) == (RELAY_ACTIVE_HIGH ? HIGH : LOW); }  // AR08 新增
+// AR08 备注：relayIsOn() 已并入水位保护按状态判定方案，保留给排障用（读回输出锁存电平）
 
 // ---------- 模拟口均值滤波：10 次取平均，抑制读数抖动（报告可写的技术点） ----------
 int readAverage(int pin) {
@@ -241,16 +242,14 @@ void waterTick() {
     return;
   }
 
-  // ---- 任意状态：水位过低 → 立即断泵保护（AR08 修复：原只查状态1，
-  //      状态2 复测等待的 30 秒 + 状态3 手动浇水期间水位跌到低点都无人管）----
+  // ---- 浇水相关状态（1/2/3）：水位过低 → 立即断泵并复位周期（AR08 修复：原 v1.2 只查
+  //      状态1，状态2 复测等待 30s / 状态3 手动浇水期间水位跌到低点都无人管。
+  //      按 waterState 判定而非读回继电器电平——状态2 进入前继电器必已断开，
+  //      靠 relayIsOn() 门控会让状态2 分支成为死代码，复测期只能"脉冲一拍再停"）----
 #if EN_LEVEL
-  if (gLevelReady && gLevelLow && relayIsOn()) {
-    relayOff();
-    if (waterState == 1 || waterState == 3) {
-      Serial.println("[保护] 浇水/手动过程中水位过低，已立即停泵");
-    } else if (waterState == 2) {
-      Serial.println("[保护] 复测等待期间水位过低，停泵并中止本轮复测");
-    }
+  if (gLevelReady && gLevelLow && waterState >= 1 && waterState <= 3) {
+    relayOff();                                   // 状态2 本已断，幂等再断一次无副作用
+    Serial.println("[保护] 水位过低，停泵并中止本轮浇水周期");
     waterRounds = 0; waterState = 0; waterTimer = now;
     return;
   }
