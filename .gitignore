@@ -12,6 +12,13 @@ outputs/花房3D概念模型/花房系统概念模型_v2_文生3d_废弃.glb
 # ===== 生成物（可由脚本重出，不入库省体积）=====
 outputs/花房3D概念模型/generated_model_viewer.html
 
+# ===== 本地工具链（37MB 便携 arduino-cli，编译用，不入库）=====
+# 重装：curl -sSL --ssl-no-revoke -o acli.zip https://downloads.arduino.cc/arduino-cli/arduino-cli_latest_Windows_64bit.zip
+outputs/.tools/
+
+# ===== 编译中间产物 =====
+build/
+
 # ===== 系统杂物 =====
 Thumbs.db
 .DS_Store
