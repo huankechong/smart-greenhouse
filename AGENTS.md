@@ -64,4 +64,24 @@ NODE="C:/Users/junbo/.workbuddy/binaries/node/versions/22.22.2-6/node.exe"
 9 个打印件 STL 已交付（01b/02/03/04/06a/06b/06c/07/08）；整机示意 glb + 离线 HTML 已出；硬件等快递（10/21±）；答辩 2026-11-16。
 细节 → `docs/花房项目_AI工作交接文档_2026-10-18.md`。
 
+## 8. 云端资料库映射（WorkBuddy 项目空间，2026-10-19 起）
+
+改动云端文档 = 用 library 技能（doc 节点走 doc/entry.md 的编辑流程，drive 文件走替换流程），**不要只改本地不同步云**。本地（D 盘/git）仍为生产源，云版本改动完成后回推 git。
+
+| 云端节点 | nodeId |
+|---|---|
+| README | 03Zob7ABODk4XklGx42W2z |
+| AGENTS | Uyl87N8HyRPg1lHHcX0f58 |
+| 花房项目_AI工作交接文档_2026-10-18 | ujykWO1B2R6prOFsKby2K3 |
+| 花房30天执行计划 | 6nebaE9cxjrieJ1CPUsVrf |
+| 花房接线规划表 | 1A7cOaJS6AWUV6rXcBZdH5 |
+| 花房FinalProject方案书 | SIi2MIidfL00f50nmyknIt |
+| index（docs 索引） | CxI35S4mNp7cJ49JAITtyv |
+| AR02 审计报告 | qvuoCS3zOSCQjTVcVvPPHi |
+| AR03 审计报告 | Z0EFzn3B4IO7j5r71NRtqx |
+| AR04 审计报告 | HyrMCwtijUdV9odOLHrayF |
+| GreenHouse_v1（drive 文件夹） | tv65GaSPuz0HScD9Br434i |
+
+空间 spaceId：TESQXngJ4tIC1hKd2ccd9p。
+
 <!-- neat-freak: initialized at 2026-10-18 -->
