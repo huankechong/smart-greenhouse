@@ -81,6 +81,7 @@ NODE="C:/Users/junbo/.workbuddy/binaries/node/versions/22.22.2-6/node.exe"
 | AR03 审计报告 | Z0EFzn3B4IO7j5r71NRtqx |
 | AR04 审计报告 | HyrMCwtijUdV9odOLHrayF |
 | GreenHouse_v1（drive 文件夹） | tv65GaSPuz0HScD9Br434i |
+| AR05 打印件装配优化（2026-10-19 新增） | zE3xzi8p2keE6wyGq05G4b |
 
 空间 spaceId：TESQXngJ4tIC1hKd2ccd9p。
 
