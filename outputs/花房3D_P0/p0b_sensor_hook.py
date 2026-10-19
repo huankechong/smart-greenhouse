@@ -55,13 +55,14 @@ P = {
     "groove_w": 23.6,        # 槽宽 X = 板宽 23 + 0.6
     "groove_gap": 1.4,       # 槽厚 = 板厚 1.5 - 0.1 过盈
     "slot_len": 46.0,        # 槽长（沿轴，贯穿柱子上下表面即可）
-    # ---------- 板（仅用于装配示意，不打印；尺寸 2026-10-19 实测自商品图）----------
-    "board_w": 23.0,         # [实测] 头部宽 23（图中标注）
-    "board_probe_w": 15.0,   # [实测] 探针段宽 15
+    # ---------- 板（仅用于装配示意，不打印；尺寸 2026-10-19 领导手绘图实测）----------
+    "board_w": 23.0,         # [实测] 头部宽 23
+    "board_probe_w": 13.5,   # [实测] 探针段宽 13.5（手绘图③；商品图①标 15 以手绘为准）
     "board_t": 1.5,          # [实测 10-19] PCB 厚 1.5
     "board_len": 87.0,       # [实测] 含尖头总长 87
-    "board_head_len": 30.0,  # 头部（23 宽）段长，按图比例估
-    "board_tip_len": 12.0,   # 尖头段长，按图比例估
+    "board_head_len": 15.0,  # [实测] 头段（23宽）轴向长 15 —— 硬约束：槽内过盈夹持段须 ≥10 即可（现夹持体 27 深，头段+过渡段全程在槽内，宽度 23<23.6 全程容纳）
+    "board_trans_len": 13.5, # [实测] 收窄过渡段长 13.5（23→13.5 宽线性过渡）
+    "board_tip_len": 10.5,   # [实测] 尖头段长 10.5
     "board_top_z": None,     # None = 板顶与夹板柱顶面齐平（插入深度基准）
 }
 
@@ -150,17 +151,19 @@ def build(p=P):
 
 
 def board_mesh(p=P, gc=None, axis=None, rim_top_z=0.0):
-    """装配示意用的传感器板（不打印）：头部 23 宽 / 探针段 15 宽 / 尖头，总长 87。
+    """装配示意用的传感器板（不打印）：头部 23 宽 15 长 / 过渡 13.5 / 探针 13.5 宽 / 尖头 10.5，总长 87。
     插进板槽后，板顶与夹板柱顶面齐平。"""
     ang = np.deg2rad(p["tilt"])
     L, HW, PW = p["board_len"], p["board_w"], p["board_probe_w"]
     hl, tl = p["board_head_len"], p["board_tip_len"]
-    pl = L - hl - tl                                  # 等宽探针段
+    tl_len = p.get("board_trans_len", 4.0)            # 过渡段长
+    pl = L - hl - tl_len - tl                         # 等宽探针段
     # 轮廓（x=宽，y=从板顶向尖头方向）
     pts = [(-HW / 2, 0), (HW / 2, 0), (HW / 2, hl),
-           (PW / 2, hl + 4.0), (PW / 2, hl + 4.0 + pl),
+           (PW / 2, hl + tl_len),
+           (PW / 2, hl + tl_len + pl),
            (0.0, L),                                   # 尖头
-           (-PW / 2, hl + 4.0 + pl), (-PW / 2, hl + 4.0),
+           (-PW / 2, hl + tl_len + pl), (-PW / 2, hl + tl_len),
            (-HW / 2, hl)]
     poly = trimesh.path.polygons.Polygon(pts)
     m = trimesh.creation.extrude_polygon(poly, height=p["board_t"])
