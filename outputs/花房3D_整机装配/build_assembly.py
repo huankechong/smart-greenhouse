@@ -203,15 +203,15 @@ AZ = PLANT_AZ + 180.0               # 挂在植株对面
 rim_pt = (POT[0] + RIM_R * np.cos(np.deg2rad(AZ)),
           POT[1] + RIM_R * np.sin(np.deg2rad(AZ)))
 
-hook, gc, haxis = M_P0B.build()
+hook, gc, haxis = M_P0B.build()          # v2：build 内部已落床，盆沿顶面高度记在 metadata
 hook_rot = trimesh.transformations.rotation_matrix(np.deg2rad(AZ - 90.0), [0, 0, 1])
 hook.apply_transform(hook_rot)
-hook.apply_translation([rim_pt[0], rim_pt[1], RIM_Z])   # 局部 z=0 = 盆沿顶面
+hook.apply_translation([rim_pt[0], rim_pt[1], RIM_Z - hook.metadata["rim_top_z"]])
 add(hook, "white", "传感器盆沿挂钩")
 
 brow = M_P0B.board_mesh(gc=gc, axis=haxis)
 brow.apply_transform(hook_rot)
-brow.apply_translation([rim_pt[0], rim_pt[1], RIM_Z])
+brow.apply_translation([rim_pt[0], rim_pt[1], RIM_Z - hook.metadata["rim_top_z"]])
 add(brow, "pcb_green", "土壤传感器板")
 
 # ---------- 8. P0: 水管末端固定夹 v2（盆沿双爪式，原点=盆沿壁中线&顶面） ----------

@@ -75,14 +75,14 @@ checks = []
 # P0
 d = doc(os.path.join(ROOT, "花房3D_P0", "交付说明_P0三件v1.md"))
 # 01 已被 01b 取代(存档), 现行件是 01b/02/03
-for name, stl in [("01b_sensor_rim_hook", "01b_sensor_rim_hook_v1.stl"),
+for name, stl in [("01b_sensor_rim_hook", "01b_sensor_rim_hook_v2.stl"),
                   ("02_pump_mount", "02_pump_mount_v1.stl"),
                   ("03_tube_clip", "03_tube_clip_v1.stl")]:
     m = trimesh.load(os.path.join(ROOT, "花房3D_P0", "STL", stl))
     g = round(m.volume * 1.24 / 1000, 1)
     checks.append((f"P0 文档 {stl} 估重 {g}g 是否出现", str(g) in d))
     bb = [round(x, 2) for x in m.extents]
-    expect = {"01b_sensor_rim_hook_v1.stl": "30 × 32.64 × 49.14",
+    expect = {"01b_sensor_rim_hook_v2.stl": "30 × 19.78 × 32.78",
               "02_pump_mount_v1.stl": "⌀58 × 28",
               "03_tube_clip_v1.stl": "22 × 21 × 33.75"}[stl]
     checks.append((f"P0 文档 {stl} 外形写作「{expect}」", expect in d))
@@ -97,7 +97,7 @@ for stl, key in [("04_oled_stand_v1.stl", "21.1"), ("05_led_diffuser_v1.stl", "0
 
 # 底盘
 d2 = doc(os.path.join(ROOT, "花房3D_整机底盘", "交付说明_整机底盘两片式v1.md"))
-for stl, key in [("06a_base_left_v1.stl", "299.8"), ("06b_base_right_v1.stl", "274.3"),
+for stl, key in [("06a_base_left_v1.stl", "299.8"), ("06b_base_right_v1.stl", "276.7"),
                  ("06c_joint_block_v1.stl", "4.2")]:
     m = trimesh.load(os.path.join(ROOT, "花房3D_整机底盘", "STL", stl))
     g = round(m.volume * 1.24 / 1000, 1)
