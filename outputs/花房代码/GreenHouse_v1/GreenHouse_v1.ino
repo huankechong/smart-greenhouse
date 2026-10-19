@@ -18,6 +18,13 @@
  *  手动浇水改非阻塞、凭据移入 config.h、魔法数字常量化、标定防呆自检。
  *  详见《AR01_GreenHouse代码审计修复报告_2026-10-17.md》
  *
+ *  v1.5（2026-10-20 AR08 全面审计修复，详见 docs/审计报告/AR08）：
+ *    ① [🔴高] 连浇上限计数 bug：状态2 复测后再浇时 waterRounds 未自增，恒为 1，
+ *       MAX_ROUNDS_PER_CYCLE 上限永远触发不了 → 已修（再浇前 waterRounds++）
+ *    ② [🟡中] 水位保护空窗：状态2 复测等待 30s / 状态3 手动浇水期间水位变低无人停泵
+ *       → 改为 waterTick 顶部统一断泵，任意状态立即断电
+ *    ③ [🟡中] MQTT "ON"/"On" 大小写拒收 → 统一 toLowerCase 后比对
+ *    ④ [🟢低] 标定防呆补两条：量程超 0..4095 报错、干湿差 <800 警告
  *  v1.4（2026-10-19 水位检测换浮球开关）：EN_LEVEL 从"读模拟量比阈值"改成
  *    "读干接点 + 消抖"。浮球开关是无源干接点（P52 / M10 / 常开 / 0~110V，
  *    43→52mm 修正：P43 报警点太高，1L 桶可用余量不足 650ml；P52 报警点 52mm，
@@ -35,12 +42,12 @@
  */
 
 // ==================== 功能开关（按周开启） ====================
-#define EN_DHT    0   // W1-D5：接好温湿度(41号)后改 1 → 需装 DHT sensor library
-#define EN_OLED   0   // W1-D5：接好 OLED(25号)后改 1  → 需装 U8g2
+#define EN_DHT  0   // W1-D5：接好温湿度(41号)后改 1 → 需装 DHT sensor library
+#define EN_OLED  0   // W1-D5：接好 OLED(25号)后改 1  → 需装 U8g2
 #define EN_WATER  0   // W2-D8：接好继电器(16号)+水泵后改 1（注意：会真实出水！）
-#define EN_WIFI   0   // W3-D11：上云时改 1 → 需装 PubSubClient
-#define EN_MQTT   0   // 依赖 EN_WIFI=1：数据上报 + 远程浇水
-#define EN_WEB    0   // 依赖 EN_WIFI=1：局域网保底网页（断外网手机也能看）
+#define EN_WIFI  0   // W3-D11：上云时改 1 → 需装 PubSubClient
+#define EN_MQTT  0   // 依赖 EN_WIFI=1：数据上报 + 远程浇水
+#define EN_WEB  0   // 依赖 EN_WIFI=1：局域网保底网页（断外网手机也能看）
 #define EN_LEVEL  0   // v1.4：接好浮球开关（第 10 件替换盖 + P52 浮球）后改 1 → 低水位停泵
 
 // ==================== 引脚定义（对照《花房接线规划表.md》） ====================
@@ -132,6 +139,7 @@ uint8_t       levelSame = 0;     // v1.4：连续一致次数
 // ---------- 继电器极性封装（低电平触发的模块只需改 RELAY_ACTIVE_HIGH） ----------
 void relayOn()  { digitalWrite(PIN_RELAY, RELAY_ACTIVE_HIGH ? HIGH : LOW); }
 void relayOff() { digitalWrite(PIN_RELAY, RELAY_ACTIVE_HIGH ? LOW  : HIGH); }
+bool relayIsOn() { return digitalRead(PIN_RELAY) == (RELAY_ACTIVE_HIGH ? HIGH : LOW); }  // AR08 新增
 
 // ---------- 模拟口均值滤波：10 次取平均，抑制读数抖动（报告可写的技术点） ----------
 int readAverage(int pin) {
@@ -233,6 +241,21 @@ void waterTick() {
     return;
   }
 
+  // ---- 任意状态：水位过低 → 立即断泵保护（AR08 修复：原只查状态1，
+  //      状态2 复测等待的 30 秒 + 状态3 手动浇水期间水位跌到低点都无人管）----
+#if EN_LEVEL
+  if (gLevelReady && gLevelLow && relayIsOn()) {
+    relayOff();
+    if (waterState == 1 || waterState == 3) {
+      Serial.println("[保护] 浇水/手动过程中水位过低，已立即停泵");
+    } else if (waterState == 2) {
+      Serial.println("[保护] 复测等待期间水位过低，停泵并中止本轮复测");
+    }
+    waterRounds = 0; waterState = 0; waterTimer = now;
+    return;
+  }
+#endif
+
   // ---- 状态 3：远程手动浇水（v1.1 非阻塞：期间 MQTT/Web 照常响应）----
   if (waterState == 3) {
     if (now - waterTimer >= manualMs) {
@@ -266,13 +289,6 @@ void waterTick() {
 
   // ---- 状态 1：浇水中 ----
   if (waterState == 1) {
-#if EN_LEVEL
-    if (gLevelLow) {                            // v1.2：浇到一半水抽干了 → 立刻停泵
-      relayOff(); waterState = 0; waterRounds = 0; waterTimer = now;
-      Serial.println("[保护] 浇水过程中水位过低，已立即停泵");
-      return;
-    }
-#endif
     if (now - waterTimer >= WATER_MS) {
       relayOff(); waterState = 2; waterTimer = now;
       Serial.println("[自动] 本轮浇完，30秒后复测");
@@ -290,7 +306,9 @@ void waterTick() {
           Serial.printf("[保护] 已连浇 %d 轮仍判缺水 —— 传感器可能脱土/线松/故障，停止浇水并冷却 %lu 分钟\n",
                         waterRounds, COOLDOWN_MS / 60000UL);
         } else {
-          Serial.println("[自动] 复测仍缺水，再浇一轮");
+          waterRounds++;                        // AR08 修复：进入下一轮前同步计数，
+                                                // 否则 waterRounds 恒为 1，连浇上限永远够不到（v1.2 保护形同虚设）
+          Serial.printf("[自动] 复测仍缺水，再浇第 %d/%d 轮\n", waterRounds, MAX_ROUNDS_PER_CYCLE);
           relayOn(); waterState = 1; waterTimer = now;
         }
       } else {
@@ -326,8 +344,9 @@ void mqttCallback(char* topic, byte* payload, unsigned int len) {
   String msg = "";
   for (unsigned int i = 0; i < len; i++) msg += (char)payload[i];
   msg.trim();                                   // v1.1：去首尾空白/换行，防误匹配
+  msg.toLowerCase();                            // AR08：巴法云部分客户端发 "ON"/"On"，统一小写再比
   Serial.printf("[MQTT] 收到 %s: %s\n", topic, msg.c_str());
-  if (String(topic) == TOPIC_CMD && msg == "on") {   // v1.1：精确匹配 on，避免 "online" 答案串误触发
+  if (String(topic) == TOPIC_CMD && msg == "on") {   // 精确匹配 on，避免 "online" 等串误触发
 #if EN_WATER
     manualWaterStart(MANUAL_WATER_MS);
 #endif
@@ -385,7 +404,7 @@ void handleRoot() {                             // 局域网保底网页（答�
 
 void setup() {
   Serial.begin(115200);
-  Serial.println("\n===== 智能花房养护站 v1.4 启动 =====");
+  Serial.println("\n===== 智能花房养护站 v1.5 启动 =====");
   Serial.printf("功能开关: DHT=%d OLED=%d WATER=%d LEVEL=%d WIFI=%d MQTT=%d WEB=%d\n",
                 EN_DHT, EN_OLED, EN_WATER, EN_LEVEL, EN_WIFI, EN_MQTT, EN_WEB);   // v1.1：排障先看烧的是哪套配置
   Serial.printf("标定: dry=%d wet=%d 缺水阈值=%d%%\n", SOIL_RAW_DRY, SOIL_RAW_WET, SOIL_THRESHOLD_PCT);
@@ -402,6 +421,12 @@ void setup() {
 
   if (SOIL_RAW_DRY <= SOIL_RAW_WET) {           // v1.1 标定防呆：干点必须大于湿点，填反立刻报错
     Serial.println("!! [自检失败] SOIL_RAW_DRY <= SOIL_RAW_WET，标定值疑似填反，请检查后重烧 !!");
+  }
+  if (SOIL_RAW_DRY > 4095 || SOIL_RAW_WET > 4095 || SOIL_RAW_DRY < 0 || SOIL_RAW_WET < 0) {  // AR08 防呆
+    Serial.println("!! [自检失败] 标定值超出 ADC 0..4095 量程，12 位 ADC 读不到，请检查 !!");
+  }
+  if (SOIL_RAW_DRY - SOIL_RAW_WET < 800) {      // AR08 防呆：量程太窄映射会放大噪声
+    Serial.println("!! [自检警告] 干湿标定差 <800，湿度%会对读数噪声过敏，建议重测标定 !!");
   }
 
   pinMode(PIN_LED_R, OUTPUT); digitalWrite(PIN_LED_R, LOW);
