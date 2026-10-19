@@ -30,15 +30,20 @@ LEGEND = [
     ("水体", "water"),
     ("水泵", "pump"),
     ("水管", "tube"),
+    ("螺丝 / 排针 / 屏蔽罩", "metal"),
+    ("铜探头 / 天线", "gold"),
+    ("跳线 / 印线", "wire"),
 ]
 
 SCALE = 50.0     # int16 量化: 1 单位 = 0.02mm, 覆盖 ±655mm
 
 pos, nrm, col = [], [], []
-for mesh, ck, nm in BA.items:
+AO_ALL = BA.get_ao()
+for k, (mesh, ck, nm) in enumerate(BA.items):
     tri = mesh.triangles.reshape(-1, 3)          # 每三角 3 顶点
     n = np.repeat(mesh.face_normals, 3, axis=0)
-    c = np.tile(np.array(BA.C[ck], dtype=float), (len(tri), 1))
+    ao = np.repeat(BA.get_ao()[k], 3)[:, None]   # 逐面 AO（与 PNG/glb 同源）
+    c = np.tile(np.array(BA.C[ck], dtype=float), (len(tri), 1)) * (0.40 + 0.60 * ao)
     pos.append(tri)
     nrm.append(n)
     col.append(c)

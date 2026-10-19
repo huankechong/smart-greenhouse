@@ -51,6 +51,9 @@ C = {
     "breadboard": (0.890, 0.851, 0.722), # 面包板（米黄）
     "screen": (0.055, 0.086, 0.149),     # OLED 屏（近黑蓝）
     "led": (0.839, 0.204, 0.161),        # 双色 LED 灯珠（红）
+    "metal": (0.604, 0.639, 0.678),      # 螺丝 / 排针 / 屏蔽罩（不锈钢灰）
+    "gold": (0.788, 0.635, 0.153),       # 铜探头 / 天线（铜金）
+    "wire": (0.290, 0.310, 0.341),       # 跳线 / 面包板印线（哑光深灰）
     # —— 水系统 ——
     "tank": (0.659, 0.824, 0.910),    # 水箱（浅青）
     "water": (0.247, 0.557, 0.839),   # 水体（中蓝）
@@ -241,13 +244,250 @@ add(place(M_P1.build_cable_clip(M_P1.PARAMS["clip3"]), -75.0, 8.0, PT, rz=8), "w
 
 
 # ============================================================
+# ============================================================
+# 细节层 v1.7 —— 电子件特征 / 螺丝 / 跳线（只加几何，不动 STL）
+#   预算：新增 ≤10k 面；所有件仍用布尔过的 STL，细节件仅作渲染
+# ============================================================
+def _cyl(r, h, sec=20, axis="z", x=0.0, y=0.0, z=0.0):
+    m = cylinder(radius=r, height=h, sections=sec)
+    if axis == "x":
+        m.apply_transform(trimesh.transformations.rotation_matrix(np.pi / 2, [0, 1, 0]))
+    elif axis == "y":
+        m.apply_transform(trimesh.transformations.rotation_matrix(np.pi / 2, [1, 0, 0]))
+    m.apply_translation([x, y, z])
+    return m
+
+
+def _cat(parts):
+    """渲染用合并：直接拼接，不做布尔（细节件不需要封闭单体）"""
+    return trimesh.util.concatenate(parts)
+
+
+def _bx(x, y, z, sx, sy, sz):
+    return box(extents=[sx, sy, sz]).apply_translation([x, y, z])
+
+
+def make_screw(x, y, z_top, head_d=6.0, head_h=1.8, shaft_d=3.0, shaft_l=5.0):
+    """M3×6 盘头自攻：头坐在 φ6.2 沉窝里，头面与板面齐平"""
+    head = _cyl(head_d / 2, head_h, 20, z=z_top - head_h / 2, x=x, y=y)
+    shaft = _cyl(shaft_d / 2, shaft_l, 14, z=z_top - head_h - shaft_l / 2, x=x, y=y)
+    return _cat([head, shaft])
+
+
+# ---------- 14. 面包板表面特征（孔阵 / 中央沟 / 电源轨） ----------
+BB_TOP = SEAT + 10.0            # 面包板顶面 = 14.5
+holes = []
+for bx0 in (-133.0, -95.0):     # 左/右两块孔区（中间让出中央沟）
+    for i in range(12):
+        for j in range(4):
+            holes.append(_cyl(0.95, 0.5, 8, z=BB_TOP - 0.2, x=bx0 + i * 3.0, y=-70.0 + j * 3.0))
+add(_cat(holes), "mcu", "面包板孔阵")
+add(_bx(-105.0, -55.0, BB_TOP - 0.15, 3.2, 53.0, 0.4), "mcu", "面包板中央沟")
+rails = [_bx(-105.0, yy, BB_TOP - 0.12, 80.0, 1.0, 0.3) for yy in (-80.0, -76.0, -34.0, -30.0)]
+add(_cat(rails), "wire", "面包板电源轨")
+
+# ---------- 15. ESP32 板载件（USB-C / 按键 / 天线 / 屏蔽罩） ----------
+MCU_TOP = SEAT + 10.0 + 11.0    # = 25.5
+add(_bx(-128.0, -50.0, MCU_TOP + 1.5, 9.0, 6.0, 3.0), "mcu", "ESP32 USB-C")
+add(_bx(-73.5, -46.0, MCU_TOP + 0.8, 4.0, 3.0, 1.6), "mcu", "ESP32 按键")
+add(_bx(-73.5, -54.0, MCU_TOP + 0.8, 4.0, 3.0, 1.6), "mcu", "ESP32 EN键")
+add(_bx(-112.0, -50.0, MCU_TOP + 0.3, 16.0, 12.0, 0.6), "gold", "ESP32 天线")
+add(_bx(-90.0, -50.0, MCU_TOP + 1.0, 18.0, 13.0, 2.0), "metal", "ESP32 屏蔽罩")
+
+# ---------- 16. 继电器端子 / 指示灯 / 光耦 ----------
+RL_TOP = SEAT + 15.0            # = 19.5
+terms = [_bx(x, -29.0, RL_TOP + 3.0, 6.0, 6.0, 6.0) for x in (-56.0, -49.0, -42.0)]
+add(_cat(terms), "pcb_green", "继电器端子")
+add(_cyl(1.6, 1.4, 12, z=RL_TOP + 0.7, x=-38.0, y=-14.0), "led", "继电器指示灯")
+add(_bx(-52.0, -14.0, RL_TOP + 1.0, 6.0, 5.0, 2.0), "mcu", "继电器光耦")
+
+# ---------- 17. OLED 排线 / 排针 / 驱动 IC ----------
+add(_bx(-45.0, 24.0, 17.5, 16.0, 0.5, 7.0), "mcu", "OLED FPC 排线")
+add(_bx(-45.0, 22.4, 13.4, 12.0, 1.6, 1.2), "metal", "OLED 排针")
+add(_bx(-45.0, 41.5, 21.0, 9.0, 9.0, 1.2), "mcu", "OLED 驱动 IC")
+
+# ---------- 18. 土壤传感器：铜探头 / 排针 ----------
+add(_bx(-137.1, 42.6, 30.0, 0.35, 4.0, 26.0), "gold", "传感器铜探头 L")
+add(_bx(-138.7, 33.6, 30.0, 0.35, 4.0, 26.0), "gold", "传感器铜探头 R")
+add(_bx(-137.9, 49.0, 112.0, 9.0, 1.4, 1.4), "metal", "传感器排针")
+
+# ---------- 19. DHT11 格栅 ----------
+for k in range(3):
+    add(_bx(-45.0, -45.4, 66.0 + k * 3.0, 9.0, 0.5, 1.1), "mcu", "DHT11 格栅%d" % k)
+
+# ---------- 20. 水泵进水格栅 / 出水嘴 / 电源线 ----------
+grille = [_cyl(19.2, 0.8, 40, z=10.5 + k * 3.2, x=85.0, y=8.0) for k in range(5)]
+add(_cat(grille), "mcu", "水泵进水格栅")
+add(_cyl(4.0, 8.0, 16, z=37.0, x=85.0, y=8.0), "pump", "水泵出水嘴")
+
+# ---------- 21. 8 颗 M3×6 螺丝（底盘连接块，头面齐平 z=8） ----------
+for jy in (70.0, -70.0):
+    for sx in (-14.0, 14.0):
+        for sy in (-7.0, 7.0):
+            add(make_screw(sx, jy + sy, PT), "metal", "M3×6 螺丝")
+
+# ---------- 22. 跳线 20 根（单色灰，避免彩线糊成一片） ----------
+def wire(points, r=1.05, sec=12):
+    parts = []
+    pts = [np.asarray(p, dtype=float) for p in points]
+    for a, b in zip(pts[:-1], pts[1:]):
+        v = b - a
+        L = float(np.linalg.norm(v))
+        if L < 1e-6:
+            continue
+        seg = cylinder(radius=r, height=L, sections=sec)
+        seg.apply_translation([0, 0, L / 2])
+        seg.apply_transform(trimesh.geometry.align_vectors([0, 0, 1], v / L))
+        seg.apply_translation(a)
+        parts.append(seg)
+    return _cat(parts)
+
+
+WIRES = [
+    # ① ESP32 → OLED（4 根）：从板右缘出，绕过继电器上方，进屏架前下方
+    [(-71.0, -40, 24), (-66, -8, 17), (-56, 14, 15), (-49, 20.4, 18)],
+    [(-71.0, -43, 24), (-67, -6, 17), (-57, 15, 15), (-50, 20.4, 18)],
+    [(-71.0, -46, 24), (-68, -4, 17), (-58, 16, 15), (-51, 20.4, 18)],
+    [(-71.0, -49, 24), (-69, -2, 17), (-59, 17, 15), (-52, 20.4, 18)],
+    # ② ESP32 → DHT11（1 根）：从正面进 DHT 座
+    [(-71.0, -44, 24), (-64, -38, 16), (-50, -38, 12), (-45, -43.4, 10.2)],
+    # ③ ESP32 → 土壤传感器（3 根）：绕花盆南侧，沿盆沿外侧上行
+    [(-68.0, -38, 22), (-66, -20, 12), (-70, 2, 12), (-100, 14, 12), (-145, 26, 12),
+     (-146, 31, 20), (-146, 31, 95), (-140, 37, 107)],
+    [(-68.0, -35, 22), (-65, -18, 12), (-69, 4, 12), (-101, 15, 12), (-146, 27, 12),
+     (-147, 32, 20), (-147, 32, 95), (-141, 38, 107)],
+    [(-68.0, -32, 22), (-64, -16, 12), (-68, 6, 12), (-102, 16, 12), (-147, 28, 12),
+     (-148, 33, 20), (-148, 33, 95), (-142, 39, 107)],
+    # ④ ESP32 → 继电器 IN（1 根）：从上方落到端子
+    [(-71.0, -45, 24), (-64, -32, 24), (-52, -29, 25.4)],
+    # ⑤ 继电器 → 水泵（2 根）：壁外抬升到 z=66 再跨进箱内
+    [(-27.4, -18, 19), (0, -18, 16), (20, -18, 16), (22, -18, 66), (34, -18, 66),
+     (70, 0, 66), (84, 6, 50), (85, 6, 40)],
+    [(-27.4, -21, 19), (2, -21, 16), (21, -21, 16), (23, -21, 66), (36, -20, 66),
+     (72, 2, 66), (86, 8, 50), (87, 8, 40)],
+    # ⑥ ESP32 → 面包板电源轨（2 根）
+    [(-76, -35.2, 20), (-84, -32, 16), (-92, -30, 14.8)],
+    [(-80, -35.2, 20), (-88, -31, 16), (-100, -30, 14.8)],
+    # ⑦ ESP32 → 面包板信号（3 根）
+    [(-84, -35.2, 20), (-96, -33, 16), (-110, -31, 14.8)],
+    [(-88, -35.2, 20), (-104, -34, 16), (-120, -31, 14.8)],
+    [(-92, -35.2, 20), (-112, -35, 16), (-130, -30, 14.8)],
+    # ⑧ ESP32 → LED（2 根）：跨继电器上方，避开屏架
+    [(-71.0, -50, 24), (-58, -38, 20), (-40, -15, 22), (-26, 8, 18), (-23, 15, 10)],
+    [(-71.0, -53, 24), (-59, -41, 20), (-41, -18, 22), (-27, 6, 18), (-24, 13, 10)],
+    # ⑨ 面包板 → 继电器供电（2 根）
+    [(-92, -29, 14.8), (-74, -26, 17), (-58, -29, 24)],
+    [(-98, -29, 14.8), (-76, -27, 17), (-56, -29, 25)],
+]
+for k, w in enumerate(WIRES):
+    add(wire(w), "wire", "跳线%02d" % (k + 1))
+
+
+
+# ============================================================
+# 烘焙 AO（环境光遮蔽）—— 一次算好，PNG 渲染与 HTML 共用
+#   面级余弦半球采样 + 邻面平滑；结果缓存到 ao_cache.npz
+# ============================================================
+AO_LIST = None
+AO_CACHE = os.path.join(HERE, "ao_cache.npz")
+
+
+def _scene_sig(meshes):
+    b = trimesh.util.concatenate(meshes).bounds.ravel()
+    return "%d_%s" % (sum(len(m.faces) for m in meshes),
+                      "_".join("%.2f" % v for v in b))
+
+
+def bake_ao(meshes, rays=12):
+    """返回每个 mesh 的逐面 AO（1=完全受光，0=完全遮蔽）"""
+    sig = _scene_sig(meshes)
+    if os.path.exists(AO_CACHE):
+        try:
+            z = np.load(AO_CACHE, allow_pickle=True)
+            if str(z["sig"]) == sig:
+                print("AO 命中缓存")
+                return [z["a%d" % i] for i in range(len(meshes))]
+        except Exception:
+            pass
+
+    scene = trimesh.util.concatenate(meshes)
+    tri = scene.triangles
+    cen = tri.mean(axis=1)
+    nrm = scene.face_normals
+    nrm = nrm / np.maximum(np.linalg.norm(nrm, axis=1, keepdims=True), 1e-9)
+
+    # 每个面一套切线基
+    up = np.where(np.abs(nrm[:, 2:3]) < 0.9, np.array([[0.0, 0.0, 1.0]]), np.array([[1.0, 0.0, 0.0]]))
+    t = np.cross(up, nrm); t /= np.maximum(np.linalg.norm(t, axis=1, keepdims=True), 1e-9)
+    b = np.cross(nrm, t)
+
+    rng = np.random.default_rng(7)
+    ga = np.pi * (3.0 - np.sqrt(5.0))
+    acc = np.zeros(len(cen))
+    for k in range(rays):
+        r = np.sqrt((k + 0.5) / rays)
+        phi = ga * k
+        d = (t * (np.cos(phi) * r) + b * (np.sin(phi) * r)
+             + nrm * float(np.sqrt(max(0.0, 1.0 - r * r))))
+        d += rng.normal(scale=0.02, size=d.shape)
+        d /= np.linalg.norm(d, axis=1, keepdims=True)
+        o = cen + nrm * 0.25
+        acc += scene.ray.intersects_any(o, d)
+    ao = 1.0 - acc / rays
+
+    # 邻面平滑 2 轮，压掉采样噪点
+    adj = scene.face_adjacency
+    for _ in range(2):
+        s = ao.copy(); c = np.ones_like(ao)
+        np.add.at(s, adj[:, 0], ao[adj[:, 1]]); np.add.at(c, adj[:, 0], 1)
+        np.add.at(s, adj[:, 1], ao[adj[:, 0]]); np.add.at(c, adj[:, 1], 1)
+        ao = s / c
+    ao = np.clip(ao, 0.05, 1.0)
+
+    # 切回每个 mesh
+    out, i0 = [], 0
+    for m in meshes:
+        n = len(m.faces)
+        out.append(ao[i0:i0 + n]); i0 += n
+    try:
+        np.savez_compressed(AO_CACHE, sig=sig, **{"a%d" % i: a for i, a in enumerate(out)})
+    except Exception as e:
+        print("AO 缓存写入失败:", e)
+    return out
+
+
+def get_ao():
+    """逐面 AO；大面积面（>120mm²）用该件中位数，避免"皱纸"斑块"""
+    global AO_LIST
+    if AO_LIST is None:
+        meshes = [m for m, _, _ in items]
+        raw_ao = bake_ao(meshes)
+        AO_LIST = []
+        # 结构件（大而简单）：AO 压缩到 0.80~1.0，只留微弱层次。
+        # 原因：布尔会把大平面切成大量碎片面，逐面 AO 会形成"皱纸"斑块；
+        # 细节件（螺丝/排针/跳线/孔阵）保留全强度，小特征才读得出来。
+        STRUCT = ("底盘", "花盆", "土壤", "水箱", "水体", "面包板", "ESP32", "继电器",
+                  "OLED 45°支架", "DHT11 座", "扎线座", "连接块", "水泵", "水泵固定座",
+                  "土壤传感器板", "传感器盆沿挂钩", "水管末端夹", "水管")
+        for (m, ck, nm), a in zip(items, raw_ao):
+            a = np.array(a, dtype=float).copy()
+            if (nm or "").startswith(STRUCT):
+                a = 0.80 + 0.20 * a
+            else:
+                a = np.clip(a, 0.12, 1.0)
+            AO_LIST.append(a)
+    return AO_LIST
+
+
 def render_scene(azim=42.0, elev=26.0, size=1100, bg=(1, 1, 1)):
     tri_list, col_list = [], []
     light = np.array([0.40, 0.55, 0.73])
     light /= np.linalg.norm(light)
-    for mesh, ck, _ in items:
+    ao_all = get_ao()
+    for idx, (mesh, ck, _) in enumerate(items):
         n = mesh.face_normals
-        shade = 0.42 + 0.58 * np.clip(n @ light, 0, 1)
+        ao = ao_all[idx]
+        shade = 0.46 * ao + 0.54 * np.clip(n @ light, 0, 1) * (0.75 + 0.25 * ao)
         tri_list.append(mesh.triangles)
         col_list.append(np.array(C[ck])[None, :] * shade[:, None])
     tris = np.concatenate(tri_list)
@@ -304,7 +544,10 @@ def main():
     for i, (mesh, ck, nm) in enumerate(items):
         m = mesh.copy()
         col = np.array(list(C[ck]) + [1.0])
-        m.visual = trimesh.visual.ColorVisuals(mesh=m, face_colors=np.tile(col, (len(m.faces), 1)))
+        ao = get_ao()[i]
+        face_col = np.tile(col, (len(m.faces), 1))
+        face_col[:, :3] *= (0.35 + 0.65 * ao)[:, None]
+        m.visual = trimesh.visual.ColorVisuals(mesh=m, face_colors=face_col)
         scene.add_geometry(m, geom_name=f"{i:02d}_{nm or ck}")
 
     glb = os.path.join(HERE, "花房整机示意模型.glb")

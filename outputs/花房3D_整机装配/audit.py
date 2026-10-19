@@ -26,8 +26,16 @@ print("=" * 70)
 print("② 装配干涉 (两两求交, 只报 >1 mm3)")
 print("=" * 70)
 import build_assembly as BA          # 模块级已构建 items
-items = [(m, ck, nm) for m, ck, nm in BA.items]
-print("装配几何体 %d 个" % len(items))
+# v1.7 细节件（螺丝/跳线/孔阵/板载件）只做视觉叠加，不参与两两干涉：
+# 它们本来就贴在零件表面，逐对求交既慢又没有工程意义。跳线单独由 check_wires.py 校验。
+DETAIL = ("跳线", "M3×6", "面包板孔阵", "面包板中央沟", "面包板电源轨",
+          "ESP32 USB", "ESP32 按键", "ESP32 EN", "ESP32 天线", "ESP32 屏蔽",
+          "继电器端子", "继电器指示", "继电器光耦", "OLED FPC", "OLED 排针",
+          "OLED 驱动", "传感器铜探头", "传感器排针", "DHT11 格栅",
+          "水泵进水", "水泵出水")
+items = [(m, ck, nm) for m, ck, nm in BA.items if not (nm or "").startswith(DETAIL)]
+print("装配几何体 %d 个（另有 %d 个细节件不参与干涉检查）"
+      % (len(items), len(BA.items) - len(items)))
 
 def bbox_overlap(a, b, tol=0.0):
     return np.all(a.bounds[0] - tol <= b.bounds[1]) and np.all(b.bounds[0] - tol <= a.bounds[1])
