@@ -53,13 +53,16 @@ P = {
     # ---------- 板槽 ----------
     "tilt": 8.0,             # 板倾角
     "groove_w": 23.6,        # 槽宽 X = 板宽 23 + 0.6
-    "groove_gap": 1.5,       # 槽厚 = 板厚 1.6 - 0.1 过盈
+    "groove_gap": 1.4,       # 槽厚 = 板厚 1.5 - 0.1 过盈
     "slot_len": 46.0,        # 槽长（沿轴，贯穿柱子上下表面即可）
-    # ---------- 板（仅用于装配示意，不打印）----------
-    "board_w": 23.0,         # [实测待填] PCB 宽
-    "board_t": 1.6,          # [实测待填] PCB 厚
-    "board_len": 98.0,       # [市售常见值] 含探针段总长
-    "board_bottom_z": -70.0, # 板下端在局部坐标的 Z（= 入土 62mm）
+    # ---------- 板（仅用于装配示意，不打印；尺寸 2026-10-19 实测自商品图）----------
+    "board_w": 23.0,         # [实测] 头部宽 23（图中标注）
+    "board_probe_w": 15.0,   # [实测] 探针段宽 15
+    "board_t": 1.5,          # [实测 10-19] PCB 厚 1.5
+    "board_len": 87.0,       # [实测] 含尖头总长 87
+    "board_head_len": 30.0,  # 头部（23 宽）段长，按图比例估
+    "board_tip_len": 12.0,   # 尖头段长，按图比例估
+    "board_top_z": None,     # None = 板顶与夹板柱顶面齐平（插入深度基准）
 }
 
 
@@ -147,21 +150,33 @@ def build(p=P):
 
 
 def board_mesh(p=P, gc=None, axis=None, rim_top_z=0.0):
-    """装配示意用的传感器板（不打印）。板顶与夹板柱顶面齐平，下端入土。"""
+    """装配示意用的传感器板（不打印）：头部 23 宽 / 探针段 15 宽 / 尖头，总长 87。
+    插进板槽后，板顶与夹板柱顶面齐平。"""
     ang = np.deg2rad(p["tilt"])
-    m = box(extents=[p["board_w"], p["board_t"], p["board_len"]])
+    L, HW, PW = p["board_len"], p["board_w"], p["board_probe_w"]
+    hl, tl = p["board_head_len"], p["board_tip_len"]
+    pl = L - hl - tl                                  # 等宽探针段
+    # 轮廓（x=宽，y=从板顶向尖头方向）
+    pts = [(-HW / 2, 0), (HW / 2, 0), (HW / 2, hl),
+           (PW / 2, hl + 4.0), (PW / 2, hl + 4.0 + pl),
+           (0.0, L),                                   # 尖头
+           (-PW / 2, hl + 4.0 + pl), (-PW / 2, hl + 4.0),
+           (-HW / 2, hl)]
+    poly = trimesh.path.polygons.Polygon(pts)
+    m = trimesh.creation.extrude_polygon(poly, height=p["board_t"])
+    m.apply_transform(trimesh.transformations.rotation_matrix(-np.pi / 2, [1, 0, 0]))
+    # 此时：X=宽，Y=厚度(-1.6~0)，Z=沿板长向下
     m.apply_transform(trimesh.transformations.rotation_matrix(-ang, [1, 0, 0]))
+    m.apply_translation([0, -p["board_t"] / 2, 0])   # 挤出后厚度在 y 0..t，居中到 0
+
     if gc is not None:
-        # 沿着"板槽中心线"走到板中心所在高度（gc 是落床坐标下的槽心）
-        zc_target = p["board_bottom_z"] + rim_top_z + 0.5 * p["board_len"] * np.cos(ang)
-        t = (zc_target - float(gc[1])) / float(axis[1])
+        # 板顶（y=0 端）落在夹板柱顶面；gc 是落床坐标下的槽心
+        top_z = rim_top_z + p["rail_t"] + p["col_h"] if p["board_top_z"] is None else rim_top_z + p["board_top_z"]
+        t = (top_z - float(gc[1])) / float(axis[1])
         cy = float(gc[0]) + float(axis[0]) * t
         cz = float(gc[1]) + float(axis[1]) * t
     else:
-        _, top = _board_line(p)
-        zc = p["board_bottom_z"] + 0.5 * p["board_len"] * np.cos(ang)
-        cy = p["col_y"] - (p["rail_t"] + p["col_h"] - zc) * np.tan(ang)
-        cz = zc
+        cy, cz = p["col_y"], p["rail_t"] + p["col_h"]
     m.apply_translation([0.0, cy, cz])
     return m
 

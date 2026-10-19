@@ -209,7 +209,7 @@ hook.apply_transform(hook_rot)
 hook.apply_translation([rim_pt[0], rim_pt[1], RIM_Z - hook.metadata["rim_top_z"]])
 add(hook, "white", "传感器盆沿挂钩")
 
-brow = M_P0B.board_mesh(gc=gc, axis=haxis)
+brow = M_P0B.board_mesh(gc=gc, axis=haxis, rim_top_z=hook.metadata["rim_top_z"])
 brow.apply_transform(hook_rot)
 brow.apply_translation([rim_pt[0], rim_pt[1], RIM_Z - hook.metadata["rim_top_z"]])
 add(brow, "pcb_green", "土壤传感器板")
@@ -244,8 +244,11 @@ add(place(cylinder(radius=2.95, height=0.9, sections=32), LED[0], LED[1], PT + 0
 
 # ---------- 11. 面包板 + ESP32 + 继电器 ----------
 SEAT = PT - 3.5                      # 槽深 3.5 -> 槽底 z=4.5, 件必须坐进去
+BB_TOP = SEAT + 10.0                 # 面包板顶面 = 14.5
 add(place(box([84.0, 55.0, 10.0]), -105.0, -55.0, SEAT + 5.0), "breadboard", "面包板")
-add(place(box([55.0, 28.0, 11.0]), -100.0, -50.0, SEAT + 10.0 + 5.5), "mcu", "ESP32")
+# ESP32 实测 51.5×28（含 Type-C 突出 53），PCB 厚 1.5；竖直插在面包板上，
+# 厚度方向 11 = PCB 1.5 + 两侧排针塑料座，故整体按 51.5 × 11 × 28 画
+add(place(box([51.5, 11.0, 28.0]), -100.0, -50.0, BB_TOP + 14.0), "mcu", "ESP32")
 add(place(box([34.0, 25.0, 15.0]), -45.0, -20.0, SEAT + 7.5), "relay", "继电器")
 
 # ---------- 12. P2: DHT11 座 + 模块 ----------
@@ -290,7 +293,6 @@ def make_screw(x, y, z_top, head_d=6.0, head_h=1.8, shaft_d=3.0, shaft_l=5.0):
 
 
 # ---------- 14. 面包板表面特征（孔阵 / 中央沟 / 电源轨） ----------
-BB_TOP = SEAT + 10.0            # 面包板顶面 = 14.5
 holes = []
 for bx0 in (-133.0, -95.0):     # 左/右两块孔区（中间让出中央沟）
     for i in range(12):
@@ -302,12 +304,13 @@ rails = [_bx(-105.0, yy, BB_TOP - 0.12, 80.0, 1.0, 0.3) for yy in (-80.0, -76.0,
 add(_cat(rails), "wire", "面包板电源轨")
 
 # ---------- 15. ESP32 板载件（USB-C / 按键 / 天线 / 屏蔽罩） ----------
-MCU_TOP = SEAT + 10.0 + 11.0    # = 25.5
-add(_bx(-128.0, -50.0, MCU_TOP + 1.5, 9.0, 6.0, 3.0), "mcu", "ESP32 USB-C")
-add(_bx(-73.5, -46.0, MCU_TOP + 0.8, 4.0, 3.0, 1.6), "mcu", "ESP32 按键")
-add(_bx(-73.5, -54.0, MCU_TOP + 0.8, 4.0, 3.0, 1.6), "mcu", "ESP32 EN键")
-add(_bx(-112.0, -50.0, MCU_TOP + 0.3, 16.0, 12.0, 0.6), "gold", "ESP32 天线")
-add(_bx(-90.0, -50.0, MCU_TOP + 1.0, 18.0, 13.0, 2.0), "metal", "ESP32 屏蔽罩")
+# 板载件贴在模组朝 +Y 的一侧（面在 y=-44.5）
+MCU_TOP = BB_TOP + 28.0          # = 42.5
+add(_bx(-124.5, -50.0, BB_TOP + 4.5, 3.0, 13.0, 9.0), "mcu", "ESP32 USB-C")
+add(_bx(-118.0, -43.9, BB_TOP + 6.0, 4.0, 1.2, 3.0), "mcu", "ESP32 按键")
+add(_bx(-113.0, -43.9, BB_TOP + 6.0, 4.0, 1.2, 3.0), "mcu", "ESP32 EN键")
+add(_bx(-82.0, -43.9, MCU_TOP - 7.0, 16.0, 0.8, 11.0), "gold", "ESP32 天线")
+add(_bx(-100.0, -43.0, BB_TOP + 15.0, 18.0, 2.0, 13.0), "metal", "ESP32 屏蔽罩")
 
 # ---------- 16. 继电器端子 / 指示灯 / 光耦 ----------
 RL_TOP = SEAT + 15.0            # = 19.5
