@@ -83,6 +83,11 @@ NODE="C:/Users/junbo/.workbuddy/binaries/node/versions/22.22.2-6/node.exe"
 | AR04 审计报告 | HyrMCwtijUdV9odOLHrayF |
 | GreenHouse_v1（drive 文件夹） | tv65GaSPuz0HScD9Br434i |
 | AR05 打印件装配优化（2026-10-19 新增） | zE3xzi8p2keE6wyGq05G4b |
+| AR06 土壤传感器支架v2（2026-10-20 补传） | C77BCddpEBCPvbH2yjLXIX |
+| AR07 低水位保护落地（2026-10-20 补传） | thfLdpy0CR4dwUwNNJgqTE |
+
+- 云端有一作废节点（标题带【作废勿用-内容实为AR06】，id `yxhN44PI5L0rUYkuP8R4BW`，无删除 API）——勿引用，等手动删除。
+- AR01 报告在 `outputs/花房代码/`（本地/git/E 盘），未上传云端、表中无登记。
 
 空间 spaceId：TESQXngJ4tIC1hKd2ccd9p。
 
