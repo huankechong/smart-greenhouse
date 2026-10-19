@@ -33,7 +33,7 @@ ESP32 + 土壤湿度/光敏/DHT11 传感 → 自动浇水（继电器 + 底吸�
 │   ├── 花房接线规划表.md
 │   ├── 花房借用与自购清单.md
 │   ├── 花房3D建模入门路线_SolidWorks.md
-│   ├── 硬件申请邮件模板.md / DT学助_…采购咨询邮件.md
+│   ├── private/                            # 内部邮件（含个人信息，.gitignore 排除，不入仓库）
 │   └── 审计报告/AR02 · AR03 · AR04.md
 └── outputs/             # 交付物 + 生成脚本（不是文档）
     ├── 花房代码/GreenHouse_v1/     # Arduino 固件（.ino + config.h 占位符 + 编译说明）
