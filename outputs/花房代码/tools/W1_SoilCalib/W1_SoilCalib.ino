@@ -14,9 +14,10 @@
  *    soil_calibrate.py 做统计，直接把标定值写回主程序。
  *
  *  接线（只有土壤传感器，其余全部不接）：
- *    土壤 VCC  → ESP32  3V3    ← 必须 3.3V，接 5V 会超 ADC 量程
- *    土壤 GND  → ESP32  GND
- *    土壤 AOUT → ESP32  GPIO34  ← ADC1_CH6，只能接模拟输出
+ *    土壤 5V  → ESP32  3V3    ← 丝印虽写 5V，但接 3V3！模块内置稳压（3.3–5.5V），
+ *                                     且 v2.0 输出恒为 0–3.0V，接 3V3 正好落在 ADC 满量程内
+ *    土壤 GND → ESP32  GND
+ *    土壤 OUT → ESP32  GPIO34 ← ADC1_CH6，只能接模拟输出
  *
  *  串口：115200 波特，输出格式（每行一条，CSV）：
  *    RAW,<millis>,<raw值>
@@ -29,7 +30,7 @@
  * ============================================================
  */
 
-#define PIN_SOIL 34          // 土壤湿度 AOUT → GPIO34 (ADC1_CH6)
+#define PIN_SOIL 34          // 土壤湿度 OUT → GPIO34 (ADC1_CH6)
 
 // ---- 采样参数 ----
 #define SAMPLE_INTERVAL_MS 100   // 每 100ms 输出一行（10Hz，脚本取 3 秒窗口≈30 个样本）

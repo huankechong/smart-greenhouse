@@ -293,7 +293,7 @@ def main():
         print()
         print("  采集失败：没读到有效样本。")
         print("  排查：① 确认已烧录 W1_SoilCalib 固件（不是主程序！）")
-        print("        ② 确认土壤 VCC→3V3、GND→GND、AOUT→GPIO34")
+        print("        ② 确认土壤 5V→3V3、GND→GND、OUT→GPIO34（丝印就是这三个字）")
         print("        ③ 看串口有没有 RAW,<millis>,<raw> 这种行")
         return 4
 
@@ -305,8 +305,9 @@ def main():
     note = ""
     if dry <= wet:
         verdict = "异常：干点不高于湿点"
-        note = "电容式传感器应是「干=高 raw、湿=低 raw」。请确认 AOUT 没接反、没接 GPIO35；" \
-               "若传感器模块确为电阻式（干低湿高），则主程序的 map 方向也要反过来，需同时改代码。"
+        note = "电容式传感器应是「干=高 raw、湿=低 raw」（湿土介电常数高→振荡频率低→输出电压低）。" \
+               "请确认 OUT 没接反、没接 GPIO35；也可能型号不是电容式（电阻式是干低湿高），" \
+               "那种情况主程序的 map 方向也要反过来，需改代码。"
     elif span < MIN_SPAN:
         verdict = f"异常：干湿差仅 {span}，小于 {MIN_SPAN}"
         note = "传感器没真正响应。查：① 探针根部（涂过防水漆的那段）有没有完全浸湿 " \
