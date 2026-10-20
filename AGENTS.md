@@ -86,12 +86,21 @@ NODE="C:/Users/junbo/.workbuddy/binaries/node/versions/22.22.2-6/node.exe"
 | AR06 土壤传感器支架v2（2026-10-20 补传） | C77BCddpEBCPvbH2yjLXIX |
 | AR07 低水位保护落地（2026-10-20 补传） | thfLdpy0CR4dwUwNNJgqTE |
 | AR01 代码审计修复（2026-10-20 补传） | 8q21c19wItzhdj0wMy5Inx |
-| AR10 代码全面审计（2026-10-20，待补传） | 未上传 |
-| AR11 知识库全面审计（2026-10-20，待补传） | 未上传 |
+| AR08 示意模型圆桶化（2026-10-20 补传） | FPTRDpWRSl4SsiDKDMtZcu |
+| AR09 走线优化（2026-10-20 补传） | oSn3m0bkpunWAq1790WG6A |
+| AR10 代码全面审计（2026-10-20 补传） | nQayAKJjse8vIBMPytgzXt |
+| AR11 知识库全面审计（2026-10-20 补传） | IkIT5C4dvTcEONFoiSXLwC |
 
 - 云端有一作废节点（标题带【作废勿用-内容实为AR06】，id `yxhN44PI5L0rUYkuP8R4BW`，无删除 API）——勿引用，等手动删除。
-- AR01–AR07 报告已全数上云（AR01 本体在 `outputs/花房代码/`，其余在 `docs/审计报告/`）。AR08/AR09/AR10/AR11 仍在本地，待补传。
+- AR01–AR11 报告已全数上云（AR01 本体在 `outputs/花房代码/`，其余在 `docs/审计报告/`）。
 
-空间 spaceId：TESQXngJ4tIC1hKd2ccd9p。
+**云端有两个空间，别混：**
+
+| spaceId | spaceName | 装什么 |
+|---|---|---|
+| `Hy2wV7oRfX7RRRIJcFEXYU` | 花房 | 主文档区：README、AGENTS、index、30 天计划、接线表、方案书、交接文档等（**本表上半部分的 nodeId 属于此空间**） |
+| `TESQXngJ4tIC1hKd2ccd9p` | （AR 报告区） | AR01–AR11 审计报告 + GreenHouse_v1 drive 文件夹（**AR 系列的 nodeId 属于此空间**） |
+
+> 上表 nodeId 未标空间的按所在空间对号入座：README–index 七项在「花房」空间，AR01–AR11 与 drive 在 AR 空间。
 
 <!-- neat-freak: initialized at 2026-10-18 -->
