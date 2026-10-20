@@ -151,12 +151,13 @@
 
 ## 六、已知限制与未处理
 
-1. ~~**AR08/AR09/AR10 三份报告尚未补传云端资料库**~~ —— **已于同日补传完成**，nodeId 已回填 AGENTS.md 第 8 节映射表：AR08 `FPTRDpWRSl4SsiDKDMtZcu` / AR09 `oSn3m0bkpunWAq1790WG6A` / AR10 `nQayAKJjse8vIBMPytgzXt` / AR11 `IkIT5C4dvTcEONFoiSXLwC`，并经 library_search 读回验证标题与内容无误。
-2. **云端主空间「花房」文档仍是旧版**：核查发现云端存在**两个 spaceId**——`Hy2wV7oRfX7RRRIJcFEXYU`（空间名「花房」，装 README / AGENTS / index / 30 天计划 / 接线表 / 方案书 / 交接文档等主文档）与 `TESQXngJ4tIC1hKd2ccd9p`（AR 报告区）。此前 AGENTS.md 只记了后者，属记录不完整，已修正为两空间并列。主空间那批文档截至上传时（2026-10-18/19）仍是 v1.1、9 个打印件、AR02–AR04 的旧版内容，与本地已修正版脱节，需在资料库网页端或按 doc 编辑流程覆盖同步（library 技能当前脚本未暴露 `--node-block-id/--confirm-overwrite`，整篇覆盖需逐块 delete + insert，9 份文档人工成本高，建议由领导在网页端直接替换或授权后批量处理）。
-3. **云端作废节点**（`yxhN44PI5L0rUYkuP8R4BW`，标题带【作废勿用-内容实为AR06】）无删除 API，仍需在网页端手动删除。
-4. **AR 编号方案的历史遗留**：AR01 仍单独放在 `outputs/花房代码/` 而非 `docs/审计报告/`——这是"报告跟着被审对象放"的有意设计（AR01 审的是代码），保持现状不迁移，但已在 index.md 注明。
-5. **AR06 报告内出现的 `01b_sensor_rim_hook_v1.stl` 引用**为已被 v2 取代的历史件名，属正常历史留档，未改。
-6. **未做推送**：本次变更已 `git commit`，按项目惯例**未 push**（等领导指令）。
+1. ~~**AR08/AR09/AR10 三份报告尚未补传云端资料库**~~ —— **已于同日补传完成**，nodeId 曾回填 AGENTS.md 第 8 节映射表：AR08 `FPTRDpWRSl4SsiDKDMtZcu` / AR09 `oSn3m0bkpunWAq1790WG6A` / AR10 `nQayAKJjse8vIBMPytgzXt` / AR11 `IkIT5C4dvTcEONFoiSXLwC`，并经 library_search 读回验证标题与内容无误。**（2026-10-20 后续：云端资料库已整体停用并清空，见第 7 条，这些 nodeId 均已失效）**
+2. ~~**云端主空间「花房」文档仍是旧版**~~ —— **已由领导手动删除云端全部花房文档，改为"不同步"**。原始问题留档：云端存在**两个 spaceId**——`Hy2wV7oRfX7RRRIJcFEXYU`（空间名「花房」，装 README / AGENTS / index / 30 天计划 / 接线表 / 方案书 / 交接文档等主文档）与 `TESQXngJ4tIC1hKd2ccd9p`（AR 报告区）；此前 AGENTS.md 只记了后者属记录不完整（已修）。主空间那批文档停留在 10-18/19 的旧版（v1.1、9 个打印件、AR02–AR04），与本地脱节，而 `create_doc.py` 未暴露 `--node-block-id/--confirm-overwrite`，整篇覆盖需逐块 delete + insert（实测单节点读回 8 分钟未返回）——维护成本高于收益，故裁定停用云端、以本地 git 为唯一生产源。
+3. **AR 编号方案的历史遗留**：AR01 仍单独放在 `outputs/花房代码/` 而非 `docs/审计报告/`——这是"报告跟着被审对象放"的有意设计（AR01 审的是代码），保持现状不迁移，但已在 index.md 注明。
+4. **AR06 报告内出现的 `01b_sensor_rim_hook_v1.stl` 引用**为已被 v2 取代的历史件名，属正常历史留档，未改。
+5. **未做推送**：本次变更已 `git commit`，按项目惯例**未 push**（等领导指令）。
+6. **云端曾残留一个作废节点**（`yxhN44PI5L0rUYkuP8R4BW`，标题带【作废勿用-内容实为AR06】）无删除 API——随云端整体清空一并消失。
+7. **云端资料库停用（2026-10-20 领导裁定）**：云端花房文档已由领导手动删除，AR 报告空间内容亦作废；**不再维护云端副本**。AGENTS.md 第 8 节原 19 个 nodeId 映射表已整表删除（节点均已不存在，留着是误导），改为"以本地 git 为唯一生产源"的说明。**唯一例外**：领导发出"不同步"指令前，我已在 AR 报告空间误上传了一份 README.md（nodeId `BUqqrRK4Roi6B84K0gkC04`）——此节点属多余残留，若网页端仍可见可手动删除。
 
 ---
 

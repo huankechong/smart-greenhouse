@@ -65,42 +65,14 @@ NODE="C:/Users/junbo/.workbuddy/binaries/node/versions/22.22.2-6/node.exe"
 10 个打印件 STL 已交付（01b/02/03/04/06a/06b/06c/07/08/10）；整机示意 glb + 离线 HTML 已出；固件 **v1.5.1**（2026-10-20 AR10 全量代码审计修复，见 `docs/审计报告/AR10_*`）；硬件等快递（10/21±）；答辩 2026-11-16。
 细节 → `docs/花房项目_AI工作交接文档_2026-10-18.md`。
 
-## 8. 云端资料库映射（WorkBuddy 项目空间，2026-10-19 起）
+## 8. 云端资料库：**已停用**（2026-10-20 领导决定）
 
-改动云端文档 = 用 library 技能（doc 节点走 doc/entry.md 的编辑流程，drive 文件走替换流程），**不要只改本地不同步云**。本地（D 盘/git）仍为生产源，云版本改动完成后回推 git。
+**不再做云端资料库同步。** 云端空间「花房」（`Hy2wV7oRfX7RRRIJcFEXYU`）已于 2026-10-20 由领导手动清空删除；AR 报告空间（`TESQXngJ4tIC1hKd2ccd9p`）的内容也一并作废。
 
-| 云端节点 | nodeId |
-|---|---|
-| README | 03Zob7ABODk4XklGx42W2z |
-| AGENTS | Uyl87N8HyRPg1lHHcX0f58 |
-| 花房项目_AI工作交接文档_2026-10-18 | ujykWO1B2R6prOFsKby2K3 |
-| 花房30天执行计划 | 6nebaE9cxjrieJ1CPUsVrf |
-| 花房接线规划表 | 1A7cOaJS6AWUV6rXcBZdH5 |
-| 花房FinalProject方案书 | SIi2MIidfL00f50nmyknIt |
-| index（docs 索引） | CxI35S4mNp7cJ49JAITtyv |
-| AR02 审计报告 | qvuoCS3zOSCQjTVcVvPPHi |
-| AR03 审计报告 | Z0EFzn3B4IO7j5r71NRtqx |
-| AR04 审计报告 | HyrMCwtijUdV9odOLHrayF |
-| GreenHouse_v1（drive 文件夹） | tv65GaSPuz0HScD9Br434i |
-| AR05 打印件装配优化（2026-10-19 新增） | zE3xzi8p2keE6wyGq05G4b |
-| AR06 土壤传感器支架v2（2026-10-20 补传） | C77BCddpEBCPvbH2yjLXIX |
-| AR07 低水位保护落地（2026-10-20 补传） | thfLdpy0CR4dwUwNNJgqTE |
-| AR01 代码审计修复（2026-10-20 补传） | 8q21c19wItzhdj0wMy5Inx |
-| AR08 示意模型圆桶化（2026-10-20 补传） | FPTRDpWRSl4SsiDKDMtZcu |
-| AR09 走线优化（2026-10-20 补传） | oSn3m0bkpunWAq1790WG6A |
-| AR10 代码全面审计（2026-10-20 补传） | nQayAKJjse8vIBMPytgzXt |
-| AR11 知识库全面审计（2026-10-20 补传） | IkIT5C4dvTcEONFoiSXLwC |
-
-- 云端有一作废节点（标题带【作废勿用-内容实为AR06】，id `yxhN44PI5L0rUYkuP8R4BW`，无删除 API）——勿引用，等手动删除。
-- AR01–AR11 报告已全数上云（AR01 本体在 `outputs/花房代码/`，其余在 `docs/审计报告/`）。
-
-**云端有两个空间，别混：**
-
-| spaceId | spaceName | 装什么 |
-|---|---|---|
-| `Hy2wV7oRfX7RRRIJcFEXYU` | 花房 | 主文档区：README、AGENTS、index、30 天计划、接线表、方案书、交接文档等（**本表上半部分的 nodeId 属于此空间**） |
-| `TESQXngJ4tIC1hKd2ccd9p` | （AR 报告区） | AR01–AR11 审计报告 + GreenHouse_v1 drive 文件夹（**AR 系列的 nodeId 属于此空间**） |
-
-> 上表 nodeId 未标空间的按所在空间对号入座：README–index 七项在「花房」空间，AR01–AR11 与 drive 在 AR 空间。
+- **唯一生产源 = 本地 D 盘 git 仓库**（`D:\Documents\workbuddydocument\2026-10-17-08-59-13`），E 盘课程目录镜像为第二副本。
+- 改文档只改本地 + git commit，**不要再上传、不要调 library 技能写云端**。
+- 原云端 nodeId 映射表（19 个节点）**已全部失效**，故整表删除，不再维护——避免日后误引用已不存在的节点。
+- 停用前的历史映射（两个 spaceId、19 个 nodeId、AR08–AR11 的补传记录）留档在 `docs/审计报告/AR11_GreenHouse知识库全面审计_2026-10-20.md`，仅作历史查考，不作操作依据。
+- 停用原因（原始问题，供理解决策背景）：云端主空间那批文档停留在 10-18/19 的旧版（固件 v1.1、9 个打印件、AR02–AR04），与本地已修正版脱节；而 `create_doc.py` 未暴露 `--node-block-id/--confirm-overwrite`，整篇覆盖需逐块 delete + insert（实测单节点读回 8 分钟未返回），维护成本高于收益 → 干脆清空，以本地 git 为准。
 
 <!-- neat-freak: initialized at 2026-10-18 -->
