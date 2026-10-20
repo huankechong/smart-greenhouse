@@ -15,7 +15,7 @@
 
 | 规则 | 具体做法 |
 |---|---|
-| **审计修 bug 必写报告** | `docs/审计报告/AR序号_项目名_修复报告_日期.md`，序号项目内递增（**已到 AR09，下一个 AR10**） |
+| **审计修 bug 必写报告** | `docs/审计报告/AR序号_项目名_修复报告_日期.md`，序号项目内递增（**已到 AR11，下一个 AR12**；AR08 圆桶化 / AR09 走线 / AR10 代码审计 / AR11 知识库审计，勿混用） |
 | **改动后同步 E 盘** | `E:\Documents\BU\第一学期\Introduction to Project Work\花房项目\`，cp 完必须 `ls` 验证（有首拷未落盘的前科） |
 | **删/移文件先问** | 包括"已被取代"的 STL——先标注"勿打印"，等领导明确说要删再删 |
 | **大文档整份重建** | 多处改动时重写源文件再落盘，不要逐处 find/replace（换行符 CRLF/LF 和中文路径会坑你） |
@@ -33,7 +33,7 @@
    - ❌ 不要把 `trimesh.util.concatenate` 放进网格搜索内循环（会直接跑死，先预合并）
 5. **薄板 + 圆形容器的配合**（盆沿夹爪、弦高、锥度）必须逐顶点验，cm 级件在 mm 级公差下肉眼完全不可靠。
 6. **改板厚/槽深时用"从顶面加深"而不是"挪槽底"**——槽底绝对高度不变，装配里所有件都不用重摆。
-7. 改完依次跑：`build_*.py` → `check_base_fit.py` → `audit.py` → `build_html.py` → `verify_html.js`。
+7. 改完依次跑：`build_*.py` / `p10_tank_lid.py` → `check_base_fit.py` → `check_wires.py` → `audit.py` → `build_html.py` → `verify_html.js`。**改走线先跑 `check_wires.py`（3 秒）快迭代，确认 0 穿模再跑全链（AO 重烘焙约 7 分钟）。**
 
 ## 4. 环境与命令
 
@@ -44,8 +44,8 @@ NODE="C:/Users/junbo/.workbuddy/binaries/node/versions/22.22.2-6/node.exe"
 # HTML 验证：NODE_PATH=C:/Users/junbo/.workbuddy/binaries/node/workspace/node_modules $NODE verify_html.js
 ```
 
-- Arduino：`outputs/.tools/arduino-cli/arduino-cli.exe`（1.5.2-rc.1）+ `esp32:esp32@2.0.17`（fqbn `esp32:esp32:esp32`）。编译缓存被强杀损坏时用 `--build-path` 换新目录，别怀疑代码。
-- 固件版本：**v1.3**（v1.2 异常保护 + v1.3 继电器上电毛刺修复），编译字节数以 `outputs/花房代码/GreenHouse_v1/README.md` 为准。
+- Arduino：`outputs/.tools/arduino-cli/arduino-cli.exe`（1.5.2-rc.1）+ `esp32:esp32@2.0.18-arduino.5`（fqbn `esp32:esp32:esp32`）。编译缓存被强杀损坏时用 `--build-path` 换新目录，别怀疑代码。
+- 固件版本：**v1.5.1**（v1.5 全量代码审计修复 → v1.5.1 水位断泵改按 waterState 判定），编译字节数以 `outputs/花房代码/GreenHouse_v1/README.md` 为准。
 - 固件源码唯一真相源：`outputs/花房代码/GreenHouse_v1/`。
 
 ## 5. 凭据与隐私
@@ -62,7 +62,7 @@ NODE="C:/Users/junbo/.workbuddy/binaries/node/versions/22.22.2-6/node.exe"
 
 ## 7. 当前状态（只写指针，别在这里展开）
 
-9 个打印件 STL 已交付（01b/02/03/04/06a/06b/06c/07/08）；整机示意 glb + 离线 HTML 已出；固件 **v1.5**（2026-10-20 AR08 全面审计修复，见 `docs/审计报告/AR08_*`）；硬件等快递（10/21±）；答辩 2026-11-16。
+10 个打印件 STL 已交付（01b/02/03/04/06a/06b/06c/07/08/10）；整机示意 glb + 离线 HTML 已出；固件 **v1.5.1**（2026-10-20 AR10 全量代码审计修复，见 `docs/审计报告/AR10_*`）；硬件等快递（10/21±）；答辩 2026-11-16。
 细节 → `docs/花房项目_AI工作交接文档_2026-10-18.md`。
 
 ## 8. 云端资料库映射（WorkBuddy 项目空间，2026-10-19 起）
@@ -86,10 +86,11 @@ NODE="C:/Users/junbo/.workbuddy/binaries/node/versions/22.22.2-6/node.exe"
 | AR06 土壤传感器支架v2（2026-10-20 补传） | C77BCddpEBCPvbH2yjLXIX |
 | AR07 低水位保护落地（2026-10-20 补传） | thfLdpy0CR4dwUwNNJgqTE |
 | AR01 代码审计修复（2026-10-20 补传） | 8q21c19wItzhdj0wMy5Inx |
-| AR08 代码全面审计（2026-10-20，待补传） | 未上传 |
+| AR10 代码全面审计（2026-10-20，待补传） | 未上传 |
+| AR11 知识库全面审计（2026-10-20，待补传） | 未上传 |
 
 - 云端有一作废节点（标题带【作废勿用-内容实为AR06】，id `yxhN44PI5L0rUYkuP8R4BW`，无删除 API）——勿引用，等手动删除。
-- AR01–AR07 报告已全数上云（AR01 本体在 `outputs/花房代码/`，其余在 `docs/审计报告/`）。
+- AR01–AR07 报告已全数上云（AR01 本体在 `outputs/花房代码/`，其余在 `docs/审计报告/`）。AR08/AR09/AR10/AR11 仍在本地，待补传。
 
 空间 spaceId：TESQXngJ4tIC1hKd2ccd9p。
 
