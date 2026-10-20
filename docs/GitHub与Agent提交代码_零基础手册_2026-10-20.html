@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>从注册 GitHub 到用 Agent 提交代码 · 零基础操作手册</title>
+<style>
+  :root{
+    --ink:#1a1a1a; --ink2:#4a4a4a; --ink3:#767676;
+    --line:#e4e4e1; --line2:#d0d0cb;
+    --bg:#ffffff; --soft:#f7f7f5; --soft2:#f1f1ee;
+    --blue:#185fa5; --blue-bg:#e6f1fb; --blue-line:#b5d4f4;
+    --amber:#854f0b; --amber-bg:#faeeda; --amber-line:#f0d9b0;
+    --red:#a32d2d; --red-bg:#fcebeb; --red-line:#f0c4c4;
+    --green:#3b6d11; --green-bg:#eaf3de; --green-line:#c9dfa4;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    font-size:15px; line-height:1.75;
+  }
+  .wrap{max-width:860px; margin:0 auto; padding:48px 28px 90px}
+  header.top{border-bottom:2px solid var(--ink); padding-bottom:20px; margin-bottom:8px}
+  h1{font-size:27px; line-height:1.35; margin:0 0 10px; font-weight:600; letter-spacing:-.2px}
+  .sub{color:var(--ink2); font-size:14.5px; margin:0}
+  .meta{margin-top:14px; font-size:13px; color:var(--ink3)}
+  .meta span{display:inline-block; margin-right:16px}
+  h2{font-size:20px; margin:44px 0 14px; padding-bottom:8px; border-bottom:1px solid var(--line); font-weight:600}
+  h3{font-size:16px; margin:26px 0 10px; font-weight:600}
+  h4{font-size:14.5px; margin:18px 0 6px; font-weight:600; color:var(--ink2)}
+  p{margin:10px 0}
+  ul,ol{margin:10px 0; padding-left:24px}
+  li{margin:6px 0}
+  code{font-family:"Cascadia Code",Consolas,"SF Mono",Menlo,monospace; font-size:13px;
+       background:var(--soft2); padding:1.5px 5px; border-radius:4px; color:#333}
+  pre{font-family:"Cascadia Code",Consolas,"SF Mono",Menlo,monospace; font-size:13px; line-height:1.7;
+      background:var(--soft); border:1px solid var(--line); border-left:3px solid var(--ink3);
+      border-radius:6px; padding:12px 14px; overflow-x:auto; margin:12px 0; white-space:pre; color:#242424}
+  pre .c{color:#767676}
+  .step{border-left:2px solid var(--line2); padding:0 0 4px 18px; margin:22px 0 22px 6px; position:relative}
+  .step::before{content:""; position:absolute; left:-7px; top:8px; width:12px; height:12px;
+      border-radius:50%; background:#fff; border:2px solid var(--blue)}
+  .step .sn{display:inline-block; font-size:12.5px; color:#fff; background:var(--blue);
+      padding:1px 8px; border-radius:20px; margin-bottom:4px; font-weight:600; letter-spacing:.3px}
+  .step .ttl{font-size:15.5px; font-weight:600; margin:2px 0 6px; display:block}
+  .box{border:1px solid var(--line); border-radius:8px; padding:14px 16px; margin:16px 0; background:var(--soft)}
+  .box.warn{background:var(--amber-bg); border-color:var(--amber-line)}
+  .box.stop{background:var(--red-bg); border-color:var(--red-line)}
+  .box.ok{background:var(--green-bg); border-color:var(--green-line)}
+  .box.tip{background:var(--blue-bg); border-color:var(--blue-line)}
+  .box .bt{font-weight:600; font-size:14px; margin:0 0 6px; display:block}
+  .box.warn .bt{color:var(--amber)} .box.stop .bt{color:var(--red)}
+  .box.ok .bt{color:var(--green)} .box.tip .bt{color:var(--blue)}
+  .box p:last-child, .box ul:last-child, .box ol:last-child{margin-bottom:0}
+  table{width:100%; border-collapse:collapse; margin:16px 0; font-size:13.5px; table-layout:fixed}
+  th,td{border:1px solid var(--line); padding:9px 11px; text-align:left; vertical-align:top; word-break:break-word}
+  th{background:var(--soft2); font-weight:600; font-size:13px; color:var(--ink2)}
+  td code{font-size:12.5px}
+  .lead{background:var(--soft); border:1px solid var(--line); border-radius:8px; padding:18px 20px; margin:20px 0}
+  .lead ol{margin:0; padding-left:22px}
+  .key{display:flex; gap:10px; flex-wrap:wrap; margin:16px 0}
+  .key div{flex:1 1 200px; border:1px solid var(--line); border-radius:8px; padding:12px 14px; font-size:13.5px; background:#fff}
+  .key b{display:block; font-size:13px; color:var(--blue); margin-bottom:4px}
+  .flow{display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin:16px 0; font-size:13px}
+  .flow i{font-style:normal; background:var(--soft2); border:1px solid var(--line); border-radius:5px; padding:5px 10px}
+  .flow em{font-style:normal; color:var(--ink3)}
+  .pill{display:inline-block; font-size:12px; padding:1px 7px; border-radius:20px; border:1px solid var(--line2); color:var(--ink2); margin-left:6px}
+  .pill.r1{background:var(--blue-bg); border-color:var(--blue-line); color:var(--blue)}
+  .pill.r2{background:var(--green-bg); border-color:var(--green-line); color:var(--green)}
+  .pill.r3{background:var(--amber-bg); border-color:var(--amber-line); color:var(--amber)}
+  .pill.r4{background:var(--soft2); color:var(--ink2)}
+  hr{border:0; border-top:1px solid var(--line); margin:40px 0}
+  .toc{border:1px solid var(--line); border-radius:8px; padding:16px 20px; margin:24px 0; background:#fff}
+  .toc ol{margin:0; padding-left:20px; font-size:14px; columns:2; column-gap:32px}
+  .toc li{margin:4px 0; break-inside:avoid}
+  .toc a{color:var(--ink); text-decoration:none; border-bottom:1px dotted var(--line2)}
+  .toc a:hover{color:var(--blue); border-bottom-color:var(--blue)}
+  .oneliner{font-size:13.5px; color:var(--ink3); margin-top:4px}
+  .check{list-style:none; padding-left:0}
+  .check li{padding-left:26px; position:relative; margin:8px 0}
+  .check li::before{content:""; position:absolute; left:0; top:5px; width:14px; height:14px;
+      border:1.5px solid var(--ink3); border-radius:3px}
+  .quick{border:2px dashed var(--line2); border-radius:10px; padding:20px 22px; margin:28px 0; background:#fff}
+  .quick h3{margin-top:0}
+  .quick table{font-size:12.5px; margin:10px 0}
+  .quick table th, .quick table td{padding:6px 8px}
+  footer{margin-top:60px; padding-top:20px; border-top:1px solid var(--line); font-size:12.5px; color:var(--ink3)}
+  @media print{
+    body{font-size:11.5pt; line-height:1.6}
+    .wrap{max-width:none; padding:0}
+    h2{page-break-after:avoid; margin-top:22pt}
+    .step, table, pre, .box{page-break-inside:avoid}
+    .toc{page-break-after:always}
+    pre{background:#f5f5f5; border-color:#ccc}
+    a{color:var(--ink); text-decoration:none}
+    .quick{page-break-before:always}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <h1>从注册 GitHub 到用 Agent 提交代码</h1>
+  <p class="sub">零基础操作手册 · 点哪里、填什么、报错怎么修 · 适用于 4 人小组协作</p>
+  <div class="meta">
+    <span>版本 v1.0</span>
+    <span>2026-10-20</span>
+    <span>读者：花房项目组员（零基础）</span>
+    <span>配套：<code>docs/花房4人分工方案_2026-10-20.md</code></span>
+  </div>
+</header>
+
+<div class="lead">
+  <b style="display:block;margin-bottom:8px">读完这份你要能做到的事</b>
+  <ol>
+    <li>有一个能用的 GitHub 账号（含 2FA，不会被锁）</li>
+    <li>电脑上装好 Git，第一次克隆时浏览器点一下授权就完成登录</li>
+    <li>每次干活走固定五步：同步 → 开自己分支 → 改文件 → 让 Agent 提交 → 推上去开 PR</li>
+    <li>看得懂 9 种常见报错，自己能修</li>
+    <li>不会把学号、手机号、密钥、私钥截图推到公开仓库</li>
+  </ol>
+</div>
+
+<div class="key">
+  <div><b>全程不需要手工造 token</b>Git for Windows 自带凭据管理器，浏览器授权即可</div>
+  <div><b>不需要学全部 Git</b>只用 7 条命令，其余交给 Agent</div>
+  <div><b>不需要命令行基础</b>所有命令都是复制粘贴，位置固定</div>
+</div>
+
+<div class="toc">
+  <b style="display:block;margin-bottom:10px;font-size:14px">目录</b>
+  <ol>
+    <li><a href="#z">先选路线：你该走哪条</a></li>
+    <li><a href="#a">注册 GitHub 账号（含 2FA）</a></li>
+    <li><a href="#b">安装 Git for Windows</a></li>
+    <li><a href="#c">建仓库、拉组员进来</a></li>
+    <li><a href="#d">首次克隆（浏览器授权登录）</a></li>
+    <li><a href="#e">日常五步：每次干活都走这条</a></li>
+    <li><a href="#f">用 Agent 提交代码（WorkBuddy / 豆包工作）</a></li>
+    <li><a href="#g">提交前安全检查（不许踩的红线）</a></li>
+    <li><a href="#h">9 种常见报错速查</a></li>
+    <li><a href="#i">四个人的分支怎么命名</a></li>
+    <li><a href="#j">一页速查（可单独打印）</a></li>
+  </ol>
+</div>
+
+<h2 id="z">零、先选路线：你该走哪条</h2>
+
+<p>全篇讲的是<b>两条并行路线，不是二选一学一套，而是按活选</b>。先答三个问题：</p>
+<ol>
+  <li>你要交的东西<b>需要在本机跑起来</b>吗？（编译固件、跑 Python 重出 STL、执行脚本）→ 是，走 <b>Git 路线</b>（第二、四、五章）</li>
+  <li>单个文件<b>超过 1 MB</b> 吗？（STL、PPT、PDF、视频、手机原图）→ 是，走 <b>Git 路线</b></li>
+  <li>以上都不涉及，只是改文本（Markdown、代码、短报告、小图）→ <b>连接器路线</b>够用（§6.5），本机可以不装 Git</li>
+</ol>
+
+<table>
+  <tr><th style="width:22%">对照项</th><th style="width:39%">Git 路线</th><th>连接器路线</th></tr>
+  <tr><td>要装什么</td><td>Git for Windows + 本机 clone</td><td>只连 WorkBuddy 的 GitHub 连接器</td></tr>
+  <tr><td>单文件上限</td><td>仓库单文件 100 MB（再大需 LFS）</td><td><b>1 MB</b></td></tr>
+  <tr><td>合并保护</td><td>有：<code>git pull</code> 时冲突当场报错</td><td><b>无：后写的整份覆盖先写的</b></td></tr>
+  <tr><td>多文件一次提交</td><td>可以，<code>git add</code> 多个文件一个 commit</td><td>不可以，一次一个文件一个 commit</td></tr>
+  <tr><td>出问题怎么查</td><td><code>git status</code> / <code>git log</code>，记录都在本地</td><td>只能看网页上的 commit 记录</td></tr>
+  <tr><td>适合谁</td><td>R1 固件、R2 上云代码、R3 打印参数</td><td>R4 文档、报告、小图</td></tr>
+</table>
+
+<div class="box warn">
+  <span class="bt">混用三条规矩（同一仓库两种人同时干活，必须守）</span>
+  <ol>
+    <li><b>同一个文件不要两条路线交替改</b>——连接器没有合并保护，最后一次写入会把 Git 那边的内容整份盖掉</li>
+    <li>走 Git 的人开工前照旧 <code>git pull</code>；走连接器的人开工前先读 sha（见 §6.5）</li>
+    <li>谁的文件谁改，要动别人的文件先在群里说一句</li>
+  </ol>
+</div>
+
+<h2 id="a">一、注册 GitHub 账号（约 10 分钟）</h2>
+
+<p class="oneliner">注册是唯一一次需要小心填的地方——用户名会出现在所有提交记录里，改起来麻烦。</p>
+
+<div class="step">
+  <span class="sn">A1</span>
+  <span class="ttl">打开官网，点注册</span>
+  <p>浏览器访问 <code>https://github.com</code>，点右上角 <b>Sign up</b>。</p>
+  <div class="box warn">
+    <span class="bt">国内网络提示</span>
+    <p>github.com 在国内可能间歇性打不开或很慢。若页面一直转圈：换手机热点试一次；或在同一个网络下重试几次（多数是瞬时问题）。<b>不要在打不开的页面上反复点注册</b>，容易注册出半成品账号。</p>
+  </div>
+</div>
+
+<div class="step">
+  <span class="sn">A2</span>
+  <span class="ttl">填邮箱、密码、用户名</span>
+  <p>依次填三项，然后点 <b>Create account</b>：</p>
+  <ul>
+    <li><b>Email</b>：用你能长期收到的邮箱（QQ 邮箱、163 都行）</li>
+    <li><b>Password</b>：至少 15 个字符，或至少 8 个字符且含数字和小写字母</li>
+    <li><b>Username</b>：只能用字母、数字、单个连字符，不能有空格和中文。建议统一格式，例如 <code>junbo-dt</code>、<code>dt1-r2-li</code></li>
+  </ul>
+  <div class="box stop">
+    <span class="bt">用户名不要填学号</span>
+    <p>用户名会永久出现在每一次提交记录、每一个 PR 里，等于把学号公开挂在网上。<b>用"名字缩写 + 项目"就够了</b>，例如 <code>dt1-wang</code>。</p>
+  </div>
+</div>
+
+<div class="step">
+  <span class="sn">A3</span>
+  <span class="ttl">完成人机验证 + 邮箱验证码</span>
+  <p>网页会让你做一个拼图/旋转类验证，通过后去邮箱收 6 位或 8 位验证码，填进去。</p>
+  <p>注册完会问你 "How many team members"、"Student or teacher" 这类问卷，<b>全部可以跳过或随便选</b>，不影响使用。最后选 <b>Free</b> 计划。</p>
+</div>
+
+<div class="step">
+  <span class="sn">A4</span>
+  <span class="ttl">开启双因素认证 2FA（必须做，否则以后会被锁号）</span>
+  <p>GitHub 从 2023 年 3 月起，对<b>所有贡献代码的账号</b>强制要求 2FA。不开启的话，会先收到通知，进入 45 天注册期，超期后账号会被限制访问。</p>
+  <p>操作路径，一步一步点：</p>
+  <ol>
+    <li>右上角点头像 → <b>Settings</b></li>
+    <li>左侧栏找到 <b>Password and authentication</b>（在 Access 分组里）</li>
+    <li>点 <b>Enable two-factor authentication</b></li>
+    <li>页面出现二维码 → 用手机上的验证器 App 扫码</li>
+    <li>把 App 里显示的 6 位数字填进网页 → 继续</li>
+    <li>页面给出 <b>16 个恢复码</b> → 点 <b>Download</b> 存下来，放到电脑以外的地方（手机相册、U 盘都行）</li>
+  </ol>
+  <div class="box tip">
+    <span class="bt">手机上装什么 App</span>
+    <p>任意 TOTP 验证器都行：Microsoft Authenticator、Google Authenticator、1Password 都可以。<b>不要只依赖短信</b>——短信在多数国家可用但安全性较弱，GitHub 官方推荐验证器 App 作为主要方式。</p>
+  </div>
+  <div class="box stop">
+    <span class="bt">那 16 个恢复码比密码还重要</span>
+    <p>手机丢了、换手机没迁移，就靠恢复码登录。丢了恢复码又丢了手机，账号恢复需要向 GitHub 提交所有权证明，要等几个工作日。<b>现在就存，别等。</b></p>
+  </div>
+</div>
+
+<h2 id="b">二、安装 Git for Windows（约 8 分钟）</h2>
+
+<div class="step">
+  <span class="sn">B1</span>
+  <span class="ttl">下载安装包</span>
+  <p>访问 <code>https://git-scm.com/download/win</code>，下载 <b>64-bit Git for Windows Setup</b>。</p>
+  <p class="oneliner">不要下 Portable 便携版——它不带凭据管理器，登录会变麻烦。</p>
+</div>
+
+<div class="step">
+  <span class="sn">B2</span>
+  <span class="ttl">安装：一路 Next，只有一处要注意</span>
+  <p>安装向导选项很多，全部保持默认即可。唯一建议看一眼的是 <b>Configuring the line ending conversions</b> 这一步：</p>
+  <ul>
+    <li>选 <b>Checkout Windows-style, commit Unix-style line endings</b>（默认项）</li>
+  </ul>
+  <div class="box warn">
+    <span class="bt">为什么提这个</span>
+    <p>Windows 和 Mac/Linux 的换行符不一样。选默认项，Git 会自动转换，你在 Windows 上正常编辑，提交出去的是标准格式。选错了以后每个文件都会显示"整份都被改过"，diff 全是红绿一片。</p>
+  </div>
+</div>
+
+<div class="step">
+  <span class="sn">B3</span>
+  <span class="ttl">验证装好了</span>
+  <p>在桌面或任意文件夹空白处 <b>右键 → Show more options → Git Bash Here</b>（Win11 要先点"显示更多选项"），会弹出一个黑底终端。</p>
+  <p>输入下面这行，回车：</p>
+  <pre>git --version</pre>
+  <p>看到类似 <code>git version 2.5x.x.windows.1</code> 就成功了。</p>
+</div>
+
+<div class="step">
+  <span class="sn">B4</span>
+  <span class="ttl">配置身份（三行命令，各敲一次，永久生效）</span>
+  <p>在同一个 Git Bash 窗口里，逐行复制粘贴、每行回车：</p>
+  <pre>git config --global user.name <span class="c">"你的昵称"</span>
+git config --global user.email <span class="c">"你的noreply邮箱"</span>
+git config --global core.quotepath false</pre>
+  <p>三条分别的作用：</p>
+  <table>
+    <tr><th style="width:34%">命令</th><th>作用</th></tr>
+    <tr><td><code>user.name</code></td><td>提交记录里显示的署名，建议和分工角色对应，如 <code>R2-Li</code></td></tr>
+    <tr><td><code>user.email</code></td><td>提交记录里的邮箱，<b>必须用 noreply 地址</b>，见下方说明</td></tr>
+    <tr><td><code>core.quotepath false</code></td><td>让中文文件名正常显示，否则会变成 <code>\344\270\255</code> 这种乱码</td></tr>
+  </table>
+  <div class="box stop">
+    <span class="bt">noreply 邮箱怎么拿（重要）</span>
+    <p>网页右上角头像 → <b>Settings</b> → 左侧 <b>Emails</b> → 勾选 <b>Keep my email addresses private</b>。页面上会显示你的专属地址，形如：</p>
+    <pre>12345678+你的用户名@users.noreply.github.com</pre>
+    <p>把这个地址填进上面的 <code>user.email</code>。<b>直接用真实邮箱的后果</b>：每次提交都会把真实邮箱永久写进公开的提交记录里，爬虫会抓走。</p>
+  </div>
+</div>
+
+<h2 id="c">三、建仓库、拉组员进来（约 8 分钟）</h2>
+
+<p>由<b>组长</b>（R1）一个人操作，组员等邀请邮件即可。</p>
+
+<div class="step">
+  <span class="sn">C1</span>
+  <span class="ttl">新建仓库</span>
+  <ol>
+    <li>右上角 <b>+</b> → <b>New repository</b></li>
+    <li><b>Repository name</b>：填 <code>greenhouse-project</code>（小写、连字符）</li>
+    <li><b>Description</b>：一行中文说明，如 <code>智能花房养护站 - IPW 期末项目</code></li>
+    <li>选 <b>Private</b>（私有）</li>
+    <li>勾选 <b>Add a README file</b></li>
+    <li><b>Add .gitignore</b> 先选 None（我们后面自己写，见第七节）</li>
+    <li><b>License</b> 选 None</li>
+    <li>点 <b>Create repository</b></li>
+  </ol>
+  <div class="box tip">
+    <span class="bt">为什么用私有库，不建组织</span>
+    <p>私有库 + 邀请 3 个协作者，功能上完全够用，还少一层账号体系。组织（Organization）适合需要分权限、长期多人维护的场景，对一个课程项目是多余负担。</p>
+  </div>
+</div>
+
+<div class="step">
+  <span class="sn">C2</span>
+  <span class="ttl">把 3 位组员加成协作者</span>
+  <ol>
+    <li>进入刚建好的仓库页面</li>
+    <li>点上方 <b>Settings</b>（不是头像里的那个 Settings，是仓库自己的）</li>
+    <li>左侧 <b>Collaborators</b>（在 Access 分组）</li>
+    <li>点绿色 <b>Add people</b></li>
+    <li>输入组员的<b>用户名或注册邮箱</b> → 从下拉里选中 → <b>Add</b></li>
+    <li>重复三次，把三个人都加上</li>
+  </ol>
+</div>
+
+<div class="step">
+  <span class="sn">C3</span>
+  <span class="ttl">组员接受邀请</span>
+  <p>组员会收到 GitHub 邮件（标题含 <b>invitation</b>），点邮件里的 <b>View invitation</b> → 网页上点 <b>Accept invitation</b>。</p>
+  <p class="oneliner">没收到邮件：让组长在 Collaborators 页面看该组员状态是否还是 <b>Pending invite</b>，是的话点旁边的重新发送；也可以让组员直接打开邮件里的链接在浏览器登录后接受。</p>
+</div>
+
+<div class="step">
+  <span class="sn">C4</span>
+  <span class="ttl">拿到克隆地址</span>
+  <p>仓库首页 → 绿色 <b>Code</b> 按钮 → 复制 <b>HTTPS</b> 那一栏的地址，形如：</p>
+  <pre>https://github.com/你的用户名/greenhouse-project.git</pre>
+</div>
+
+<h2 id="d">四、首次克隆（约 5 分钟，只需做一次）</h2>
+
+<div class="step">
+  <span class="sn">D1</span>
+  <span class="ttl">建一个固定的本地文件夹</span>
+  <p>建议建在 <code>D:\GreenHouse</code>（不要放桌面，不要放中文路径，不要放 OneDrive 同步目录）。</p>
+  <div class="box warn">
+    <span class="bt">路径三条禁忌</span>
+    <p>① 含中文（容易出现各种编码报错）② 含空格 ③ 在 OneDrive / 坚果云里（同步冲突会把 <code>.git</code> 目录搞坏）。</p>
+  </div>
+</div>
+
+<div class="step">
+  <span class="sn">D2</span>
+  <span class="ttl">在文件夹里打开 Git Bash</span>
+  <p>进入 <code>D:\GreenHouse</code>，在空白处右键 → <b>Show more options</b> → <b>Git Bash Here</b>。</p>
+</div>
+
+<div class="step">
+  <span class="sn">D3</span>
+  <span class="ttl">克隆仓库</span>
+  <pre>git clone https://github.com/你的用户名/greenhouse-project.git</pre>
+  <p>回车后会弹出浏览器窗口，让你登录 GitHub——这就是凭据管理器在工作。</p>
+</div>
+
+<div class="step">
+  <span class="sn">D4</span>
+  <span class="ttl">浏览器里点授权</span>
+  <ol>
+    <li>弹出的窗口里点 <b>Continue</b> / 选择 <b>Sign in with your browser</b></li>
+    <li>输入 GitHub 账号密码 → 输入 2FA 的 6 位验证码</li>
+    <li>页面问是否授权 <b>Git Credential Manager</b> → 点 <b>Authorize</b></li>
+    <li>看到 <b>Authentication complete</b> 就可以关掉浏览器</li>
+  </ol>
+  <p>回到终端，应该看到：</p>
+  <pre>Cloning into 'greenhouse-project'...
+remote: Enumerating objects: 5, done.
+<span class="c">...（若干行）...</span>
+Resolving deltas: 100% (2/2), done.</pre>
+  <div class="box ok">
+    <span class="bt">到这里，认证已经永久搞定</span>
+    <p>凭据存在 Windows 凭据管理器里，以后 push 都不会再让你登录。<b>整个流程不需要手工创建 token，也不要把密码或 token 贴给任何 AI 助手。</b></p>
+  </div>
+  <div class="box warn">
+    <span class="bt">浏览器没弹出来怎么办</span>
+    <p>在 Git Bash 里敲一次：</p>
+    <pre>git config --global credential.helper manager</pre>
+    <p>然后再 <code>git push</code> 任意内容触发弹窗。仍然不弹，就手动打开 <b>控制面板 → 用户帐户 → 凭据管理器 → Windows 凭据</b>，删掉所有 <code>git:https://github.com</code> 条目后重试。</p>
+  </div>
+</div>
+
+<h2 id="e">五、日常五步：每次干活都走这条</h2>
+
+<p>这一节是全文最该背下来的部分。<b>无论你改的是代码、文档还是图片，流程完全一样。</b></p>
+
+<div class="flow">
+  <i>① 同步 main</i><em>→</em>
+  <i>② 开自己分支</i><em>→</em>
+  <i>③ 改文件</i><em>→</em>
+  <i>④ 让 Agent 提交</i><em>→</em>
+  <i>⑤ 推送 + 开 PR</i>
+</div>
+
+<div class="step">
+  <span class="sn">E1</span>
+  <span class="ttl">先切回主干、拉最新代码</span>
+  <pre>cd /d/GreenHouse/greenhouse-project
+git switch main
+git pull</pre>
+  <p>第一条是进入仓库目录（<code>/d/</code> 在 Git Bash 里代表 D 盘）。第二条切到 main 分支。第三条把别人的最新改动拉下来。</p>
+  <div class="box warn">
+    <span class="bt">不先 pull 就开分支，是最常见的操作失误</span>
+    <p>你在旧版本上改了两小时，推的时候才发现别人也改过同一文件，白干。每天开工第一件事就是这三行。</p>
+  </div>
+</div>
+
+<div class="step">
+  <span class="sn">E2</span>
+  <span class="ttl">开一条属于你自己的分支</span>
+  <pre>git switch -c r2-cloud-1021</pre>
+  <p>分支名规则见第九节：<code>角色-模块-日期</code>。这条命令会新建分支并切过去，<b>你之后的改动都在自己的副本上，不会影响任何人的 main</b>。</p>
+  <p class="oneliner">如果你的 Git 版本较老，<code>git switch -c</code> 可能不认，换成 <code>git checkout -b r2-cloud-1021</code>，效果一样。</p>
+</div>
+
+<div class="step">
+  <span class="sn">E3</span>
+  <span class="ttl">改文件（正常用编辑器）</span>
+  <p>用 VS Code、记事本、Word 都行，正常改。改完保存即可，不用在终端做任何操作。</p>
+</div>
+
+<div class="step">
+  <span class="sn">E4</span>
+  <span class="ttl">让 Agent 帮你提交（见第六节）</span>
+  <p>不用自己背 commit 命令，把活交给 WorkBuddy 或豆包工作。</p>
+</div>
+
+<div class="step">
+  <span class="sn">E5</span>
+  <span class="ttl">推送到 GitHub</span>
+  <pre>git push -u origin r2-cloud-1021</pre>
+  <p>第一次推这个分支要带 <code>-u origin 分支名</code>，Git 会记住对应关系；以后同一条分支上再推，直接 <code>git push</code> 就行。</p>
+</div>
+
+<div class="step">
+  <span class="sn">E6</span>
+  <span class="ttl">在网页上开 PR，请组长合并</span>
+  <ol>
+    <li>推送成功后，打开仓库网页</li>
+    <li>页面顶部会出现一条黄色横条，右边是绿色按钮 <b>Compare &amp; pull request</b> → 点它</li>
+    <li><b>Title</b> 填清做了什么，如 <code>[R2] 打通 MQTT 上行与远程浇水</code></li>
+    <li>下方大框写细节：改了什么、怎么验证的、有没有遗留问题</li>
+    <li>点绿色 <b>Create pull request</b></li>
+    <li>把链接发到群里，请组长合并</li>
+  </ol>
+  <p>组长合并时点 <b>Merge pull request</b> → <b>Confirm merge</b> → 再点 <b>Delete branch</b>（分支合完就没用了，删掉保持干净）。</p>
+  <div class="box tip">
+    <span class="bt">合完之后你自己还得同步一次</span>
+    <p>下一次开工前回到 E1 的三行命令（<code>git switch main</code> + <code>git pull</code>），把合并进主干的内容拉回本地，否则你的本地还是旧的。</p>
+  </div>
+</div>
+
+<h2 id="f">六、用 Agent 提交代码</h2>
+
+<p>两个工具都能干这件事，纪律完全一样。先记住三条铁律，再看具体怎么点。</p>
+
+<div class="box tip">
+  <span class="bt">工具配置｜2026-10-20 晚更新</span>
+  <p><b>现状</b>：三人已装 WorkBuddy 并连上 GitHub（你 + 两位组员），第四位跟上即可——四人统一一个工具，出问题时互相能接话，比混装两套工具好排查。</p>
+  <p><b>但连接器不等于本机 Git。</b> WorkBuddy 的 GitHub 连接器走 API：能建分支、改仓库里的文件、直接开 PR，但它碰不到你电脑上的文件夹；本机 <code>git push</code> 用的是安装 Git 时带的凭据管理器。这是两套东西，按活分路线：</p>
+  <ul>
+    <li><b>只交文档、图片、报告、PPT</b> → 连接器直连就够，本机可以不装 Git，本文第二、四章跳过；</li>
+    <li><b>要跑代码、编译固件、重出 STL</b> → 必须本地 clone + <code>git push</code>，第五章照走。</li>
+  </ul>
+  <p>两条路线最后都落到「同一条分支 + 同一个 PR」，所以四个人用不同路线也不冲突。</p>
+</div>
+
+<h3>6.1　三条铁律（写在最前面，因为它比操作步骤重要）</h3>
+
+<div class="box stop">
+  <span class="bt">铁律一：先看清单，再点同意</span>
+  <p>Agent 提交前必须先把「将要提交哪些文件、共几个、有没有可疑文件」列给你看，<b>你亲口确认后才允许 commit / push</b>。没给清单就直接推的，一律叫停。</p>
+</div>
+<div class="box stop">
+  <span class="bt">铁律二：禁止三条危险命令</span>
+  <p><code>git push -f</code>（强推，会覆盖别人）、<code>git reset --hard</code>（丢弃所有本地改动）、<code>rm</code> / <code>del</code>（删文件）。<b>任何一条出现，立刻停手</b>，改让人工判断。</p>
+</div>
+<div class="box stop">
+  <span class="bt">铁律三：密码、token、密钥永远不进对话</span>
+  <p>不要把 GitHub 密码、token、WiFi 密码贴进任何 AI 对话框。Agent 只需要能跑 git，不需要知道你的账号密码——凭据管理器已经在系统层面处理了。</p>
+</div>
+
+<h3>6.2　WorkBuddy：直接说人话</h3>
+
+<div class="step">
+  <span class="sn">F1</span>
+  <span class="ttl">打开 WorkBuddy，选中这个项目文件夹</span>
+  <p>把工作目录指到 <code>D:\GreenHouse\greenhouse-project</code>，这样它能直接读写仓库里的文件、直接执行 git 命令。</p>
+</div>
+
+<div class="step">
+  <span class="sn">F2</span>
+  <span class="ttl">粘贴这段指令（照抄，只改括号里的）</span>
+  <pre>我在 D:\GreenHouse\greenhouse-project 这个仓库里，
+当前分支是 r2-cloud-1021。
+
+请按顺序做：
+1. 先执行 git status，把「将要提交的文件清单」列给我看，
+   包括新增/修改/删除三类，一个都别漏。
+2. 如果有 .env、config.h、docs/private/、任何 .key/.pem、
+   或者大于 50MB 的文件，单独标红提醒我。
+3. 等我回复「同意」之后，再执行 git add 和 git commit，
+   提交信息用：feat(r2): 打通 MQTT 上行与远程浇水
+4. commit 完先别 push，把提交结果给我看，我再让你推。</pre>
+  <p class="oneliner">这段的关键是第 4 条——把 push 和 commit 拆成两步，中间留一个人工确认点。</p>
+</div>
+
+<div class="step">
+  <span class="sn">F3</span>
+  <span class="ttl">按它的清单逐条看，然后回「同意」</span>
+  <p>看三件事：<b>有没有你不认识的文件</b>、<b>有没有上面第 2 条点名的敏感文件</b>、<b>改动数量对不对</b>（你只改了 2 个文件，它列出 15 个，说明有别的程序在写文件，要查）。</p>
+  <p>确认无误就回：<code>同意，提交并推送</code>。</p>
+</div>
+
+<h3>6.3　豆包工作：工作模式 + 授权操作电脑</h3>
+
+<div class="box tip">
+  <span class="bt">先说清产品名</span>
+  <p>我核实了一下：字节在 <b>2026-08-25</b> 把原来的"办公任务模式"升级成独立产品，叫 <b>豆包工作</b>（不是"豆包办公"）。下载豆包电脑版即可使用，新用户有 30 天订阅。<b>界面按钮名随版本变化</b>，下面写的是动作要点，你按实际界面对应着点。</p>
+</div>
+
+<div class="step">
+  <span class="sn">F4</span>
+  <span class="ttl">切到「工作」模式，把项目文件夹加进来</span>
+  <p>打开豆包桌面版，在对话/工作之间切到 <b>工作模式</b>，用 <b>添加本地文件夹</b>（或新建项目）把 <code>D:\GreenHouse\greenhouse-project</code> 加进去。</p>
+</div>
+
+<div class="step">
+  <span class="sn">F5</span>
+  <span class="ttl">发同一个任务，等它申请「操作电脑」授权</span>
+  <p>把 F2 那段指令原样粘进去。因为它要在终端里敲 git，会弹出一个 <b>操作本地电脑</b> 的授权请求——点允许。</p>
+  <p>它会自己打开终端执行，你在旁边看着就行，<b>随时可以暂停或接管</b>。</p>
+</div>
+
+<div class="step">
+  <span class="sn">F6</span>
+  <span class="ttl">同样在「列出清单」那一步停下来确认</span>
+  <p>纪律和 WorkBuddy 一模一样：清单没出来不给同意，push 前再看一眼。</p>
+  <div class="box warn">
+    <span class="bt">豆包工作用不了的时候</span>
+    <p>订阅到期后部分能力会受限。这时候两个选择：换回 WorkBuddy，或者直接手动敲第七节的四行命令——<b>手动路径永远可用，不依赖任何订阅</b>。</p>
+  </div>
+</div>
+
+<h3>6.4　手动兜底：Agent 不可用时就敲这四行</h3>
+<pre>git status                          <span class="c"># 先看清单，逐条核对</span>
+git add -A                          <span class="c"># 把所有改动加入暂存</span>
+git commit -m "feat(r2): 打通 MQTT 上行与远程浇水"
+git push                            <span class="c"># 分支已带 -u 过，直接推</span></pre>
+<p class="oneliner">提交信息格式统一用 <code>类型(角色): 中文说明</code>。类型取 feat（新功能）/ fix（修问题）/ docs（文档）/ chore（杂务）。</p>
+
+<h3>6.5　连接器路线：本机不装 Git 也能交一次改动</h3>
+
+<p>如果你已经装了 Git 并 clone 过仓库，走第五章就行，不必走这条——<b>两条路线可以并存于同一个仓库</b>，只是同一个文件别交替改（见第零节）。</p>
+
+<p>适用：Markdown、报告、代码文本、小尺寸图片，<b>单文件 ≤1 MB</b>。</p>
+
+<p>六个动作都在对话里说，不用记命令：</p>
+<ol>
+  <li><b>先读现状</b>：让它读 main 上目标文件的内容和 sha</li>
+  <li><b>建分支</b>：从 main 开一条你自己的分支</li>
+  <li><b>写入</b>：把本地文件内容写到该分支，带上第 1 步的 sha</li>
+  <li><b>开 PR</b>：标题标角色，正文写清改了哪几段</li>
+  <li><b>请组长合并</b>：组长在对话里说"合并这个 PR"，或去网页点 Merge</li>
+  <li><b>同步本地</b>：若你本地也留了一份副本，手动覆盖成仓库最新版（纯连接器用户没有本地仓库，可跳过）</li>
+</ol>
+
+<p>四条硬限制（来自 GitHub Contents API 的公开约束，不是推测）：</p>
+
+<table>
+  <tr><th style="width:24%">限制</th><th style="width:38%">具体表现</th><th>影响谁</th></tr>
+  <tr><td>单文件 1 MB 上限</td><td>Contents API 只接受 ≤1MB 的文件</td><td>STL、PPT、PDF、视频、大图<b>全部走不通</b>，必须本机 Git</td></tr>
+  <tr><td>更新必须带 sha</td><td>改已有文件要先读它的 blob sha，缺了报 422</td><td>读了要马上写，中间被别人改过就得重读</td></tr>
+  <tr><td>一次一个文件</td><td>一次请求 = 一个文件 = 一个 commit</td><td>改 10 个文件会生成 10 个提交，PR 很难看</td></tr>
+  <tr><td>无自动合并</td><td>两人基于同一旧版本改同一文件时，后写的覆盖先写的</td><td><b>按文件分工，不改别人的文件</b></td></tr>
+</table>
+
+<p>对话模板（照抄，只改路径与标题）：</p>
+<pre>仓库：owner/greenhouse-project
+
+请按顺序：
+1. 读 main 分支上 docs/报告.md 的内容和 sha，把 sha 报给我。
+2. 从 main 新建分支 r4-docs-1021。
+3. 用我本地这份文件的内容更新该分支上的 docs/报告.md，
+   带上第 1 步的 sha。
+4. 基于 r4-docs-1021 开 PR，标题「[R4] 报告第三节补数据」，
+   正文写：改了哪几段、为什么改。
+5. 开完把 PR 链接给我，先别合并。</pre>
+
+<p>第 1 步与第 3 步之间不要隔太久——sha 一旦过期，写入会失败，得重新读一遍。</p>
+
+<h2 id="g">七、提交前安全检查（不许踩的红线）</h2>
+
+<p>这一节是给我们这个项目量身写的——花房仓库里确实存在不能公开的东西。</p>
+
+<h3>7.1　绝对不能进仓库的东西</h3>
+<table>
+  <tr><th style="width:32%">东西</th><th>为什么</th><th style="width:26%">正确做法</th></tr>
+  <tr><td>真实姓名、学号、手机号</td><td>会永久留在提交历史里，爬虫会抓。我们的 <code>docs/private/</code> 就是这类</td><td>整个目录写进 .gitignore，只在本地留</td></tr>
+  <tr><td><code>config.h</code> 里的真实 WiFi 密码 / 巴法云 UID</td><td>公开后别人能直接连你的设备、发指令</td><td>仓库里只放占位符版本，真值另存 <code>config.local.h</code> 并忽略</td></tr>
+  <tr><td>巴法云控制台截图（含私钥）</td><td>截图里的 UID 就是凭证</td><td>素材目录整体忽略，或截图前打码</td></tr>
+  <tr><td>GitHub 密码 / token / 任何 <code>.key</code> <code>.pem</code></td><td>等于把门钥匙贴门上</td><td>永不入库，永不发群里，永不贴给 AI</td></tr>
+  <tr><td>大视频（&gt;50MB 的 mp4）</td><td>超过 100MB 会被 GitHub 直接拒收，且历史里删不干净</td><td>写进 .gitignore，视频放网盘/群文件</td></tr>
+</table>
+
+<h3>7.2　.gitignore 模板（仓库根目录新建这个文件）</h3>
+<pre><span class="c"># ---- 密钥与私有信息 ----</span>
+.env
+.env.*
+config.local.h
+docs/private/
+素材/巴法云配置/
+*.key
+*.pem
+
+<span class="c"># ---- 大文件 ----</span>
+*.mp4
+*.mov
+*.zip
+
+<span class="c"># ---- 系统垃圾 ----</span>
+Thumbs.db
+desktop.ini
+.DS_Store
+
+<span class="c"># ---- Python / 临时 ----</span>
+__pycache__/
+*.pyc
+~$*</pre>
+<div class="box warn">
+  <span class="bt">注意：<code>config.h</code> 本身不要整体忽略</span>
+  <p>我们仓库里的 <code>config.h</code> 是<b>占位符版本</b>，是给别人编译用的，必须留在库里。要忽略的是你填了真值的那份副本——所以约定叫 <code>config.local.h</code>，只忽略它。</p>
+</div>
+
+<h3>7.3　每次提交前，30 秒自查五条</h3>
+<ul class="check">
+  <li>清单里有没有 <code>docs/private/</code> 开头的路径</li>
+  <li>有没有截图文件名带"配置""控制台""UID"字样</li>
+  <li>有没有 <code>.env</code>、<code>.key</code>、<code>.pem</code></li>
+  <li>有没有单个超过 50MB 的文件</li>
+  <li>commit 信息里有没有出现学号或手机号</li>
+</ul>
+<p>五条全过，才点同意。</p>
+
+<h3>7.4　万一已经推上去了</h3>
+<div class="box stop">
+  <span class="bt">顺序不能颠倒</span>
+  <ol>
+    <li><b>先作废凭证</b>：如果是密码/UID 泄露，立刻去对应平台改密码、重置 UID。<b>文件删了但凭证还有效，等于没删。</b></li>
+    <li>再清文件：<code>git rm --cached 文件名</code> → 提交 → 推送（这只让文件不再被追踪）</li>
+    <li>如果文件已经在历史里、且仓库是公开的：把仓库改私有，然后找组长处理历史（需要重写历史，属于高阶操作，不要自己动手）</li>
+  </ol>
+</div>
+
+<h2 id="h">八、9 种常见报错速查</h2>
+
+<table>
+  <tr><th style="width:36%">报错原文（关键片段）</th><th style="width:28%">意思</th><th>怎么办</th></tr>
+  <tr>
+    <td><code>fatal: not a git repository</code></td>
+    <td>当前终端不在仓库目录里</td>
+    <td>敲 <code>cd /d/GreenHouse/greenhouse-project</code> 再试</td>
+  </tr>
+  <tr>
+    <td><code>Please tell me who you are</code><br><code>Author identity unknown</code></td>
+    <td>没配署名，Git 不知道这次提交算谁的</td>
+    <td>回到 B4，把那两条 <code>git config --global user.name / user.email</code> 敲一遍</td>
+  </tr>
+  <tr>
+    <td><code>Authentication failed</code><br>或一直弹窗要求登录</td>
+    <td>缓存的凭据过期或错了</td>
+    <td>控制面板 → 用户帐户 → 凭据管理器 → Windows 凭据 → 删掉所有 <code>git:https://github.com</code> 条目 → 重试 push</td>
+  </tr>
+  <tr>
+    <td><code>Updates were rejected because the remote contains work that you do not have locally</code></td>
+    <td>别人比你先推了，你本地落后</td>
+    <td><code>git pull --rebase</code> 然后重新 push</td>
+  </tr>
+  <tr>
+    <td><code>! [rejected] ... (non-fast-forward)</code></td>
+    <td>同上，本地和远端分叉了</td>
+    <td>同上。<b>不要用 <code>git push -f</code> 解决</b></td>
+  </tr>
+  <tr>
+    <td><code>warning: LF will be replaced by CRLF</code></td>
+    <td>换行符提示，只是警告</td>
+    <td>不用管，不影响提交</td>
+  </tr>
+  <tr>
+    <td>push 成功但网页上没有 <b>Compare &amp; pull request</b> 按钮</td>
+    <td>你可能推到了 main，而不是自己的分支</td>
+    <td>敲 <code>git branch --show-current</code> 看当前分支名，是 <code>main</code> 就说明推错地方了</td>
+  </tr>
+  <tr>
+    <td><code>remote: error: File xxx is 105.00 MB; this exceeds GitHub's file size limit of 100.00 MB</code></td>
+    <td>文件太大，GitHub 拒收</td>
+    <td>把该文件加进 .gitignore，再 <code>git rm --cached 文件名</code>，重新提交</td>
+  </tr>
+  <tr>
+    <td>中文文件名显示成 <code>"\344\270\255\346\226\207"</code></td>
+    <td>Git 在转义非 ASCII 文件名</td>
+    <td><code>git config --global core.quotepath false</code></td>
+  </tr>
+</table>
+
+<h2 id="i">九、四个人的分支怎么命名</h2>
+
+<p>对应 <code>docs/花房4人分工方案_2026-10-20.md</code> 里的角色划分，一人一条主线分支，别混。</p>
+
+<table>
+  <tr><th style="width:16%">角色</th><th style="width:30%">分支命名</th><th>干什么活</th></tr>
+  <tr><td><span class="pill r1">R1</span> 系统负责人</td><td><code>r1-firmware</code></td><td>固件、标定参数、集成联调</td></tr>
+  <tr><td><span class="pill r2">R2</span> 上云与数据</td><td><code>r2-cloud</code></td><td>MQTT、小程序、数据导出</td></tr>
+  <tr><td><span class="pill r3">R3</span> 结构与打印</td><td><code>r3-print</code></td><td>切片参数、打印日志、试装偏差</td></tr>
+  <tr><td><span class="pill r4">R4</span> 文档与影像</td><td><code>r4-docs</code></td><td>报告、PPT、素材索引</td></tr>
+</table>
+
+<p>同一个人同一模块改好几轮，就在后面加日期：<code>r2-cloud-1021</code>、<code>r2-cloud-1028</code>。合并后旧分支删掉，下次再从最新 main 开新的。</p>
+
+<div class="box tip">
+  <span class="bt">为什么一人一条分支，而不是每次一个功能分支</span>
+  <p>功能分支更规范，但对零基础的同学来说分支太多会乱。一人一条、按日期递进，够用且好记；等大家熟练了再升级成"一个任务一条分支"。</p>
+</div>
+
+<div class="quick" id="j">
+  <h3>十、一页速查（建议打印贴显示器旁）</h3>
+  <table>
+    <tr><th style="width:34%">场景</th><th>命令 / 动作</th></tr>
+    <tr><td>每天开工</td><td><code>cd /d/GreenHouse/greenhouse-project</code><br><code>git switch main</code><br><code>git pull</code></td></tr>
+    <tr><td>开今天的分支</td><td><code>git switch -c r2-cloud-1021</code></td></tr>
+    <tr><td>改完让 Agent 提交</td><td>粘贴 F2 那段指令 → 看清单 → 回「同意」</td></tr>
+    <tr><td>推送</td><td><code>git push -u origin r2-cloud-1021</code></td></tr>
+    <tr><td>开 PR</td><td>网页 → 黄色横条 <b>Compare &amp; pull request</b> → 填标题 → <b>Create pull request</b> → 发群</td></tr>
+    <tr><td>组长合并</td><td><b>Merge pull request</b> → <b>Confirm merge</b> → <b>Delete branch</b></td></tr>
+    <tr><td>完全不靠 Agent</td><td><code>git status</code> → <code>git add -A</code> → <code>git commit -m "feat(r2): 说明"</code> → <code>git push</code></td></tr>
+  </table>
+  <h4 style="margin-top:18px">三条不许破的规矩</h4>
+  <table>
+    <tr><td style="width:6%;text-align:center;font-weight:600">1</td><td>提交前必须看文件清单，确认后才同意</td></tr>
+    <tr><td style="text-align:center;font-weight:600">2</td><td>永不用 <code>git push -f</code>、<code>git reset --hard</code>、删文件命令</td></tr>
+    <tr><td style="text-align:center;font-weight:600">3</td><td>密码 / token / 学号 / 私钥截图，永不进仓库、永不贴给 AI</td></tr>
+  </table>
+</div>
+
+<hr>
+
+<h3>写这份手册时核实过的事实</h3>
+<ul style="font-size:13.5px;color:var(--ink2)">
+  <li>Git for Windows 自带 Git Credential Manager（GCM），「不必手动创建并存储 personal access token，GCM 会代为管理身份验证，包括 2FA」，凭据存入 Windows 凭据管理器，至少需 Git 2.29 以上版本（GitHub 官方文档）。所以本文全流程不含手工造 token 的步骤。</li>
+  <li>GitHub 自 2023 年 3 月起要求所有在 GitHub.com 上贡献代码的用户启用 2FA；未在 45 天注册期加 7 天宽限内启用，将无法访问。官方推荐 TOTP App 为主要方式（GitHub 官方文档）。</li>
+  <li>「豆包工作」于 2026-08-25 正式发布，由原"办公任务模式"升级为独立产品，官方描述其「获得用户授权后可操作本地电脑及浏览器」；豆包电脑版内可直接使用，新用户 30 天订阅（央广网、腾讯新闻等公开报道）。界面按钮名随版本变化，本文按动作要点描述。</li>
+  <li>私有仓库的分支保护规则在不同套餐下可见性不一致，本文未把"禁止直推 main"写成必做步骤，改为靠约定 + PR 流程约束。</li>
+</ul>
+
+<footer>
+  智能花房养护站 · 团队协作手册 v1.0 · 2026-10-20 编制<br>
+  配套文档：<code>docs/花房4人分工方案_2026-10-20.md</code>（分工）· <code>AGENTS.md</code>（项目红线）<br>
+  本手册不含任何真实账号、密钥或个人信息；示例中的用户名、邮箱、分支名均为占位。
+</footer>
+
+</div>
+</body>
+</html>

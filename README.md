@@ -33,6 +33,8 @@ ESP32 + 土壤湿度/光敏/DHT11 传感 → 自动浇水（继电器 + 底吸�
 │   ├── 花房接线规划表.md
 │   ├── 花房借用与自购清单.md
 │   ├── 花房3D建模入门路线_SolidWorks.md
+│   ├── GitHub与Agent提交代码_零基础手册_2026-10-20.md  # 组员零基础交代码
+│   ├── GitHub提交提示词_Agent自装自提_2026-10-20.md    # 让 Agent 自己提交到 GitHub
 │   ├── private/                            # 内部邮件（含个人信息，.gitignore 排除，不入仓库）
 │   └── 审计报告/AR02 · AR03 · AR04 · AR05 · AR06 · AR07 · AR08 · AR09 · AR10.md
 └── outputs/             # 交付物 + 生成脚本（不是文档）

@@ -48,6 +48,17 @@ NODE="C:/Users/junbo/.workbuddy/binaries/node/versions/22.22.2-6/node.exe"
 - 固件版本：**v1.5.1**（v1.5 全量代码审计修复 → v1.5.1 水位断泵改按 waterState 判定），编译字节数以 `outputs/花房代码/GreenHouse_v1/README.md` 为准。
 - 固件源码唯一真相源：`outputs/花房代码/GreenHouse_v1/`。
 
+### 4.1 Git 提交到 GitHub（本机已就绪，2026-10-20 实测）
+
+- Git **2.55.0.windows.3** 已装两份：`C:\Program Files\Git`（系统）+ WorkBuddy 自带 PortableGit（`where git` 首位）。**不要重装**。
+- 认证走 **Git Credential Manager 2.9.0**（`D:/Appdata/WorkBuddy/resources/vendor/PortableGit/mingw64/bin/git-credential-manager.exe`），全局 `credential.helper` 指向它，已授权账号 `huankechong`；token 在 Windows 凭据管理器，**仓库里不落盘**。
+- 远程 `https://github.com/huankechong/smart-greenhouse.git`，分支 `main`。
+- 提交身份**已全局配好**（2026-10-20 补齐）：`user.name=huankechong`、`user.email=huankechong@users.noreply.github.com`。**不要再 `git config --local` 覆盖**，写 local 会让新仓库继承不到。
+- `gh` CLI 未装、SSH 密钥无 → **不需要**，`git push` 即可。
+- 提交前必看 `git status`；`git add` 显式列文件，**不要 `git add .`**（`.gitignore` 已排除 `docs/private/`、`output/`、`.workbuddy/`、截图备份等含个人信息目录）。
+- 提交信息写中文，格式 `<类型>: <一句话说明>`；push 后回读 `git log --oneline -3` + `git status`。
+- 完整提示词与变体 → `docs/GitHub提交提示词_Agent自装自提_2026-10-20.md`。
+
 ## 5. 凭据与隐私
 
 - **文档里不落凭据与个人身份**：WiFi/UID/学号/手机号一律走 `config.h` 占位符或"见 E盘/素材/档案"，本仓库只写指针。巴法云 UID 私钥只存在于截图。

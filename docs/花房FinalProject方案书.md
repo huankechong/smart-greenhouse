@@ -1,6 +1,7 @@
 # Final Project 方案书：智能花房养护站（Smart GreenHouse）
 
-> 《Introduction to Project Work》期末个人项目 · 答辩日 2026-11-16 · 方案定稿 2026-10-17
+> 《Introduction to Project Work》期末项目 · **4 人小组共做一份（2026-10-20 确认）** · 答辩日 2026-11-16 · 方案定稿 2026-10-17
+> 分工见 `docs/花房4人分工方案_2026-10-20.md`；本文件的任务内容仍有效，只是执行者从 1 人变成 4 人。
 
 ---
 
