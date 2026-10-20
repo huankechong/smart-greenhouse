@@ -9,6 +9,7 @@
 > 请你检查这台电脑是否具备用 git 向 GitHub 提交代码的完整条件，缺什么就自己装/自己补，然后帮我把当前目录的改动提交并推送到 GitHub。
 >
 > 依次执行：
+>
 > 1. **查 Git**：`git --version`。若提示不是命令，用 `winget install --id Git.Git -e` 安装，装完重开终端再验证。
 > 2. **查身份**：`git config --global user.name` 和 `git config --global user.email`。若为空，用 `git config --global user.name "<我的GitHub用户名>"` 和 `git config --global user.email "<我的GitHub noreply 邮箱>"` 补上（GitHub 设置页 Emails 里的 `ID+用户名@users.noreply.github.com`）。**不要编造**，缺失就问我。
 > 3. **查凭据**：先 `git ls-remote origin` 试一次。通了就跳过认证这步；不通则跑 `git credential-manager github login`（或 `git-credential-manager github login`），它会弹浏览器让我点授权，**不要让我手动贴 token**，也**不要把 token 写进任何文件**。
@@ -20,14 +21,14 @@
 
 ## 二、为什么是这六条（每条对应一个实测过的坑）
 
-| 步骤 | 对应的真实问题（2026-10-20 实测） |
-|---|---|
-| 1 查 Git | 本机已有 2.55.0（`C:\Program Files\Git` 与 WorkBuddy PortableGit 两份），**无需重装**；但换台新机器就得先装 |
-| 2 查身份 | **全局 user.name/email 为空**，只有当前仓库有 local 配置。在 `/tmp` 空仓库 `git commit` 直接报 `Author identity unknown` —— 这是最常见的"AI 提交失败"真因 |
-| 3 查凭据 | GCM 已授权账号 `huankechong`，`ls-remote` 与 `push --dry-run` 均通过。**token 已在 Windows 凭据管理器里，不需要也不该再贴一次** |
-| 4 先看状态 | 本仓库当前就有 4 个已改文件 + 3 个未跟踪文件，盲 `git add .` 容易把不该入库的混进去 |
-| 5 明确 add | `.gitignore` 已排除 `docs/private/`、`output/`、`.workbuddy/`、`outputs/截图备份_*/`（含个人信息），靠 ignore 兜底但不等于安全 |
-| 6 自检 | `git push` 成功≠你要的文件都上去了，必须读回 `git log` 核对 sha 和说明 |
+| 步骤       | 对应的真实问题（2026-10-20 实测）                                                                                                  |
+| -------- | ----------------------------------------------------------------------------------------------------------------------- |
+| 1 查 Git  | 本机已有 2.55.0（`C:\Program Files\Git` 与 WorkBuddy PortableGit 两份），**无需重装**；但换台新机器就得先装                                      |
+| 2 查身份    | **全局 user.name/email 为空**，只有当前仓库有 local 配置。在 `/tmp` 空仓库 `git commit` 直接报 `Author identity unknown` —— 这是最常见的"AI 提交失败"真因 |
+| 3 查凭据    | GCM 已授权账号 `huankechong`，`ls-remote` 与 `push --dry-run` 均通过。**token 已在 Windows 凭据管理器里，不需要也不该再贴一次**                       |
+| 4 先看状态   | 本仓库当前就有 4 个已改文件 + 3 个未跟踪文件，盲 `git add .` 容易把不该入库的混进去                                                                    |
+| 5 明确 add | `.gitignore` 已排除 `docs/private/`、`output/`、`.workbuddy/`、`outputs/截图备份_*/`（含个人信息），靠 ignore 兜底但不等于安全                     |
+| 6 自检     | `git push` 成功≠你要的文件都上去了，必须读回 `git log` 核对 sha 和说明                                                                       |
 
 ---
 
@@ -71,7 +72,7 @@ gh CLI         未安装（当前不需要）
 ssh 密钥       无（当前走 HTTPS，不需要）
 ```
 
-**补齐验证（22:50 实测）**：新建空仓库 `git init` → `git commit` 成功，作者正确回读为
+**补齐验证（22:50 实测）**：新建空仓库 `git init` → `git commit` 成功，作者正确回读为  
 `huankechong <huankechong@users.noreply.github.com>`，不再报 `Author identity unknown`。
 
 ---

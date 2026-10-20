@@ -34,6 +34,7 @@
 8. [八、9 种常见报错速查](#八9-种常见报错速查)
 9. [九、四个人的分支怎么命名](#九四个人的分支怎么命名)
 10. [十、一页速查（建议打印贴显示器旁）](#十一页速查建议打印贴显示器旁)
+11. [十一、macOS 用户看这里](#十一macos-用户看这里)
 
 ---
 
@@ -59,6 +60,19 @@
 1. **同一个文件不要两条路线交替改**——连接器没有合并保护，最后一次写入会把 Git 那边的内容整份盖掉
 2. 走 Git 的人开工前照旧 `git pull`；走连接器的人开工前先读 sha（见 §6.5）
 3. 谁的文件谁改，要动别人的文件先在群里说一句
+
+### 最短一句话（配置完成后，两条路线各一句）
+
+| 路线 | 一句话 | 能覆盖的范围 |
+|---|---|---|
+| 连接器 | `把 D:\GreenHouse\报告.md 提到 r4-docs-1021 分支，开 PR，先别合并` | 单个文本文件，≤1 MB |
+| Git | `把当前改动提交并推上去` | 多个文件、任意大小、自动带历史 |
+
+**让"一句话"成立的前提是三件固定好的事**，缺一件 Agent 就得多问一句：
+
+1. **固定仓库**：Agent 已绑定这个仓库，不用每次报 owner/repo
+2. **固定分支规则**：`角色-模块-日期`（见第九节），它自己能算出来
+3. **固定目录结构**：谁的文件在哪个目录下，它不用猜
 
 ---
 
@@ -118,6 +132,10 @@ GitHub 从 2023 年 3 月起，对**所有贡献代码的账号**强制要求 2F
 ---
 
 ## 二、安装 Git for Windows（约 8 分钟）
+
+> **提示｜Mac 用户跳过本章**
+>
+> 本章及第四章的终端操作是 Windows 专属。macOS 的等价做法（装 Git、认证、路径、行尾）集中在**第十一节**，其余章节命令通用。
 
 ### B1　下载安装包
 
@@ -218,6 +236,28 @@ git config --global core.quotepath false
 ```
 https://github.com/你的用户名/greenhouse-project.git
 ```
+
+### C5　只拿链接，怎么把文件下载下来
+
+不需要装 git，三种方式按需求选：
+
+| 想要什么 | 怎么做 | 注意 |
+|---|---|---|
+| **单个文件** | 打开该文件页面 → 右上角的下载图标（Download raw file），或点 **Raw** 后右键另存 | 私有库必须先登录且有权限 |
+| **整个仓库当前版本** | 绿色 **Code** → **Download ZIP** → 解压 | 压缩包**不含 git 历史**，也没有 `.git` 目录，改完无法提交 |
+| **一份成品交给老师** | 同上 ZIP | 对方只要收文件，不需要任何账号 |
+
+有 git 环境时，命令行等价写法：
+
+```bash
+curl -L -o repo.zip https://github.com/owner/repo/archive/refs/heads/main.zip
+```
+
+**三条容易判断错的地方：**
+
+1. **链接本身不含权限。** 私有库把链接给谁，谁也得先被加成 collaborator 并登录，否则打开是 404——不是链接错，是没权限。
+2. **ZIP 里没有 `.git`。** 下载来的是"当前快照"，改完没法提交；要改就得 clone 或走连接器路线。
+3. **用 Git LFS 存的大文件在 ZIP 里只有指针。** 需要装 `git lfs` 才能取到真文件，下载的 ZIP 里那是个几十字节的文本。
 
 ---
 
@@ -603,12 +643,93 @@ __pycache__/
 
 ---
 
+## 十一、macOS 用户看这里
+
+这一章替代第**二**章（装 Git）和第四章的终端部分。其余章节的命令与 Windows 完全一样：注册、建库、日常五步、Agent、报错表都能直接照做。
+
+### M1　打开终端
+
+- Spotlight（⌘ + 空格）→ 输入 `Terminal` 或 `终端` → 回车
+- 或在 Finder 里：右键文件夹 → **服务** → **新建位于文件夹位置的终端窗口**
+- 路径形如 `/Users/你的用户名/GreenHouse`，不是 `D:\`。进目录用 `cd ~/GreenHouse/greenhouse-project`
+
+### M2　装 Git：先跑一次 `git --version`
+
+Mac 自带 git，但第一次执行会弹窗要求安装 **Xcode Command Line Tools**，点"安装"等几分钟，跑完再执行一次 `git --version`，看到版本号就算好了。这是 Mac 上最常见的"卡住点"，不是出错。
+
+不想等系统弹窗，也可以装 Homebrew 后 `brew install git`（国内网络慢可换镜像源）。
+
+### M3　认证：三选一（Mac 和 Windows 最大的区别）
+
+GitHub 已取消用账号密码做 Git 认证。Windows 上靠 Git 自带的凭据管理器解决，**Mac 自带的 git 没有这个能力**，必须选下面一种：
+
+| 方案 | 怎么做 | 适合 |
+|---|---|---|
+| **GCM（推荐）** | `brew install --cask git-credential-manager`，之后 push 弹浏览器授权 | 有 Homebrew，想要和 Windows 一样的"点一下就完事" |
+| **GitHub CLI** | `brew install gh` → `gh auth login` → 选 HTTPS → 问是否用 GitHub 凭据认证选 **Y** → 浏览器授权 | 想一条命令搞定，还能用 `gh auth status` 自查 |
+| **PAT + 钥匙串** | 建 token，再 `git config --global credential.helper osxkeychain`；push 时用户名填 GitHub 用户名、密码粘 token | 没装 Homebrew |
+
+**PAT 怎么建**（只有第三种方案需要）：头像 → **Settings** → **Developer settings** → **Personal access tokens** → **Fine-grained tokens** → Generate new token → 选仓库 → Repository permissions 里把 **Contents 设为 Read and write**（`git push` 需要的就这一条）→ 设过期日 → 生成后立刻复制，只显示一次。
+
+> **禁止｜token 等同密码**
+>
+> 不写进任何文件、不贴给 AI、不写进 remote URL（写进 URL 会以明文躺在 `.git/config` 里）。只粘到终端提示的密码位置。
+
+**Mac 上的最短落地顺序**（从最省事往下排）：
+
+| 顺序 | 做什么 | 一句话提交什么时候能用 |
+|---|---|---|
+| 1 | 只交文档 → **走连接器**，零安装 | 立刻能用，模板里的路径换成 `/Users/…` |
+| 2 | 要交代码 → `brew install gh` + `gh auth login`（一条命令配完，还能 `gh auth status` 自查） | 配完立刻 |
+| 3 | 有 Homebrew 但不想装 gh → 装 GCM | 配完立刻 |
+| 4 | 没 Homebrew、或 brew 装不上（国内网络） → PAT + osxkeychain | 建完 token 后 |
+
+**第 2 档怎么交给 Agent 做**（复制下面这段，粘给 Agent 即可）：
+
+```text
+检查本机环境：执行 brew --version 和 gh --version，把结果告我。
+缺 Homebrew 就先装 Homebrew；缺 gh 就执行 brew install gh。
+装好后执行：
+  gh auth login --hostname github.com --git-protocol https --web
+把终端里出现的一次性代码（one-time code）原样转述给我，
+之后停下来等我在浏览器里完成登录和 2FA 授权，不要自己猜结果。
+我授权完成后，你再执行 gh auth status 确认登录状态，
+并执行 git config --get credential.https://github.com.helper
+告诉我 gh 是否已经接管 git 凭据。
+```
+
+两点说明：
+
+- **浏览器那一步必须本人做**（要输密码 + 2FA），Agent 代不了；它能做的是装、跑命令、念代码、验结果。
+- `gh auth login` 成功后会自动把 gh 配成 git 的凭据辅助，**之后 `git push` 不用再登录**——这就是它比 PAT 省事的地方。
+
+### M4　三条 Mac 独有注意点
+
+1. **行尾**：Mac 是 LF，Windows 是 CRLF。不统一的话，同一文件两边来回改会显示"整份都变了"。执行 `git config --global core.autocrlf input`（Mac 默认值，确认一下），并在仓库根加 `.gitattributes`，写一行 `* text=auto`。
+2. **文件名大小写**：macOS 磁盘默认不区分大小写，把 `readme.md` 改成 `README.md`，git 会认为文件没变。改名必须用 `git mv readme.md README.md`。
+3. **不要放 iCloud 云盘或桌面同步目录**：等同于 Windows 放 OneDrive，同步冲突会破坏 `.git` 目录。用 `~/Dev/greenhouse-project` 这类纯本地路径。
+4. **首次权限弹窗**：Mac 上第一次让 Agent 操作终端或读写项目文件夹时，系统会弹"允许访问 / 自动化"授权——**必须点允许**，否则命令跑不起来（这一步只在第一次出现，一次授权长期有效）。
+
+### M5　凭据出问题怎么清
+
+Windows 是"控制面板 → 凭据管理器 → Windows 凭据"；Mac 换成**钥匙串访问**：Spotlight 搜 `Keychain Access` → 搜索 `github.com` → 删掉那条"互联网密码"。
+
+命令行版：执行 `git credential-osxkeychain erase`，然后依次输入 `host=github.com`、`protocol=https`，连按两次回车，无任何输出即成功。
+
+### M6　两条补充
+
+- Finder 里看不到 `.git` 目录是正常的，按 **⌘ + Shift + .** 显示隐藏文件
+- WorkBuddy 有 macOS 客户端，连接器路线与 Windows 一致；**只走连接器路线的 Mac 用户连 git 都不用装**，1MB 限制与操作系统无关
+
+---
+
 ## 附：写这份手册时核实过的事实
 
 - Git for Windows 自带 Git Credential Manager（GCM），「不必手动创建并存储 personal access token，GCM 会代为管理身份验证，包括 2FA」，凭据存入 Windows 凭据管理器，至少需 Git 2.29 以上版本（GitHub 官方文档）。**所以本文全流程不含手工造 token 的步骤。**
 - GitHub 自 2023 年 3 月起要求所有在 GitHub.com 上贡献代码的用户启用 2FA；未在 45 天注册期加 7 天宽限内启用，将无法访问。官方推荐 TOTP App 为主要方式（GitHub 官方文档）。
 - 「豆包工作」于 2026-08-25 正式发布，由原"办公任务模式"升级为独立产品，官方描述其「获得用户授权后可操作本地电脑及浏览器」；豆包电脑版内可直接使用，新用户 30 天订阅（央广网、腾讯新闻等公开报道）。**界面按钮名随版本变化，本文按动作要点描述。**
 - 私有仓库的分支保护规则在不同套餐下可见性不一致，本文未把"禁止直推 main"写成必做步骤，改为靠约定 + PR 流程约束。
+- **macOS 认证**：GitHub 已移除 Git 操作的口令认证，macOS 自带的 git 只提供 `osxkeychain` 辅助（存的是密码/令牌），因此需另装 GCM、或用 GitHub CLI 登录、或手工建 PAT；官方文档同时说明「更新 macOS 钥匙串凭据」仅适用于手动配置 PAT 的用户，并推荐改用 SSH 或 GCM。
 
 ---
 

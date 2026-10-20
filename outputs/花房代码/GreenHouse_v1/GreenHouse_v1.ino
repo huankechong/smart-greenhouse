@@ -61,9 +61,15 @@
 #define PIN_LEVEL   32   // v1.4 浮球开关干接点（第 10 件替换盖中心孔穿出）→ 数字输入，1kΩ 上拉到 3V3
 
 // ==================== 标定/浇水参数（到货实测后改这里） ====================
-const int SOIL_RAW_DRY = 3200;        // 探针全干的 raw 读数 → W1-4.1 实测后修改！
-const int SOIL_RAW_WET = 1300;        // 探针全湿的 raw 读数 → W1-4.1 实测后修改！
-const int SOIL_THRESHOLD_PCT  = 35;   // 土壤湿度% 低于此值 → 判定缺水
+// ⚠️ 下面两个值是按通用资料估的，**未在本模块实测**。它们只是让系统能编译运行。
+// ⛔ 在用 soil_calibrate.py 实测并回写真实值之前，**EN_WATER 必须保持 0**。
+//    原因：估偏了两种都坏——
+//      估高了：湿态算成 ~90% → 永远不判缺水 → 花一直渴着（静默失效，很难发现）
+//      估低了：干态算成 ~20% → 一直判缺水 → 反复浇水 → 水箱空、盆泡烂（危险）
+//    标定脚本会把实测中位数自动回写到下面这两行（--write 参数）。
+const int SOIL_RAW_DRY = 3200;        // 探针全干的 raw 读数 → W1-4.1 实测后自动回写
+const int SOIL_RAW_WET = 1300;        // 探针全湿的 raw 读数 → W1-4.1 实测后自动回写
+const int SOIL_THRESHOLD_PCT  = 35;   // 土壤湿度% 低于此值 → 判定缺水（标定后再按实际土壤调）
 const unsigned long WATER_MS  = 3000;    // 每轮浇水 3 秒
 const unsigned long SETTLE_MS = 30000;   // 浇完等 30 秒复测（防反复触发）
 const unsigned long MANUAL_WATER_MS = 5000; // 远程手动浇水 5 秒
