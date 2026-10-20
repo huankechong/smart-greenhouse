@@ -59,7 +59,27 @@ C = {
     "water": (0.247, 0.557, 0.839),   # 水体（中蓝）
     "pump": (0.420, 0.447, 0.502),    # 水泵（岩灰）
     "tube": (0.059, 0.604, 0.659),    # 水管（青绿）
+    "float": (0.929, 0.596, 0.278),   # 浮球浮子（琥珀，仅示意，实物为白/灰）
 }
+
+
+def prism_xy(poly, z0, z1):
+    """凸多边形（XY）沿 Z 拉伸成棱柱；用于桶壁 90° 观察口"""
+    pts = np.asarray(poly, dtype=float)
+    n = len(pts)
+    v = np.vstack([np.column_stack([pts, np.full(n, z0)]),
+                   np.column_stack([pts, np.full(n, z1)])])
+    f = []
+    for i in range(1, n - 1):
+        f.append([0, i, i + 1])
+        f.append([n, n + i + 1, n + i])
+    for i in range(n):
+        j = (i + 1) % n
+        f.append([i, n + i, n + j])
+        f.append([i, n + j, j])
+    m = trimesh.Trimesh(vertices=v, faces=np.asarray(f), process=True)
+    m.fix_normals()
+    return m
 
 
 def place(mesh, x=0.0, y=0.0, z=0.0, rz=0.0):
@@ -87,6 +107,17 @@ def frustum(r_bot, r_top, h, sections=96):
         f.append([ct, sections + i, sections + j])
     m = trimesh.Trimesh(vertices=v, faces=np.asarray(f), process=True)
     m.fix_normals()
+    return m
+
+
+def _cyl(r, h, sec=20, axis="z", x=0.0, y=0.0, z=0.0):
+    """圆柱（z 为该轴中心）；axis 指定轴向"""
+    m = cylinder(radius=r, height=h, sections=sec)
+    if axis == "x":
+        m.apply_transform(trimesh.transformations.rotation_matrix(np.pi / 2, [0, 1, 0]))
+    elif axis == "y":
+        m.apply_transform(trimesh.transformations.rotation_matrix(np.pi / 2, [1, 0, 0]))
+    m.apply_translation([x, y, z])
     return m
 
 
@@ -152,25 +183,65 @@ for i in range(7):
     leaf.apply_translation([PLANT[0], PLANT[1], z])
     add(leaf, "leaf", "叶片")
 
-# ---------- 4. 水箱 (前壁剖开, 露出内部水泵) ----------
-TANK = (85.0, 20.0)
-TW, TD, TH, TT = 118.0, 90.0, 60.0, 3.0
-parts = [
-    place(box([TW, TT, TH]), 0, TD / 2 - TT / 2, TH / 2),
-    place(box([TT, TD - TT, TH]), -TW / 2 + TT / 2, -TT / 2, TH / 2),
-    place(box([TT, TD - TT, TH]), TW / 2 - TT / 2, -TT / 2, TH / 2),
-    place(box([TW, TD, TT]), 0, 0, TT / 2),
-]
-tank = trimesh.boolean.union(parts, engine="manifold")
-add(place(tank, TANK[0], TANK[1], 3.0), "tank", "水箱")
-water = box([TW - 2 * TT, TD - 2 * TT, 20.0])
-add(place(water, TANK[0], TANK[1] - 1.0, 3.0 + TT + 10.0), "water", "水体")
+# ---------- 4. 水箱：1L 打包桶（圆台）+ 3D 替换盖 + P52 浮球（AR08 圆桶化）----------
+TANK = (85.0, 32.0)
+BOT_R, TOP_R, TANK_H, TANK_T = 53.0, 68.0, 120.0, 1.4   # 底 φ106 / 口外径 φ136 / 桶身 120 / 壁 ≈1.4
+TANK_Z = 3.0
+TRIM = TANK_Z + TANK_H            # 123 桶口
+LID_T = 4.0
+LID_TOP = TRIM + LID_T            # 127 盖顶
+TUBE_XY = (TANK[0], TANK[1] - 22.0)   # 盖顶水管孔 φ10（-Y 22）
+WIRE_XY = (TANK[0], TANK[1] - 45.0)   # 盖顶过线孔 φ8（-Y 45，与水管同侧，电缆不横跨盖顶）
 
-# ---------- 5. 水泵座 + 水泵 ----------
-PUMP = (85.0, 8.0)
-add(place(M_P0.build_pump_mount(M_P0.PARAMS["pump"]), PUMP[0], PUMP[1], 3.0 + TT), "white", "水泵固定座")
+# 桶体：外锥台 − 内腔锥台，再切 90° 观察口（朝 +Y，露出泵/水体/浮子）
+_bucket = trimesh.boolean.difference(
+    [frustum(BOT_R, TOP_R, TANK_H),
+     place(frustum(BOT_R - TANK_T, TOP_R - TANK_T, TANK_H - TANK_T), 0, 0, TANK_T)],
+    engine="manifold")
+_bucket = place(_bucket, TANK[0], TANK[1], TANK_Z)
+_sec = np.linspace(-np.pi / 4, np.pi / 4, 25)
+_wedge = prism_xy([(0.0, 0.0)] + [(85.0 * np.cos(t), 85.0 * np.sin(t)) for t in _sec],
+                  TANK_Z - 6.0, TRIM + 2.0)
+_wedge.apply_translation([TANK[0], TANK[1], 0.0])
+add(trimesh.boolean.difference([_bucket, _wedge], engine="manifold"), "tank", "水箱")
+
+# 水体：内腔半径随高度线性，水深 85mm（满口 1.2L ≈ 101mm，留气隙）
+# 与桶壁同楔形剖开，否则不透明水体把泵整个挡住
+_r_at = lambda h: (BOT_R - TANK_T) + (TOP_R - BOT_R) * h / TANK_H
+_water = place(frustum(_r_at(0) - 0.6, _r_at(85.0) - 0.6, 85.0, 72),
+               TANK[0], TANK[1], TANK_Z + TANK_T)
+add(trimesh.boolean.difference([_water, _wedge], engine="manifold"), "water", "水体")
+
+# 第 10 件替换盖：φ142.4×4 板 + 裙边内 φ136.8×8 + φ20×0.8 螺母凸台，三孔
+_lid = trimesh.boolean.union([
+    _cyl(71.2, LID_T, 96, z=TRIM + LID_T / 2, x=TANK[0], y=TANK[1]),
+    _cyl(71.2, 8.0, 96, z=TRIM - 4.0, x=TANK[0], y=TANK[1]),
+    _cyl(10.0, 0.8, 48, z=TRIM - 0.4, x=TANK[0], y=TANK[1]),
+], engine="manifold")
+_lid = trimesh.boolean.difference([_lid,
+    _cyl(68.4, 8.4, 96, z=TRIM - 4.0, x=TANK[0], y=TANK[1]),                    # 裙边内孔（套桶口）
+    _cyl(5.25, 70.0, 32, z=LID_TOP - 25.0, x=TANK[0], y=TANK[1]),                 # 浮球杆孔 φ10.5
+    _cyl(5.0, LID_T + 4, 24, z=TRIM + LID_T / 2, x=TUBE_XY[0], y=TUBE_XY[1]),     # 水管孔 φ10
+    _cyl(4.0, LID_T + 4, 24, z=TRIM + LID_T / 2, x=WIRE_XY[0], y=WIRE_XY[1]),     # 过线孔 φ8
+    _cyl(13.0, 14.0, 40, z=TRIM - 1.0, x=TANK[0] + 71.2, y=TANK[1]),              # 指位缺口（+X）
+    _cyl(13.0, 14.0, 40, z=TRIM - 1.0, x=TANK[0] - 71.2, y=TANK[1]),              # 指位缺口（−X）
+], engine="manifold")
+add(_lid, "white", "水箱盖")
+
+# P52 浮球开关：法兰坐盖顶，杆有效长 52，浮子随水面（水满时半浸）
+add(_cyl(11.0, 3.0, 40, z=LID_TOP + 1.5, x=TANK[0], y=TANK[1]), "white", "浮球法兰")
+add(_cyl(8.0, 18.0, 32, z=LID_TOP + 12.0, x=TANK[0], y=TANK[1]), "white", "浮球本体")
+add(_cyl(2.5, 52.0, 20, z=LID_TOP - 26.0, x=TANK[0], y=TANK[1]), "metal", "浮球杆")
+_float = trimesh.boolean.difference(
+    [_cyl(14.0, 18.0, 48, z=0.0), _cyl(3.3, 20.0, 32, z=0.0)], engine="manifold")
+add(place(_float, TANK[0], TANK[1], 84.0), "float", "浮子")
+
+# ---------- 5. 水泵座 + 水泵（桶内居中）----------
+PUMP = (85.0, 32.0)
+INNER_FLOOR = TANK_Z + TANK_T      # 4.4 桶内底
+add(place(M_P0.build_pump_mount(M_P0.PARAMS["pump"]), PUMP[0], PUMP[1], INNER_FLOOR), "white", "水泵固定座")
 # 实物泵体 41 × 39 × 30（含出水嘴 37），底脚 32 × 28 —— 方块 + 顶面出水嘴
-_PZ = 3.0 + TT + 3.0          # 泵体底面（座底板 3 之上）
+_PZ = INNER_FLOOR + 3.0            # 7.4 泵体底面
 add(place(box([41.0, 39.0, 30.0]), PUMP[0], PUMP[1], _PZ + 15.0), "pump", "水泵")
 add(place(cylinder(radius=6.0, height=7.0, sections=32), PUMP[0] - 2.0, PUMP[1], _PZ + 33.5),
     "pump", "泵出水嘴")
@@ -184,14 +255,14 @@ _CLIP_Y = 60.0 + _RIM_R * np.sin(_AZR)
 _HOLE_X = _CLIP_X + (-11.0) * np.cos(_AZR)
 _HOLE_Y = _CLIP_Y + (-11.0) * np.sin(_AZR)
 tube_pts = [
-    (85.0, 8.0, 39.0),              # 泵顶出水
-    (85.0, 8.0, 58.0),
-    (58.0, 8.0, 70.0),
-    (15.0, 14.0, 76.0),             # 越过水箱壁（壁高 62，走 76）
-    (-30.0, 35.0, 92.0),
-    (-58.0, 50.0, 118.0),
-    (-58.0, 55.0, 126.0),           # 抬到管环顶部以上绕行
-    (_HOLE_X, _HOLE_Y, 126.0),      # 到管孔正上方
+    (83.0, 32.0, 44.0),             # 泵出水嘴顶
+    (84.0, 22.0, 50.0),             # 先偏向 -Y（让开中心浮球杆 φ5）
+    (TUBE_XY[0], TUBE_XY[1], 58.0),    # 到盖孔正下方，之后竖直（距杆轴 22 > 浮子半径 14+管 4）
+    (TUBE_XY[0], TUBE_XY[1], 120.0),
+    (TUBE_XY[0], TUBE_XY[1], 145.0),   # 竖直穿盖孔（123~127 同轴）
+    (40.0, 4.0, 152.0),             # 出盖后向左上抬
+    (-35.0, 40.0, 150.0),
+    (_HOLE_X, _HOLE_Y, 136.0),      # 到盆沿管孔正上方
     (_HOLE_X, _HOLE_Y, 81.0),       # 竖直下穿管孔（全程同轴，不蹭壁）
 ]
 add(tube_path(tube_pts, r=4.0), "tube", "水管")
@@ -267,16 +338,6 @@ add(place(M_P1.build_cable_clip(M_P1.PARAMS["clip3"]), -75.0, 8.0, PT, rz=8), "w
 # 细节层 v1.7 —— 电子件特征 / 螺丝 / 跳线（只加几何，不动 STL）
 #   预算：新增 ≤10k 面；所有件仍用布尔过的 STL，细节件仅作渲染
 # ============================================================
-def _cyl(r, h, sec=20, axis="z", x=0.0, y=0.0, z=0.0):
-    m = cylinder(radius=r, height=h, sections=sec)
-    if axis == "x":
-        m.apply_transform(trimesh.transformations.rotation_matrix(np.pi / 2, [0, 1, 0]))
-    elif axis == "y":
-        m.apply_transform(trimesh.transformations.rotation_matrix(np.pi / 2, [1, 0, 0]))
-    m.apply_translation([x, y, z])
-    return m
-
-
 def _cat(parts):
     """渲染用合并：直接拼接，不做布尔（细节件不需要封闭单体）"""
     return trimesh.util.concatenate(parts)
@@ -336,7 +397,7 @@ for k in range(3):
 
 # ---------- 20. 水泵进水格栅 / 出水嘴 / 电源线 ----------
 # 底吸口：泵体正下方的方形格栅（泵座底板中间已开 34×30 的孔）
-_g = [_bx(85.0, 8.0 - 12.0 + k * 6.0, _PZ - 0.6, 30.0, 2.0, 1.2) for k in range(5)]
+_g = [_bx(PUMP[0], PUMP[1] - 12.0 + k * 6.0, _PZ - 0.6, 30.0, 2.0, 1.2) for k in range(5)]
 add(_cat(_g), "mcu", "水泵进水格栅")
 
 # ---------- 21. 8 颗 M3×6 螺丝（底盘连接块，头面齐平 z=8） ----------
@@ -368,8 +429,8 @@ WIRES = [
     [(-71.0, -43, 24), (-67, -6, 17), (-57, 15, 15), (-50, 20.4, 18)],
     [(-71.0, -46, 24), (-68, -4, 17), (-58, 16, 15), (-51, 20.4, 18)],
     [(-71.0, -49, 24), (-69, -2, 17), (-59, 17, 15), (-52, 20.4, 18)],
-    # ② ESP32 → DHT11（1 根）：从正面进 DHT 座
-    [(-71.0, -44, 24), (-64, -38, 16), (-50, -38, 12), (-45, -43.4, 10.2)],
+    # ② ESP32 → DHT11（1 根）：从正面进 DHT 座（端头停在座壁外 0.5，不在座内）
+    [(-71.0, -44, 24), (-64, -38, 16), (-50, -38, 12), (-45, -42.4, 11.0)],
     # ③ ESP32 → 土壤传感器（3 根）：绕花盆南侧，沿盆沿外侧上行
     [(-68.0, -38, 22), (-66, -20, 12), (-70, 2, 12), (-100, 14, 12), (-145, 26, 12),
      (-146, 31, 20), (-146, 31, 95), (-140, 37, 107)],
@@ -379,11 +440,13 @@ WIRES = [
      (-148, 33, 20), (-148, 33, 95), (-142, 39, 107)],
     # ④ ESP32 → 继电器 IN（1 根）：从上方落到端子
     [(-71.0, -45, 24), (-64, -32, 24), (-52, -29, 25.4)],
-    # ⑤ 继电器 → 水泵（2 根）：壁外抬升到 z=66 再跨进箱内
-    [(-27.4, -18, 19), (0, -18, 16), (20, -18, 16), (22, -18, 66), (34, -18, 66),
-     (70, 0, 66), (84, 6, 50), (85, 6, 40)],
-    [(-27.4, -21, 19), (2, -21, 16), (21, -21, 16), (23, -21, 66), (36, -20, 66),
-     (72, 2, 66), (86, 8, 50), (87, 8, 40)],
+    # ⑤ 继电器 → 水泵（2 根）：沿底板 -Y 侧走，抬到盖顶上方，从 φ8 过线孔（-Y45）进桶
+    [(-27.4, -18, 19), (0, -34, 26), (40, -42, 48), (74, -47, 104), (77, -46, 128),
+     (84, -28, 132), (WIRE_XY[0], WIRE_XY[1], 131.0), (WIRE_XY[0], WIRE_XY[1], 120.0),
+     (88.0, -6, 112), (92.0, 16, 78), (86.0, 38, 46)],
+    [(-27.4, -21, 19), (2, -36, 26), (42, -44, 48), (76, -49, 104), (79, -48, 128),
+     (86, -30, 132), (WIRE_XY[0] + 1.5, WIRE_XY[1] - 1.5, 131.0), (WIRE_XY[0] + 1.5, WIRE_XY[1] - 1.5, 120.0),
+     (89.5, -8, 112), (93.5, 14, 78), (87.0, 37, 46)],
     # ⑥ ESP32 → 面包板电源轨（2 根）
     [(-76, -35.2, 20), (-84, -32, 16), (-92, -30, 14.8)],
     [(-80, -35.2, 20), (-88, -31, 16), (-100, -30, 14.8)],
@@ -397,6 +460,11 @@ WIRES = [
     # ⑨ 面包板 → 继电器供电（2 根）
     [(-92, -29, 14.8), (-74, -26, 17), (-58, -29, 24)],
     [(-98, -29, 14.8), (-76, -27, 17), (-56, -29, 25)],
+    # ⑩ 浮球开关 → GPIO32（2 根）：本体顶部出线，走桶 -Y 侧（与电缆同侧）回面包板
+    [(95, 32, 144), (100, 24, 140), (100, -12, 136), (90, -42, 132), (79, -52, 112),
+     (55, -56, 72), (20, -56, 38), (-20, -52, 25), (-60, -60, 18), (-90, -66, 16)],
+    [(96, 33, 141), (102, 25, 138), (102, -13, 136), (92, -44, 132), (81, -54, 112),
+     (58, -58, 72), (23, -58, 38), (-17, -54, 25), (-57, -62, 18), (-87, -68, 16)],
 ]
 for k, w in enumerate(WIRES):
     add(wire(w), "wire", "跳线%02d" % (k + 1))
@@ -487,7 +555,8 @@ def get_ao():
         # 细节件（螺丝/排针/跳线/孔阵）保留全强度，小特征才读得出来。
         STRUCT = ("底盘", "花盆", "土壤", "水箱", "水体", "面包板", "ESP32", "继电器",
                   "OLED 45°支架", "DHT11 座", "扎线座", "连接块", "水泵", "水泵固定座",
-                  "土壤传感器板", "传感器盆沿挂钩", "水管末端夹", "水管")
+                  "土壤传感器板", "传感器盆沿挂钩", "水管末端夹", "水管",
+                  "水箱盖", "浮球", "浮子")
         for (m, ck, nm), a in zip(items, raw_ao):
             a = np.array(a, dtype=float).copy()
             if (nm or "").startswith(STRUCT):

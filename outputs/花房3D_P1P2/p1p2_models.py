@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-花房 Final Project · P1 + P2 五件参数化建模脚本 (v1 占位版)
+花房 Final Project · P1 + P2 三件参数化建模脚本 (v1 占位版)
 ------------------------------------------------------------
-P1 (答辩加分件): 04 OLED 45°斜面支架 / 05 双色LED灯罩 / 06 整合底板(电控托盘)
+P1 (答辩加分件): 04 OLED 45°斜面支架
+   (05 双色LED灯罩 / 06 整合底板 已作废删除: 05 无半透明耗材取消, 06 被两片式底盘取代)
 P2 (时间富余件): 07 DHT11 小座 / 08 扎线固定座
 
 产出: STL (mm) + 三视图预览 + 校验数据
@@ -45,37 +46,8 @@ PARAMS = {
         "pocket_depth": 2.4,     # 板槽深 (= PCB 1.6 + 余量), 板面与斜面齐平
         "open_ext": 4.0,         # 底端开口延长, 给 4 针排针让位
     },
-    # ---------- 件 5: 双色 LED 灯罩 ----------
-    "led": {
-        "led_d": 5.0,            # [市售常见值 5mm 直插 LED 外径]
-        "flange_d": 5.9,         # [市售常见值 5mm LED 底部法兰直径]
-        "bore_clear": 0.4,       # 灯孔间隙 [公差]
-        "base_d": 12.0,          # 底环外径
-        "base_t": 3.0,           # 底环高
-        "dome_r": 6.0,           # 球顶外半径
-        "wall": 1.6,             # 罩壁厚 [打印下限 2mm 的例外: 罩体薄才透光]
-        "bore_h": 6.0,           # 灯孔深度
-    },
-    # ---------- 件 6: 整合底板 (电控托盘) ----------
-    "base": {
-        "plate_x": 170.0,        # [设计决策: 拓竹 X2D 床 256, 留足余量]
-        "plate_y": 120.0,
-        "plate_t": 4.0,
-        "bb_w": 84.0,            # [市售常见值 400 孔面包板 84x55, 实物实测]
-        "bb_h": 55.0,
-        "bb_pos": (-40.0, -28.0),
-        "esp_w": 55.0,           # [市售常见值 38Pin ESP32 DevKit 55x28]
-        "esp_h": 28.0,
-        "esp_pos": (32.0, 38.0),
-        "relay_w": 34.0,         # [市售常见值 1 路继电器模块 34x25]
-        "relay_h": 25.0,
-        "relay_pos": (32.0, -30.0),
-        "pocket_clear": 0.6,     # 各件四周间隙 [公差]
-        "pocket_depth": 1.5,     # 沉槽深度 (只做定位, 不做全包围)
-        "m3_d": 3.2,
-        "slot_w": 3.0,           # 扎带过孔
-        "slot_l": 10.0,
-    },
+    # ---------- 件 5: 双色 LED 灯罩 [已作废删除 2026-10-20: 无半透明耗材, 项目取消] ----------
+    # ---------- 件 6: 整合底板 [已作废删除 2026-10-20: 被两片式底盘 06a/06b/06c 取代] ----------
     # ---------- 件 7: DHT11 小座 ----------
     "dht": {
         "mod_w": 30.0,           # [市售常见值 DHT11 模块板宽, 实物卡尺待测]
@@ -218,67 +190,10 @@ def build_oled_stand(p):
 
 
 # ============================================================
-# 件 5: 双色 LED 灯罩
+# 件 5: 双色 LED 灯罩 [已作废删除 2026-10-20]
+# 件 6: 整合底板 [已作废删除 2026-10-20]
+# 建模函数已随作废件一并移除; 历史版本见 git 记录 (回收站 D:\workbuddy_recycle_bin_花房清理)
 # ============================================================
-def build_led_diffuser(p):
-    bd, bt = p["base_d"], p["base_t"]
-    r_out, wall = p["dome_r"], p["wall"]
-    r_in = r_out - wall
-    bore_r = (p["flange_d"] + p["bore_clear"]) / 2
-
-    # 底环 + 上半球
-    body = C(0, 0, bt / 2, bd / 2, bt, sections=96)
-    dome = icosphere(subdivisions=3, radius=r_out)
-    dome.apply_translation([0, 0, bt])
-    dome = cut(dome, [B(0, 0, bt - 30, 40, 40, 60)])   # 只留上半球
-    body = add(body, [dome])
-
-    # 内腔 (半球) + 灯孔
-    cav = icosphere(subdivisions=3, radius=r_in)
-    cav.apply_translation([0, 0, bt])
-    cav = cut(cav, [B(0, 0, bt - 30, 40, 40, 60)])
-    bore = C(0, 0, p["bore_h"] / 2 - 0.5, bore_r, p["bore_h"] + 1, sections=64)
-    body = cut(body, [cav, bore])
-    return body
-
-
-# ============================================================
-# 件 6: 整合底板 (电控托盘)
-# ============================================================
-def build_electronics_base(p):
-    px, py, pt = p["plate_x"], p["plate_y"], p["plate_t"]
-    c = p["pocket_clear"]
-    d = p["pocket_depth"]
-
-    body = B(0, 0, pt / 2, px, py, pt)
-
-    # 三个沉槽 (只做定位, 面朝上敞开)
-    pockets = []
-    for (w, h, pos) in (
-        (p["bb_w"], p["bb_h"], p["bb_pos"]),
-        (p["esp_w"], p["esp_h"], p["esp_pos"]),
-        (p["relay_w"], p["relay_h"], p["relay_pos"]),
-    ):
-        pockets.append(B(pos[0], pos[1], pt - d / 2, w + c, h + c, d + 2))
-    body = cut(body, pockets)
-
-    # 四角 M3 安装孔
-    m = 8.0
-    holes = [C(sx * (px / 2 - m), sy * (py / 2 - m), pt / 2, p["m3_d"] / 2, pt + 4)
-             for sx in (-1, 1) for sy in (-1, 1)]
-    # 扎带过孔 (沿板边一圈)
-    slots = []
-    for x in (-px / 2 + 30, px / 2 - 30):
-        for y in (-py / 2 + 7, 0, py / 2 - 7):
-            slots.append(B(x, y, pt / 2, p["slot_l"], p["slot_w"], pt + 4))
-    for y in (-py / 2 + 7, py / 2 - 7):
-        for x in (0,):
-            slots.append(B(x, y, pt / 2, p["slot_w"], p["slot_l"], pt + 4))
-    body = cut(body, holes + slots)
-
-    # 侧边走线缺口 (水泵/继电器线缆下到桌面层)
-    body = cut(body, [B(px / 2, -8, pt / 2, 14, 12, pt + 4)])
-    return body
 
 
 # ============================================================
@@ -438,7 +353,7 @@ def sheet_all(rows, path):
         ax.imshow(render(mesh, 38, 26, 700))
         ax.set_title(f"{title}\n{sub}", fontsize=11, color="#222")
         ax.axis("off")
-    fig.suptitle("花房 P1+P2 五件 v1 占位版  (单位 mm, Z↑ 打印朝向)", fontsize=15, color="#111")
+    fig.suptitle(f"花房 P1+P2 {len(rows)} 件 v1 占位版  (单位 mm, Z↑ 打印朝向)", fontsize=15, color="#111")
     fig.tight_layout(rect=[0, 0, 1, 0.86])
     fig.savefig(path, dpi=150, facecolor="white")
     plt.close(fig)
@@ -446,8 +361,6 @@ def sheet_all(rows, path):
 
 BUILDERS = [
     ("04_oled_stand", "OLED 45°斜面支架", build_oled_stand, PARAMS["oled"]),
-    ("05_led_diffuser", "双色LED灯罩", build_led_diffuser, PARAMS["led"]),
-    ("06_electronics_base", "整合底板(电控托盘)", build_electronics_base, PARAMS["base"]),
     ("07_dht11_holder", "DHT11 小座", build_dht_holder, PARAMS["dht"]),
     ("08_cable_clip", "扎线固定座", build_cable_clip, PARAMS["clip3"]),
 ]

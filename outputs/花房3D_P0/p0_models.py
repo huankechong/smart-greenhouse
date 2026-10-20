@@ -388,22 +388,24 @@ def contact_sheet(mesh, name, path):
 
 
 def sheet_all(rows):
-    """三件排布总览: 一件一格, 标注外形尺寸与估重"""
+    """总览排布: 一件一格, 标注外形尺寸与估重"""
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
     plt.rcParams["font.sans-serif"] = ["Microsoft YaHei", "SimHei", "DejaVu Sans"]
     plt.rcParams["axes.unicode_minus"] = False
 
-    fig, axes = plt.subplots(1, 3, figsize=(15, 5.4), facecolor="white")
+    fig, axes = plt.subplots(1, len(rows), figsize=(5 * len(rows), 5.4), facecolor="white")
+    if len(rows) == 1:
+        axes = [axes]
     for ax, (mesh, title, sub) in zip(axes, rows):
         ax.imshow(render(mesh, azim=38, elev=26, size=760))
         ax.set_title(f"{title}\n{sub}", fontsize=12, color="#222")
         ax.axis("off")
-    fig.suptitle("花房 Final Project · P0 三件 v1 占位版  (单位 mm, Z↑ 为打印朝向)",
+    fig.suptitle(f"花房 Final Project · P0 {len(rows)} 件 v1 占位版  (单位 mm, Z↑ 为打印朝向)",
                  fontsize=15, color="#111")
     fig.tight_layout(rect=[0, 0, 1, 0.86])
-    path = os.path.join(PREVIEW_DIR, "00_P0_三件总览.png")
+    path = os.path.join(PREVIEW_DIR, f"00_P0_{len(rows)}件总览.png")
     fig.savefig(path, dpi=150, facecolor="white")
     plt.close(fig)
     return path
@@ -411,7 +413,7 @@ def sheet_all(rows):
 
 
 BUILDERS = [
-    ("01_sensor_L_bracket", "土壤传感器 L 型支架", build_sensor_bracket, PARAMS["sensor"]),
+    # ("01_sensor_L_bracket", ...) 已作废删除 2026-10-20 (被 01b 盆沿挂钩取代, 历史见 git)
     ("02_pump_mount", "水泵固定座", build_pump_mount, PARAMS["pump"]),
     ("03_tube_clip", "水管末端固定夹", build_tube_clip, PARAMS["clip"]),
 ]

@@ -67,7 +67,7 @@ P10 = {
     "tube_hole_d": 10.0,        # 水管孔 (管 φ8 + 2)
     "tube_off": 22.0,           # 水管孔心距盖心, 泵侧 (-Y) [泵在桶心 -Y 12, 折弯可达]
     "wire_hole_d": 8.0,         # 过线孔 (USB 线 φ4 + 余量)
-    "wire_off": 30.0,           # 过线孔心距盖心 (+Y)
+    "wire_off": -45.0,          # 过线孔心距盖心 (−Y，与水管同侧，电缆不再横跨盖顶)
 
     "notch_d": 26.0,            # 指位缺口直径 (抠手)
     "sections": 96,
@@ -117,8 +117,12 @@ def check_geometry(p, mesh):
     gap_tube_boss = p["tube_off"] - tube_r - boss_r
     if gap_tube_boss < 2.0:
         errs.append(f"水管孔缘距凸台 {gap_tube_boss:.1f} < 2")
-    if p["wire_off"] - p["wire_hole_d"] / 2 - boss_r < 2.0:
+    if abs(p["wire_off"]) - p["wire_hole_d"] / 2 - boss_r < 2.0:
         errs.append("过线孔距凸台 < 2")
+    # ②b 水管孔与过线孔不粘连
+    gap_holes = abs(p["wire_off"] - p["tube_off"]) - p["wire_hole_d"] / 2 - p["tube_hole_d"] / 2
+    if gap_holes < 6.0:
+        errs.append(f"水管孔与过线孔间隙 {gap_holes:.1f} < 6")
     # ③ 所有孔都在裙边内圆里 (含水管孔最远缘)
     if p["tube_off"] + tube_r > skirt_id / 2 - 3.0:
         errs.append("水管孔侵入裙边内壁 3mm 保护区")

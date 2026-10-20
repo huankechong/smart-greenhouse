@@ -32,7 +32,9 @@ DETAIL = ("跳线", "M3×6", "面包板孔阵", "面包板中央沟", "面包板
           "ESP32 USB", "ESP32 按键", "ESP32 EN", "ESP32 天线", "ESP32 屏蔽",
           "继电器端子", "继电器指示", "继电器光耦", "OLED FPC", "OLED 排针",
           "OLED 驱动", "传感器铜探头", "传感器排针", "DHT11 格栅",
-          "水泵进水", "水泵出水")
+          "水泵进水", "水泵出水",
+          # 液体与浸没件：水体是流体，泵/浮子泡在水里属正常，不算干涉
+          "水体", "浮子", "叶片")
 items = [(m, ck, nm) for m, ck, nm in BA.items if not (nm or "").startswith(DETAIL)]
 print("装配几何体 %d 个（另有 %d 个细节件不参与干涉检查）"
       % (len(items), len(BA.items) - len(items)))
@@ -89,7 +91,7 @@ for name, stl in [("01b_sensor_rim_hook", "01b_sensor_rim_hook_v2.stl"),
 
 # P1P2
 d1 = doc(os.path.join(ROOT, "花房3D_P1P2", "交付说明_P1P2五件v1.md"))
-for stl, key in [("04_oled_stand_v1.stl", "21.1"), ("05_led_diffuser_v1.stl", "0.6"),
+for stl, key in [("04_oled_stand_v1.stl", "21.1"),
                  ("07_dht11_holder_v1.stl", "14.9"), ("08_cable_clip_v1.stl", "4.8")]:
     m = trimesh.load(os.path.join(ROOT, "花房3D_P1P2", "STL", stl))
     g = round(m.volume * 1.24 / 1000, 1)
@@ -97,7 +99,7 @@ for stl, key in [("04_oled_stand_v1.stl", "21.1"), ("05_led_diffuser_v1.stl", "0
 
 # 底盘
 d2 = doc(os.path.join(ROOT, "花房3D_整机底盘", "交付说明_整机底盘两片式v1.md"))
-for stl, key in [("06a_base_left_v1.stl", "299.8"), ("06b_base_right_v1.stl", "276.7"),
+for stl, key in [("06a_base_left_v1.stl", "299.8"), ("06b_base_right_v1.stl", "291.8"),
                  ("06c_joint_block_v1.stl", "4.2")]:
     m = trimesh.load(os.path.join(ROOT, "花房3D_整机底盘", "STL", stl))
     g = round(m.volume * 1.24 / 1000, 1)

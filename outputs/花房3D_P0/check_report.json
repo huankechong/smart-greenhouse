@@ -1,23 +1,5 @@
 [
  {
-  "name": "01_sensor_L_bracket | 土壤传感器 L 型支架",
-  "watertight": true,
-  "winding_consistent": true,
-  "volume_mm3": 18853.0,
-  "surface_mm2": 9879.8,
-  "triangles": 604,
-  "bodies": 1,
-  "bbox_mm": [
-   30.0,
-   46.0,
-   52.0
-  ],
-  "z_min": 0.0,
-  "est_mass_g_PLA": 23.4,
-  "stl": "D:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_P0\\STL\\01_sensor_L_bracket_v1.stl",
-  "preview": "D:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_P0\\preview\\01_sensor_L_bracket.png"
- },
- {
   "name": "02_pump_mount | 水泵固定座",
   "watertight": true,
   "winding_consistent": true,
@@ -32,8 +14,8 @@
   ],
   "z_min": 0.0,
   "est_mass_g_PLA": 24.7,
-  "stl": "D:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_P0\\STL\\02_pump_mount_v1.stl",
-  "preview": "D:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_P0\\preview\\02_pump_mount.png"
+  "stl": "d:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_P0\\STL\\02_pump_mount_v1.stl",
+  "preview": "d:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_P0\\preview\\02_pump_mount.png"
  },
  {
   "name": "03_tube_clip | 水管末端固定夹",
@@ -50,7 +32,7 @@
   ],
   "z_min": 0.0,
   "est_mass_g_PLA": 11.8,
-  "stl": "D:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_P0\\STL\\03_tube_clip_v1.stl",
-  "preview": "D:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_P0\\preview\\03_tube_clip.png"
+  "stl": "d:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_P0\\STL\\03_tube_clip_v1.stl",
+  "preview": "d:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_P0\\preview\\03_tube_clip.png"
  }
 ]

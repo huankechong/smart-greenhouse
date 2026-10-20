@@ -49,10 +49,11 @@ P = {
     "pocket_clear": 0.6,
     "pocket_depth": 3.5,        # 槽底仍 z=4.5
 
-    # 右片区 (x>0): 水箱
-    "tank_w": 120.0,         # [市售常见值] 蓄水瓶/水箱 占位
-    "tank_h": 92.0,
-    "tank_pos": (85.0, 20.0),
+    # 右片区 (x>0): 水箱 —— 2026-10-20 改 1L 圆桶 (AR08)
+    # 圆桶底径 106，原矩形槽 120.6×92.6 在 Y 向装不进去（106 > 92.6），
+    # 故改为圆槽 φ108（径向余量 1mm）；槽心 +Y 移 12mm 让开 -Y 挡水堤。
+    "tank_d": 108.0,         # 圆槽直径 = 桶底 106 + 2
+    "tank_pos": (85.0, 32.0),
     "tank_depth": 5.0,          # 槽底仍 z=3
 
     # 槽底排水孔：水箱漏的水从这里穿板滴到桌面，不进电控区
@@ -167,10 +168,10 @@ def build_half(p, side):
             for xx in (-140, -70):
                 holes.append(B(xx, yy, pt / 2, p["slot_l"], p["slot_w"], pt + 4))
     else:
-        holes.append(B(p["tank_pos"][0], p["tank_pos"][1], pt - p["tank_depth"] / 2,
-                       p["tank_w"] + p["pocket_clear"], p["tank_h"] + p["pocket_clear"],
-                       p["tank_depth"] + 2))
-        # 槽底排水孔（通板，漏水直落桌面）
+        # 圆槽：竖壁圆柱切 5 深（1L 桶落座），见参数注释
+        holes.append(C(p["tank_pos"][0], p["tank_pos"][1], pt - p["tank_depth"] / 2,
+                       p["tank_d"] / 2, p["tank_depth"] + 2, sections=96))
+        # 槽底排水孔（通板，漏水直落桌面）——位置在槽内，桶底下也照排渗水
         holes.append(C(p["drain_pos"][0], p["drain_pos"][1], pt / 2,
                        p["drain_d"] / 2, pt + 4, sections=32))
         for yy in (-80, 75):
@@ -179,12 +180,12 @@ def build_half(p, side):
 
     body = cut(body, holes)
 
-    # 挡水堤：水箱槽靠电控区一侧（-Y 边）与接缝侧（-X 边）各一道 3×3 堤
+    # 挡水堤：沿圆槽 -Y/-X 两切点外侧竖 3×3（槽外实板上，避开 φ108 圆）
     if side > 0:
         tx, ty = p["tank_pos"]
-        dw, dh = p["dam_w"], p["dam_h"]
-        dam = add(B(tx, ty - p["tank_h"] / 2 - dw / 2, pt + dh / 2, p["tank_w"] + 6, dw, dh),
-                  [B(tx - p["tank_w"] / 2 - dw / 2, ty, pt + dh / 2, dw, p["tank_h"] + 6, dh)])
+        d, dw, dh = p["tank_d"] / 2, p["dam_w"], p["dam_h"]
+        dam = add(B(tx, ty - d - dw / 2 - 3.0, pt + dh / 2, 2 * d + 8, dw, dh),
+                  [B(tx - d - dw / 2 - 3.0, ty, pt + dh / 2, dw, 2 * d + 8, dh)])
         body = add(body, [dam])
     return body
 
