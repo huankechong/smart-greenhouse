@@ -160,7 +160,7 @@ for jy in M_BASE.P["joint_y"]:
 POT = (-111.0, 60.0)         # 与底盘 pot_pos 同步 [2026-10-23 换 8x8x8 直筒盆]
 R_BOT, R_TOP, POT_H, FLOOR = 40.0, 40.0, 80.0, 3.0   # 8x8x8 直筒盆: 外φ80恒定, 高80, 底厚3
 pot = trimesh.boolean.difference(
-    [frustum(R_BOT, R_TOP, POT_H), place(frustum(37.0, 37.0, POT_H - FLOOR), 0, 0, FLOOR)],
+    [frustum(R_BOT, R_TOP, POT_H), place(frustum(30.0, 30.0, POT_H - FLOOR), 0, 0, FLOOR)],
     engine="manifold")
 add(place(pot, POT[0], POT[1], 2.0), "pot", "花盆")
 
@@ -269,7 +269,7 @@ add(place(cylinder(radius=6.0, height=7.0, sections=32), PUMP[0] - 2.0, PUMP[1],
 # ---------- 6. 水管（v2：末端竖直穿过夹孔，孔径 8.6 / 管径 8，全程不蹭夹壁）----------
 # 管孔世界坐标在夹子放置后算出（第 8 节），这里先按 AZ_CLIP 推导
 _AZR = np.deg2rad(-12.0)
-_RIM_R = (37.0 + 40.0) / 2
+_RIM_R = (30.0 + 40.0) / 2
 _CLIP_X = -111.0 + _RIM_R * np.cos(_AZR)
 _CLIP_Y = 60.0 + _RIM_R * np.sin(_AZR)
 _HOLE_X = _CLIP_X + (-11.0) * np.cos(_AZR)
@@ -287,36 +287,41 @@ tube_pts = [
 ]
 add(tube_path(tube_pts, r=5.0), "tube", "水管")   # 外径 10 (实测)
 
-# ---------- 7. 土壤传感器: 盆沿挂钩式 (不在盆里立着) ----------
-RIM_R = (37.0 + 40.0) / 2          # 盆沿壁中线半径(内37/外40, 8x8x8 直筒盆)
+# ---------- 7. 土壤传感器: 土插式支架（两腿插土，板槽在土面上方 36）----------
+RIM_R = (30.0 + 40.0) / 2          # 盆沿壁中线半径(内30=壁厚10/外40, 8x8x8 直筒盆)
 RIM_Z = 2.0 + POT_H                 # 盆沿顶面 = 82 (8x8x8 直筒盆)
 PLANT_AZ = np.degrees(np.arctan2(PLANT[1] - POT[1], PLANT[0] - POT[0]))
 AZ = PLANT_AZ + 180.0               # 挂在植株对面
-rim_pt = (POT[0] + RIM_R * np.cos(np.deg2rad(AZ)),
-          POT[1] + RIM_R * np.sin(np.deg2rad(AZ)))
+# 方案B：架子插在【盆内土里】不在盆沿 —— 板身必须完全落在盆内腔中
+_HOOK_R_OFF = 12.0   # 距盆心 12mm（内腔 r30 − 板半宽 11.5，安全）
+rim_pt = (POT[0] + _HOOK_R_OFF * np.cos(np.deg2rad(AZ)),
+          POT[1] + _HOOK_R_OFF * np.sin(np.deg2rad(AZ)))
 
-hook, gc, haxis = M_P0B.build()          # v2：build 内部已落床，盆沿顶面高度记在 metadata
+# 方案B土插式（2026-10-23）：架子坐在【土面】上，两腿插入土中，不再夹盆沿
+hook, gc, haxis = M_P0B.build()          # build 内部已落床，土面高度记在 metadata
 hook_rot = trimesh.transformations.rotation_matrix(np.deg2rad(AZ - 90.0), [0, 0, 1])
 hook.apply_transform(hook_rot)
-hook.apply_translation([rim_pt[0], rim_pt[1], RIM_Z - hook.metadata["rim_top_z"]])
-add(hook, "white", "传感器盆沿挂钩")
+hook.apply_translation([rim_pt[0], rim_pt[1], SOIL_TOP - hook.metadata["soil_top_z"]])
+add(hook, "white", "传感器土插支架")
 
 brow = M_P0B.board_mesh(gc=gc, axis=haxis, rim_top_z=hook.metadata["rim_top_z"])
 brow.apply_transform(hook_rot)
-brow.apply_translation([rim_pt[0], rim_pt[1], RIM_Z - hook.metadata["rim_top_z"]])
+brow.apply_translation([rim_pt[0], rim_pt[1], SOIL_TOP - hook.metadata["soil_top_z"]])
 add(brow, "pcb_green", "土壤传感器板")
 
-# ---------- 8. P0: 水管末端固定夹 v2（盆沿双爪式，原点=盆沿壁中线&顶面） ----------
-AZ_CLIP = -12.0                     # 朝向水箱一侧（盆心→水箱方位 -11.9°）
+# ---------- 8. P0: 水管末端固定夹（土插式，两针插土，管环在土面上方）----------
+AZ_CLIP = 40.0                      # 方案B：管夹插在盆内土里，避开传感器架(207°)
 clip_rot = trimesh.transformations.rotation_matrix(np.deg2rad(AZ_CLIP - 90.0), [0, 0, 1])
-clip_pt = (POT[0] + RIM_R * np.cos(np.deg2rad(AZ_CLIP)),
-           POT[1] + RIM_R * np.sin(np.deg2rad(AZ_CLIP)))
+# 方案B土插式：管夹插在盆内土里，按【盆心 + 半径偏移】算（不再贴盆沿）
+_CLIP_R_OFF = 12.0
+clip_pt = (POT[0] + _CLIP_R_OFF * np.cos(np.deg2rad(AZ_CLIP)),
+           POT[1] + _CLIP_R_OFF * np.sin(np.deg2rad(AZ_CLIP)))
 clip_mesh = M_P0.build_tube_clip(M_P0.PARAMS["clip"])
 clip_mesh.apply_transform(clip_rot)
-clip_mesh.apply_translation([clip_pt[0], clip_pt[1], RIM_Z - clip_mesh.metadata["rim_top_z"]])
-add(clip_mesh, "white", "水管末端夹")
-# 管孔世界坐标：局部 (0, ring_y_local) 经旋转平移到盆沿点
-CLIP_RY = M_P0.PARAMS["clip"]["ring_y_local"]
+clip_mesh.apply_translation([clip_pt[0], clip_pt[1], SOIL_TOP - clip_mesh.metadata["soil_top_z"]])
+add(clip_mesh, "white", "水管末端夹(土插)")
+# 管孔世界坐标：局部 (0, col_y) 经旋转平移到落点
+CLIP_RY = M_P0.PARAMS["clip"]["col_y"]
 hole_xy = (clip_pt[0] + CLIP_RY * np.cos(np.deg2rad(AZ_CLIP)),
            clip_pt[1] + CLIP_RY * np.sin(np.deg2rad(AZ_CLIP)))
 
@@ -453,12 +458,14 @@ WIRES = [
     # ② ESP32 → DHT11（1 根）：从正面进 DHT 座（端头停在座壁外 0.5，不在座内）
     [(-71.0, -44, 24), (-64, -38, 16), (-50, -38, 12), (-45, -42.4, 11.0)],
     # ③ ESP32 → 土壤传感器（3 根）：绕花盆南侧，沿盆沿外侧上行
-    [(-68.0, -38, 22), (-66, -20, 12), (-70, 2, 12), (-100, 14, 12), (-145, 26, 12),
-     (-146, 31, 20), (-146, 31, 95), (-140, 37, 107)],
-    [(-68.0, -35, 22), (-65, -18, 12), (-69, 4, 12), (-101, 15, 12), (-146, 27, 12),
-     (-147, 32, 20), (-147, 32, 95), (-141, 38, 107)],
-    [(-68.0, -32, 22), (-64, -16, 12), (-68, 6, 12), (-102, 16, 12), (-147, 28, 12),
-     (-148, 33, 20), (-148, 33, 95), (-142, 39, 107)],
+    # 方案B土插式：盆是实体壁(z=5~82)，线必须【从盆口上方越过】再降到板头
+    # 路径：沿底板到盆外 -> 竖直升到盆沿以上(z>82) -> 水平跨过盆口 -> 板头上方落下
+    [(-68.0, -38, 22), (-66, -20, 12), (-70, 2, 12), (-95, 10, 12),
+     (-95, 10, 95), (-136, 54, 115), (-122, 54, 118)],
+    [(-68.0, -35, 22), (-65, -18, 12), (-69, 4, 12), (-95, 11, 12),
+     (-95, 11, 96), (-137, 55, 116), (-123, 55, 119)],
+    [(-68.0, -32, 22), (-64, -16, 12), (-68, 6, 12), (-95, 12, 12),
+     (-95, 12, 97), (-138, 56, 117), (-124, 56, 120)],
     # ④ ESP32 → 继电器 IN（1 根）：从上方落到端子
     [(-71.0, -45, 24), (-64, -32, 24), (-52, -29, 25.4)],
     # ⑤ 继电器 → 水泵（2 根）：沿底板 -Y 侧走，抬到盖顶上方，从 φ8 过线孔（-Y45）进桶

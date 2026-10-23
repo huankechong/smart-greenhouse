@@ -78,19 +78,22 @@ PARAMS = {
     # （审计实测 花盆×夹 12.3mm³、土壤×夹 381mm³）。改为复刻 01b 已验证的"盆沿双爪"夹持
     # （01b 与花盆干涉 = 0），爪只下探 7mm（土面在盆沿下 8mm），管环上置，管孔竖直贯穿。
     "clip": {
+        # ---------- 2026-10-23 改方案 B：土插式（不夹盆沿）----------
+        # 与 01b 同理：实盆壁厚 10~20mm 范围太宽，刚性双爪无法覆盖 → 改插土针
         "tube_od": 10.0,         # [2026-10-23 实测] 硅胶管外径 10mm (内径 8.5)
         "ring_inner_d": 10.6,    # 管孔内径 = 管外径 10 + 0.6
-        "rim_gap": 4.6,          # 夹口 = 直筒树脂盆壁厚 3 + 1.6 余量 [2026-10-23]
-        "taper": 0.0,            # 直筒盆锥度 0, 爪垂直下探不会吃入盆壁 [2026-10-23]
-        "jaw_down": 7.0,         # 爪下探长度 = 土面深度 8 - 1（不入土）
-        "jaw_w": 20.0,           # 爪宽（切向，30mm 会因弦高切进盆壁）
-        "jaw_t": 3.5,            # 爪厚
-        "bridge_x": 26.0,        # 顶桥宽（X）
-        "ring_reach": 12.0,      # 顶桥向内伸出量
-        "ring_y_local": -11.0,   # 管孔中心 Y（负=盆内方向；AR05: -6 会与内爪同域）
-        "col_x": 20.0,           # 管环柱宽
-        "col_y": 18.0,           # 管环柱深
-        "col_h": 20.0,           # 管环柱高（桥面以上）
+        # 插土针：细长方条，插进土里把管环架高
+        "pin_t": 3.0,            # 针厚（X）
+        "pin_w": 8.0,            # 针宽（Y）
+        "pin_depth": 25.0,       # 插土深度
+        "pin_x": 13.0,           # 针中心 X（±），与管环两侧壁叠合
+        "pin_y": -11.0,          # 针的 Y 中心（与管孔同侧，便于一体成型）
+        # 管环：立在土面上方，孔竖直贯穿
+        "ring_rise": 16.0,       # 管孔中心离土面高度（管子出水口要在土面上方）
+        "col_x": 30.0,           # 管环柱宽 X（两根针各 3 厚，叠在两侧）
+        "col_y": -11.0,          # 管环柱中心 Y
+        "col_d": 16.0,           # 管环柱深 Y
+        "col_h": 16.0,           # 管环柱高
         "bridge_h": 6.0,         # 顶桥厚
     },
 }
@@ -232,44 +235,30 @@ def build_pump_mount(p):
 # 件 3: 水管末端固定夹
 # ============================================================
 def build_tube_clip(p):
-    """v2 盆沿双爪式（2026-10-19 AR05）
-    局部坐标：原点 = 盆沿壁中线与盆沿顶面交点；+Y 向外径向；+Z 向上。
-    结构：外爪 + 内爪（随盆壁锥度下探 7mm，不入土）→ 顶桥 → 管环柱（管孔竖直贯穿）。
+    """方案 B 土插式（2026-10-23）：两条插土针 + 管环柱，孔竖直贯穿。
+    局部坐标：原点 = 土面(z=0)，+Y 向盆外，+Z 向上。
     """
-    jt = p["jaw_t"]
-    jd = p["jaw_down"]
-    bh = p["bridge_h"]
-    g = p["rim_gap"] / 2
-    tp = np.deg2rad(p["taper"])
-    d = np.array([-np.sin(tp), -np.cos(tp)])      # 爪轴：向下并随锥度内收
-    nj = np.array([-d[1], d[0]])
-
-    def slab(c_top, half_t, length, x0, x1):
-        c = np.asarray(c_top, float) + d * (length / 2)
-        pts = [c + nj * half_t + d * length / 2, c - nj * half_t + d * length / 2,
-               c - nj * half_t - d * length / 2, c + nj * half_t - d * length / 2]
-        return prism_yz(pts, x0, x1)
-
-    jw = p["jaw_w"]
-    outer = slab((g + jt / 2, bh * 0.3), jt / 2, jd, -jw / 2, jw / 2)
-    inner = slab((-(g + jt / 2), bh * 0.3), jt / 2, jd, -jw / 2, jw / 2)
-    reach = p["ring_reach"]
-    bridge = B(0, (6.3 - reach) / 2, bh / 2, p["bridge_x"], 6.3 + reach, bh)
-    body = add(outer, [inner, bridge])
-
-    # 管环柱（桥面上方，管孔竖直贯穿整机）
-    ry = p["ring_y_local"]
+    pt_, pw, pd = p["pin_t"], p["pin_w"], p["pin_depth"]
     ch = p["col_h"]
-    col = B(0, ry, bh + ch / 2 - 0.5, p["col_x"], p["col_y"], ch + 1.0)
-    body = add(body, [col])
+    ry = p["col_y"]
 
-    # 管孔：从桥下方 2mm 直通柱顶，管子在孔内全程竖直
-    body = cut(body, [C(0, ry, (bh + ch) / 2 - 1.0, p["ring_inner_d"] / 2, bh + ch + 6, sections=64)])
+    # ---- 1) 两条插土针：从 z=-pd 插到 z=0（与管环柱叠合）----
+    pins = [B(sx * p["pin_x"], p["pin_y"], -pd / 2, pt_, pw, pd)
+            for sx in (-1, 1)]
+    body = union(pins, engine="manifold")
 
-    # 落床归一化：z_min -> 0，并把"盆沿顶面在局部坐标的高度"记进 metadata
+    # ---- 2) 管环柱：底面坐在土面(z=0)，顶面 z=ch ----
+    col = B(0, ry, ch / 2, p["col_x"], p["col_d"], ch)
+    body = union([body, col], engine="manifold")
+
+    # ---- 3) 管孔：从土面直通柱顶，管子在孔内全程竖直 ----
+    body = cut(body, [C(0, ry, ch / 2, p["ring_inner_d"] / 2, ch + 4, sections=64)])
+
+    # ---- 4) 落床归一化：z_min -> 0；metadata 记录土面高度 ----
     zmin = float(body.bounds[0][2])
     body.apply_translation([0, 0, -zmin])
-    body.metadata["rim_top_z"] = -zmin
+    body.metadata["rim_top_z"] = -zmin   # 兼容旧字段名（语义 = 土面高度）
+    body.metadata["soil_top_z"] = -zmin
     return body
 
 

@@ -5,14 +5,15 @@ P0-1b v2 盆沿挂钩式土壤传感器支架（2026-10-19，对齐 AR05 的盆�
 v1 的问题：长斜臂 46mm 埋进土里 35mm —— 必须先卡盆沿再填土，装完不能调；
 且 v1 的夹爪（jaw_down 16 / jaw_w 14 / rim_gap 5.6）与 AR05 新管夹 v2 不是同一套。
 
-v2 结构（局部坐标：原点 = 盆沿壁中线 与 盆沿顶面(z=0)；+Y 向外径向，+Z 向上）
-★ 2026-10-23 换 8×8×8 直筒树脂盆（φ80 × 高80，壁厚约 3）：taper 8.1→0、rim_gap 5.6→4.6、wall_mid_y→0
-  1. 内外夹爪：跨住盆沿壁，随锥度下探 7mm（土面在 z=-8，爪不入土）
-  2. 两侧导轨（替代整块顶桥）：中间留空，让传感器板穿过
-  3. 夹板柱：坐在导轨上，板槽沿 8° 斜轴贯穿，板从上方插入
-  4. 传感器板本身不参与打印，插进后下部靠土支撑
+★ 2026-10-23 改为【方案 B · 土插式】（局部坐标：z=0 为土面，+Y 向盆外，+Z 向上）
+  起因：实盆 8x8x8 直筒树脂盆壁厚 10~20mm，范围太宽，刚性双爪无法同时覆盖 → 弃用夹持。
+  1. 两条插土腿（x 向薄片，板槽两侧各一）：深 35mm 插入土中，完全不碰盆壁 → 壁厚多少都行
+  2. 夹板柱：底面坐在土面，顶面 z=36（板顶与柱顶齐平即到位）
+  3. 板槽：沿 8° 斜轴贯穿夹板柱，传感器板从上方插入
+  4. 传感器板不参与打印：总长 87，入土 51、露出土面 27（⇒ 土面在板顶下 36）
+  5. 先立架子再填土 —— 板深可调（这正是 01b v1 想保留、v2 丢掉的能力）
 
-打印朝向：两条爪落地（z_min=0），导轨在上跨接两爪，夹板柱再往上堆 —— 全垂直壁，免支撑。
+打印朝向：两条腿落地（z_min=0），腿往上接夹板柱 —— 全垂直壁，免支撑。
 """
 
 import os
@@ -31,26 +32,35 @@ os.makedirs(PREVIEW_DIR, exist_ok=True)
 VERSION = 2
 
 P = {
-    # ---------- 盆沿（模型实测：内 37 / 外 41，壁厚 4）----------
-    "rim_gap": 4.6,          # 夹口 = 直筒树脂盆壁厚 3 + 1.6 余量 [2026-10-23 换 8x8x8 直筒盆]
-    "taper": 0.0,            # 直筒盆锥度 0 —— 爪垂直下探, 只会离开盆壁永不吃入 [2026-10-23]
-    "wall_mid_y": 0.0,       # 直筒盆壁中线即局部原点 [2026-10-23]
-    # ---------- 夹爪 ----------
-    "jaw_t": 3.5,            # 爪厚
-    "jaw_w": 20.0,           # 外爪宽（切向）——30mm 会因弦高切进盆壁
-    "jaw_w_in": 25.2,        # 内爪宽：加宽到与两侧导轨叠合（12.2~12.6），否则内爪悬空成独立块
-    "jaw_down": 7.0,         # 爪下探 = 土面深度 8 - 1，不入土
-    # ---------- 导轨（替代整块顶桥）----------
-    "rail_x": 13.95,         # 导轨中心 X（±），内表面 = ±12.2，给 23 宽的板留通道
-    "rail_w": 3.5,           # 导轨宽（X）
-    "rail_y_out": 5.3,       # 导轨外端 Y（= 外爪外表面）
-    "rail_y_in": -14.0,      # 导轨内端 Y（伸到盆口内侧，托住夹板柱）
-    "rail_t": 6.0,           # 导轨厚（Z），z 0~6
-    # ---------- 夹板柱 ----------
-    "col_x": 30.0,           # 柱宽 X
-    "col_y": -8.0,           # 柱中心 Y（负 = 盆内方向）
-    "col_d": 12.0,           # 柱深 Y
-    "col_h": 21.0,           # 柱高（导轨顶面以上）
+    # ---------- 2026-10-23 改方案 B：土插式（不夹盆沿）----------
+    # 理由：实盆 8x8x8 直筒树脂盆壁厚 10~20mm（范围太宽，刚性双爪无法同时覆盖：
+    #       按 10 设计则壁 20 撑不开、按 20 设计则壁 10 合不拢，两种都会废件）。
+    #       改为「两腿插土」—— 完全不依赖壁厚，且保留「先立架子再填土、板深可调」的能力。
+    # 坐标系：z=0 为土面，z 向上；腿从 z=-leg_depth 插入土中。
+    "soil_gap": 36.0,        # 土面→板顶 距离（板总长87, 入土51 ⇒ 土面在板顶下36）
+    "leg_depth": 35.0,       # 插土深度（盆内土层 57~62，插 35 余量充足）
+    "leg_t": 3.0,            # 腿厚（X 向薄片，插土阻力小）
+    "leg_w": 14.0,           # 腿宽（Y 向）
+    "leg_x": 15.5,           # 腿中心 X（±），内侧到板槽边留 2.2mm 壁
+    "leg_y": -2.0,           # 腿的 Y 中心（略偏盆内，避开板槽前端）
+    # 盆沿/夹爪参数保留但不再用于夹持（历史留档）
+    "rim_gap": 4.6,          # [已弃用·改土插式]
+    "taper": 0.0,            # [已弃用·改土插式]
+    "wall_mid_y": 0.0,       # [已弃用·改土插式]
+    "jaw_t": 3.5,            # [已弃用]
+    "jaw_w": 20.0,           # [已弃用]
+    "jaw_w_in": 25.2,        # [已弃用]
+    "jaw_down": 7.0,         # [已弃用]
+    # ---------- 夹板柱（板槽所在）----------
+    "col_x": 36.0,           # 柱宽（加宽给两条腿让位；壁厚 (36-23.6)/2 = 6.2）
+    "col_y": -2.0,           # 柱中心 Y
+    "col_d": 12.0,           # 柱深（Y）
+    "col_h": 36.0,           # 柱高 = 土面到板顶（板顶与柱顶齐平即到位）
+    "rail_x": 13.95,         # [已弃用]
+    "rail_w": 3.5,           # [已弃用]
+    "rail_y_out": 5.3,       # [已弃用]
+    "rail_y_in": -14.0,      # [已弃用]
+    "rail_t": 6.0,           # [已弃用]
     # ---------- 板槽 ----------
     "tilt": 8.0,             # 板倾角
     "groove_w": 23.6,        # 槽宽 X = 板宽 23 + 0.6
@@ -102,40 +112,28 @@ def _board_line(p):
 def build(p=P):
     """返回 (body, groove_center_yz, axis_yz)；body 已落床（z_min=0），
     metadata['rim_top_z'] 记录了盆沿顶面在落床后的高度。"""
-    jt, jw, jd = p["jaw_t"], p["jaw_w"], p["jaw_down"]
-    tp = np.deg2rad(p["taper"])
-    g = p["rim_gap"] / 2
-    ymid = p["wall_mid_y"]
+    # ==== 方案 B：土插式（z=0 为土面，向下为插入土中）====
+    # 板槽轴向（8° 斜）与其法向（板槽宽度方向）
+    _ar = np.deg2rad(p["tilt"])
+    _axis = np.array([-np.sin(_ar), -np.cos(_ar)])
+    nj = np.array([-_axis[1], _axis[0]])
 
-    d = np.array([-np.sin(tp), -np.cos(tp)])      # 爪轴：向下并随锥度内收
-    nj = np.array([-d[1], d[0]])
+    # ---- 1) 两条插土腿：x 向薄片，插在板槽两侧，完全不碰盆壁 ----
+    ld = p["leg_depth"]
+    legs = [B(sx * p["leg_x"], p["leg_y"], (p["soil_gap"] - ld) / 2,
+               p["leg_t"], p["leg_w"], p["soil_gap"] + ld)
+            for sx in (-1, 1)]
+    body = union(legs, engine="manifold")
 
-    def slab(c_top, half_t, length, x0, x1):
-        c = np.asarray(c_top, float) + d * (length / 2)
-        pts = [c + nj * half_t + d * length / 2, c - nj * half_t + d * length / 2,
-               c - nj * half_t - d * length / 2, c + nj * half_t - d * length / 2]
-        return prism_yz(pts, x0, x1)
-
-    # ---- 1) 内外夹爪（以盆壁中线为基准，两侧各留 0.3 余量）----
-    outer = slab((ymid + g + jt / 2, p["rail_t"] * 0.3), jt / 2, jd, -jw / 2, jw / 2)
-    inner = slab((ymid - g - jt / 2, p["rail_t"] * 0.3), jt / 2, jd, -jw / 2, jw / 2)
-    body = union([outer, inner], engine="manifold")
-
-    # ---- 2) 顶桥：整块跨过盆沿，向盆内伸到 y=col_y-col_d/2（托住夹板柱）----
-    ry_out, ry_in = p["rail_y_out"], p["col_y"] - p["col_d"] / 2
-    bridge = B(0, (ry_out + ry_in) / 2, p["rail_t"] / 2, p["col_x"], ry_out - ry_in, p["rail_t"])
-    body = union([body, bridge], engine="manifold")
-
-    # ---- 3) 夹板柱（底面下探 0.6 与顶桥叠合）----
-    cz0 = p["rail_t"] - 0.6
-    col = B(0, p["col_y"], cz0 + p["col_h"] / 2 + 0.5, p["col_x"], p["col_d"], p["col_h"] + 1.0)
+    # ---- 2) 夹板柱：底面坐在土面(z=0)，顶面 z=col_h（板顶与柱顶齐平即到位）----
+    col = B(0, p["col_y"], p["col_h"] / 2, p["col_x"], p["col_d"], p["col_h"])
     body = union([body, col], engine="manifold")
 
     # ---- 4) 板槽：沿 8° 轴贯穿"顶桥 + 夹板柱"，两侧各留 3.2 壁 ----
     ang_r = np.deg2rad(p["tilt"])
     axis = np.array([-np.sin(ang_r), -np.cos(ang_r)])
-    zc = cz0 + p["col_h"] / 2
-    gc = np.array([p["col_y"] - (p["rail_t"] + p["col_h"] - zc) * np.tan(ang_r), zc])
+    zc = p["col_h"] / 2                                  # 槽心在柱中（z=0 为土面）
+    gc = np.array([p["col_y"] - (p["col_h"] - zc) * np.tan(ang_r), zc])
     half = p["slot_len"] / 2
     gp = [gc + nj * p["groove_gap"] / 2 + axis * half,
           gc - nj * p["groove_gap"] / 2 + axis * half,
@@ -146,7 +144,9 @@ def build(p=P):
 
     zmin = float(body.bounds[0][2])
     body.apply_translation([0, 0, -zmin])
-    body.metadata["rim_top_z"] = -zmin
+    # 落床后: z=0 是腿底（土面下 leg_depth），土面在 z=leg_depth
+    body.metadata["soil_top_z"] = -zmin
+    body.metadata["rim_top_z"] = -zmin   # 兼容旧字段名（语义已改为"土面高度"）
     gc_out = (float(gc[0]), float(gc[1] - zmin))
     return body, gc_out, axis
 
@@ -175,7 +175,8 @@ def board_mesh(p=P, gc=None, axis=None, rim_top_z=0.0):
 
     if gc is not None:
         # 板顶（y=0 端）落在夹板柱顶面；gc 是落床坐标下的槽心
-        top_z = rim_top_z + p["rail_t"] + p["col_h"] if p["board_top_z"] is None else rim_top_z + p["board_top_z"]
+        # 方案B: 板顶与柱顶齐平 ⇒ 落床后板顶 z = soil_top_z + col_h
+        top_z = rim_top_z + p["col_h"] if p["board_top_z"] is None else rim_top_z + p["board_top_z"]
         t = (top_z - float(gc[1])) / float(axis[1])
         cy = float(gc[0]) + float(axis[0]) * t
         cz = float(gc[1]) + float(axis[1]) * t
