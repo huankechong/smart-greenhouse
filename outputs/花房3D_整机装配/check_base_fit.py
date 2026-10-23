@@ -30,7 +30,9 @@ BUCKET_MOUTH_ID = 120.0
 BUCKET_MOUTH_OD = 124.0
 BUCKET_WALL = (BUCKET_MOUTH_OD - BUCKET_MOUTH_ID) / 2     # 2.0 侧壁厚(实测推算)
 BUCKET_BOT_T = 2.0          # 桶底厚【未实测, 暂按侧壁厚推算】
-BUCKET_H = 120.0            # 桶身高【未实测, 暂用商品页推算】
+BUCKET_H = 127.0            # 桶身高 [2026-10-23 实测 127]
+BUCKET_LIP_OD = 132.0        # 桶口最外侧（加强翻边外缘）[实测]
+LID_SKIRT_H = 6.0           # 裙边高（套翻边）—— 与 p10_tank_lid.py 一致
 TANK_FLOOR_Z = 3.0          # 底盘圆槽槽底 z
 TANK_SLOT_D = BUCKET_BOT_OD + 2                           # 圆槽直径 107
 BUCKET_MOUTH_Z = TANK_FLOOR_Z + BUCKET_H                 # 桶口沿 z = 123
@@ -54,8 +56,8 @@ EXPECT = {
     "水泵进水格栅": (WATER_Z + 1.8, "泵底吸口栅条（下缘悬水中，设计意图）"),
     "连接块":      (4.5, "沉槽 深3.5 -> 与板面齐平"),
     "LED 灯珠":    (8.9, "坐在 LED 座圈上"),
-    "水箱盖":      (BUCKET_MOUTH_Z - 8.0, "裙边下探 8（桶口沿 z=123）"),
-    "浮球法兰":    (BUCKET_MOUTH_Z + 4.0, "盖顶 z=123+4"),
+    "水箱盖":      (BUCKET_MOUTH_Z - LID_SKIRT_H, f"裙边下探 {LID_SKIRT_H:.0f}（桶口沿 z={BUCKET_MOUTH_Z:.0f}）"),
+    "浮球法兰":    (BUCKET_MOUTH_Z + 4.0, f"盖顶 z={BUCKET_MOUTH_Z:.0f}+4"),
     "浮子":        (75.0, "杆尖 z=75，满水时浮至水面"),
 }
 

@@ -185,16 +185,22 @@ for i in range(7):
 
 # ---------- 4. 水箱：1L 打包桶（圆台）+ 3D 替换盖 + P52 浮球（AR08 圆桶化）----------
 TANK = (85.0, 32.0)
-# ★ 1L 打包桶【2026-10-23 到货实测·领导量具】底 φ105 / 口内 φ120 / 口外 φ124
-#   商品页原标"上径 136"是含提手凸缘的最大外径，桶本体口沿外径只有 124
-BUCKET_BOT_OD, BUCKET_MOUTH_ID, BUCKET_MOUTH_OD = 105.0, 120.0, 124.0
-BUCKET_WALL = (BUCKET_MOUTH_OD - BUCKET_MOUTH_ID) / 2      # 2.0 侧壁厚（实测推算）
-BOT_R, TOP_R, TANK_H, TANK_T = BUCKET_BOT_OD / 2, BUCKET_MOUTH_OD / 2, 120.0, BUCKET_WALL
-#   桶高 120 为商品页推算值【未实测】；桶底厚未实测，暂按侧壁厚 2.0 建模
+# ★ 1L 打包桶【2026-10-23 到货实测·领导量具】底 φ105 / 口内 φ120 / 桶身口沿 φ124 / 桶口最外侧 φ132
+#   桶口有加强翻边（从 124 再外凸 4mm 到 132）→ 盖板压翻边顶面、裙边套 132
+BUCKET_BOT_OD, BUCKET_MOUTH_ID, BUCKET_MOUTH_OD = 105.0, 120.0, 132.0
+BUCKET_H = 127.0              # 桶身高 [实测 127]
+#   BUCKET_MOUTH_OD = 桶口【最外侧】= 加强翻边外径 132（实测）
+#   桶身口沿外径 = 124（壁厚 = (124-120)/2 = 2）—— 翻边从 124 再外凸 4 到 132
+#   桶高 127（实测）→ 桶口沿 z = 槽底3 + 127 = 130
+BUCKET_RIM_OD = 124.0           # 桶身口沿外径（翻边根部）
+BUCKET_LIP_H = 6.0              # 加强翻边高度 [待实测] —— 裙边高必须 <= 它
+BUCKET_WALL = (BUCKET_RIM_OD - BUCKET_MOUTH_ID) / 2           # 2.0 侧壁厚（实测推算）
+BOT_R, TOP_R, TANK_H, TANK_T = BUCKET_BOT_OD / 2, BUCKET_RIM_OD / 2, BUCKET_H, BUCKET_WALL
+#   桶高 127（2026-10-23 实测）；桶底厚未实测，暂按侧壁厚 2.0 建模
 # 替换盖几何（与 p10_tank_lid.py 同参数）
-LID_SKIRT_CLR, LID_SKIRT_WALL, LID_SKIRT_H = 0.8, 2.8, 8.0
-LID_FLANGE_R = (BUCKET_MOUTH_OD + LID_SKIRT_CLR + 2 * LID_SKIRT_WALL) / 2   # 65.2 盖板半径
-LID_SKIRT_IR = (BUCKET_MOUTH_OD + LID_SKIRT_CLR) / 2                       # 62.4 裙边内孔半径
+LID_SKIRT_CLR, LID_SKIRT_WALL, LID_SKIRT_H = 0.8, 2.8, 6.0   # 裙边高 <= 翻边高
+LID_FLANGE_R = (BUCKET_MOUTH_OD + LID_SKIRT_CLR + 2 * LID_SKIRT_WALL) / 2   # 69.2 盖板半径
+LID_SKIRT_IR = (BUCKET_MOUTH_OD + LID_SKIRT_CLR) / 2                       # 66.4 裙边内孔半径
 TANK_Z = 3.0
 TRIM = TANK_Z + TANK_H            # 123 桶口
 LID_T = 4.0
@@ -207,6 +213,11 @@ _bucket = trimesh.boolean.difference(
     [frustum(BOT_R, TOP_R, TANK_H),
      place(frustum(BOT_R - TANK_T, TOP_R - TANK_T, TANK_H - TANK_T), 0, 0, TANK_T)],
     engine="manifold")
+# 加强翻边: 口沿外凸 4mm 到 phi132, 高 BUCKET_LIP_H (盖板压它顶面, 裙边套它外径)
+_lip = place(frustum(BUCKET_MOUTH_OD / 2, BUCKET_MOUTH_OD / 2, BUCKET_LIP_H), 0, 0, TANK_H - BUCKET_LIP_H)
+_lip = trimesh.boolean.difference(
+    [_lip, place(frustum(TOP_R, TOP_R, BUCKET_LIP_H), 0, 0, TANK_H - BUCKET_LIP_H)], engine="manifold")
+_bucket = trimesh.boolean.union([_bucket, _lip], engine="manifold")
 _bucket = place(_bucket, TANK[0], TANK[1], TANK_Z)
 _sec = np.linspace(-np.pi / 4, np.pi / 4, 25)
 _wedge = prism_xy([(0.0, 0.0)] + [(85.0 * np.cos(t), 85.0 * np.sin(t)) for t in _sec],
@@ -221,7 +232,7 @@ _water = place(frustum(_r_at(0) - 0.6, _r_at(85.0) - 0.6, 85.0, 72),
                TANK[0], TANK[1], TANK_Z + TANK_T)
 add(trimesh.boolean.difference([_water, _wedge], engine="manifold"), "water", "水体")
 
-# 第 10 件替换盖：φ130.4×4 板 + 裙边内 φ124.8×8 + φ20×0.8 螺母凸台，三孔 [实测124后修正]
+# 第 10 件替换盖：phi138.4x4 板 + 裙边内 phi132.8x6（套翻边） + phi20x0.8 螺母凸台，三孔 [按实测最外侧132]
 _lid = trimesh.boolean.union([
     _cyl(LID_FLANGE_R, LID_T, 96, z=TRIM + LID_T / 2, x=TANK[0], y=TANK[1]),
     _cyl(LID_FLANGE_R, LID_SKIRT_H, 96, z=TRIM - LID_SKIRT_H / 2, x=TANK[0], y=TANK[1]),
@@ -416,6 +427,7 @@ for jy in (70.0, -70.0):
             add(make_screw(sx, jy + sy, PT), "metal", "M3×6 螺丝")
 
 # ---------- 22. 跳线 20 根（单色灰，避免彩线糊成一片） ----------
+# ⚠️ 盖顶相关 z 一律用 LID_TOP 派生（桶高/盖高变了自动跟随），不要硬编码
 def wire(points, r=1.05, sec=12):
     parts = []
     pts = [np.asarray(p, dtype=float) for p in points]
@@ -450,11 +462,12 @@ WIRES = [
     # ④ ESP32 → 继电器 IN（1 根）：从上方落到端子
     [(-71.0, -45, 24), (-64, -32, 24), (-52, -29, 25.4)],
     # ⑤ 继电器 → 水泵（2 根）：沿底板 -Y 侧走，抬到盖顶上方，从 φ8 过线孔（-Y45）进桶
-    [(-27.4, -18, 19), (0, -34, 26), (40, -42, 48), (74, -47, 104), (77, -46, 128),
-     (84, -28, 132), (WIRE_XY[0], WIRE_XY[1], 131.0), (WIRE_XY[0], WIRE_XY[1], 120.0),
+    [(-27.4, -18, 19), (0, -34, 26), (40, -42, 48), (74, -47, 104),
+     (78, -46, LID_TOP + 2), (WIRE_XY[0], WIRE_XY[1], LID_TOP + 2), (WIRE_XY[0], WIRE_XY[1], 120.0),
      (88.0, -6, 112), (92.0, 16, 78), (86.0, 38, 46)],
-    [(-27.4, -21, 19), (2, -36, 26), (42, -44, 48), (76, -49, 104), (79, -48, 128),
-     (86, -30, 132), (WIRE_XY[0] + 1.5, WIRE_XY[1] - 1.5, 131.0), (WIRE_XY[0] + 1.5, WIRE_XY[1] - 1.5, 120.0),
+    [(-27.4, -21, 19), (2, -36, 26), (42, -44, 48), (76, -49, 104),
+     (80, -47, LID_TOP + 2), (WIRE_XY[0] + 1.5, WIRE_XY[1] - 1.5, LID_TOP + 2),
+     (WIRE_XY[0] + 1.5, WIRE_XY[1] - 1.5, 120.0),
      (89.5, -8, 112), (93.5, 14, 78), (87.0, 37, 46)],
     # ⑥ ESP32 → 面包板电源轨（2 根）
     [(-76, -35.2, 20), (-84, -32, 16), (-92, -30, 14.8)],
@@ -470,9 +483,9 @@ WIRES = [
     [(-92, -29, 14.8), (-74, -26, 17), (-58, -29, 24)],
     [(-98, -29, 14.8), (-76, -27, 17), (-56, -29, 25)],
     # ⑩ 浮球开关 → GPIO32（2 根）：本体顶部出线，走桶 -Y 侧（与电缆同侧）回面包板
-    [(95, 32, 144), (100, 24, 140), (100, -12, 136), (90, -42, 132), (79, -52, 112),
+    [(95, 32, 144), (100, 24, LID_TOP + 6), (100, -12, LID_TOP + 4), (90, -42, LID_TOP + 3), (79, -52, 112),
      (55, -56, 72), (20, -56, 38), (-20, -52, 25), (-60, -60, 18), (-90, -66, 16)],
-    [(96, 33, 141), (102, 25, 138), (102, -13, 136), (92, -44, 132), (81, -54, 112),
+    [(96, 33, 141), (102, 25, LID_TOP + 5), (102, -13, LID_TOP + 4), (92, -44, LID_TOP + 3), (81, -54, 112),
      (58, -58, 72), (23, -58, 38), (-17, -54, 25), (-57, -62, 18), (-87, -68, 16)],
 ]
 for k, w in enumerate(WIRES):
