@@ -1,0 +1,65 @@
+{
+    "error_string": "Success.",
+    "export_time": 194,
+    "layer_height": 0.20000000298023224,
+    "plate_index": 1,
+    "prepare_time": 8,
+    "return_code": 0,
+    "sliced_plates": [
+        {
+            "feature_type_times": {
+                "Bottom surface": 51.17559814453125,
+                "Bridge": 93.49652099609375,
+                "Brim": 24.510889053344727,
+                "Custom": 1.0042650699615479,
+                "Inner wall": 686.4283447265625,
+                "Internal solid infill": 116.85224914550781,
+                "Outer wall": 409.1282043457031,
+                "Overhang wall": 24.22344207763672,
+                "Skirt": 3.41882061958313,
+                "Sparse infill": 440.88909912109375,
+                "Top surface": 64.19021606445313,
+                "Travel": 148.6107940673828,
+                "Undefined": 148.3907928466797
+            },
+            "filament_change_times": 0,
+            "filaments": [
+                {
+                    "filament_id": "",
+                    "id": 1,
+                    "main_used_g": 0.0,
+                    "total_used_g": 0.0
+                }
+            ],
+            "generate_support_material_time": 4,
+            "id": 1,
+            "infill_time": 6,
+            "layer_filament_change": 0,
+            "main_predication": 2062.937255859375,
+            "make_perimeters_time": 11,
+            "obj_cached_cnt": 0,
+            "objects": [
+                {
+                    "bbox": {
+                        "depth": 33.999996185302734,
+                        "height": 62.75,
+                        "width": 34.999996185302734,
+                        "x": 120.74999237060547,
+                        "y": 110.99999237060547,
+                        "z": 0.0
+                    },
+                    "id": 5,
+                    "name": "07_dht11_holder_v1.stl",
+                    "triangle_count": 100
+                }
+            ],
+            "sliced_time": 160,
+            "sliced_time_with_cache": 130,
+            "total_predication": 2063.721435546875,
+            "triangle_count": 100,
+            "warning_message": "It seems object 07_dht11_holder_v1.stl has floating cantilever. Please re-orient the object or enable support generation."
+        }
+    ],
+    "sparse_infill_density": 20.0,
+    "wall_loops": 3
+}

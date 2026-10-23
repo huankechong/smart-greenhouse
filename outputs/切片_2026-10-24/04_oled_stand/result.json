@@ -1,0 +1,65 @@
+{
+    "error_string": "Success.",
+    "export_time": 196,
+    "layer_height": 0.20000000298023224,
+    "plate_index": 1,
+    "prepare_time": 7,
+    "return_code": 0,
+    "sliced_plates": [
+        {
+            "feature_type_times": {
+                "Bottom surface": 53.71999740600586,
+                "Bridge": 8.16682243347168,
+                "Brim": 25.15082550048828,
+                "Custom": 1.0024793148040771,
+                "Inner wall": 258.14453125,
+                "Internal solid infill": 81.60763549804688,
+                "Outer wall": 160.44589233398438,
+                "Overhang wall": 0.24293212592601776,
+                "Skirt": 3.4988205432891846,
+                "Sparse infill": 319.1627197265625,
+                "Top surface": 18.90560531616211,
+                "Travel": 100.74542236328125,
+                "Undefined": 100.52645874023438
+            },
+            "filament_change_times": 0,
+            "filaments": [
+                {
+                    "filament_id": "",
+                    "id": 1,
+                    "main_used_g": 0.0,
+                    "total_used_g": 0.0
+                }
+            ],
+            "generate_support_material_time": 2,
+            "id": 1,
+            "infill_time": 20,
+            "layer_filament_change": 0,
+            "main_predication": 1029.8009033203125,
+            "make_perimeters_time": 10,
+            "obj_cached_cnt": 0,
+            "objects": [
+                {
+                    "bbox": {
+                        "depth": 33.999996185302734,
+                        "height": 27.0,
+                        "width": 35.999996185302734,
+                        "x": 120.24999237060547,
+                        "y": 110.99999237060547,
+                        "z": 0.0
+                    },
+                    "id": 5,
+                    "name": "04_oled_stand_v1.stl",
+                    "triangle_count": 92
+                }
+            ],
+            "sliced_time": 128,
+            "sliced_time_with_cache": 88,
+            "total_predication": 1030.58447265625,
+            "triangle_count": 92,
+            "warning_message": "It seems object 04_oled_stand_v1.stl has floating regions. Please re-orient the object or enable support generation."
+        }
+    ],
+    "sparse_infill_density": 20.0,
+    "wall_loops": 3
+}
