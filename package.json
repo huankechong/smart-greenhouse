@@ -1,0 +1,12 @@
+{
+  "name": "smart-greenhouse",
+  "version": "1.0.0",
+  "private": true,
+  "description": "BIUH DT 2026 秋《Introduction to Project Work》期末项目：智能花房养护站",
+  "scripts": {
+    "verify-html": "node outputs/花房3D_整机装配/verify_html.js"
+  },
+  "dependencies": {
+    "puppeteer": "^23.0.0"
+  }
+}

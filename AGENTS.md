@@ -47,7 +47,9 @@ NODE="C:/Users/junbo/.workbuddy/binaries/node/versions/22.22.2-6/node.exe"
 ```
 
 - Arduino：`outputs/.tools/arduino-cli/arduino-cli.exe`（1.5.2-rc.1）+ `esp32:esp32@2.0.18-arduino.5`（fqbn `esp32:esp32:esp32`）。编译缓存被强杀损坏时用 `--build-path` 换新目录，别怀疑代码。
-- 固件版本：**v1.5.1**（v1.5 全量代码审计修复 → v1.5.1 水位断泵改按 waterState 判定），编译字节数以 `outputs/花房代码/GreenHouse_v1/README.md` 为准。
+- 固件版本：**v1.6**（v1.5.1 → v1.6 修 AR16 审计缺陷：safeMap 防除零 + 标定非法硬停机 +
+  继电器电平前移到 setup 首行 + MQTT/WiFi 组合 #error 守卫 + 消抖对齐注释）。
+  **双形态编译已验证**：默认 269KB/20%，全 7 开关 902KB/68% Flash、14% RAM。
 - 固件源码唯一真相源：`outputs/花房代码/GreenHouse_v1/`。
 
 ### 4.1 Git 提交到 GitHub（本机已就绪，2026-10-20 实测）
@@ -102,7 +104,7 @@ NODE="C:/Users/junbo/.workbuddy/binaries/node/versions/22.22.2-6/node.exe"
 
 ## 7. 当前状态（只写指针，别在这里展开）
 
-10 个打印件 STL 已交付（01b/02/03/04/06a/06b/06c/07/08/10）；整机示意 glb + 离线 HTML 已出；固件 **v1.5.1**（2026-10-20 AR10 全量代码审计修复，见 `docs/审计报告/AR10_*`）；硬件等快递（10/21±）；答辩 2026-11-16。
+10 个打印件 STL 已交付（01b/02/03/04/06a/06b/06c/07/08/10）；整机示意 glb + 离线 HTML 已出；固件 **v1.6**（2026-10-24 AR16/AR17 审计修复，见 `docs/审计报告/AR16_*` `AR17_*`）；硬件等快递（10/21±）；答辩 2026-11-16。
 细节 → `docs/花房项目_AI工作交接文档_2026-10-18.md`。
 
 ## 8. 云端资料库：**已停用**（2026-10-20 领导决定）

@@ -1,0 +1,12 @@
+# 花房项目 · Python 依赖（2026-10-24 建，AR16 P0-1）
+# 安装：pip install -r requirements.txt
+# 说明：建模/装配/校验脚本共用同一套环境
+
+trimesh>=5.1,<6           # 网格布尔运算与 STL 读写（实装验证 5.1.1；engine="manifold" 需下面这个）
+manifold3d>=2.4           # trimesh 的 manifold 布尔内核，漏装会报难懂的错
+numpy>=1.24,<3            # 数值运算
+shapely>=2.0              # 截面面积/多边形运算（audit、截面校验用）
+matplotlib>=3.7           # contact_sheet 出图（需中文字体：Microsoft YaHei / SimHei）
+
+# 注意：本项目代码【不使用】Path.to_planar()（该 API 已在 trimesh 5.x 移除）；
+#       仅临时查询脚本可能用到，正式脚本一律用 to_2D()。

@@ -100,6 +100,14 @@ const unsigned long WIFI_RETRY_MS       = 30000;  // 运行中掉线自动重连
 #include "config.h"               // WiFi/UID 凭据集中管理，分享前脱敏（见 config.h 头注释）
 unsigned long lastWifiRetry = 0;  // WiFi 掉线重连计时（v1.1：支持运行中自动重连）
 #endif
+// ---------- v1.6 开关依赖守卫（编译期就报错，不给"隔 60 行才报错"的机会）----------
+#if EN_MQTT && !EN_WIFI
+#error "EN_MQTT 需要 EN_WIFI=1（MQTT 跑在 WiFi 之上）"
+#endif
+#if EN_WEB && !EN_WIFI
+#error "EN_WEB 需要 EN_WIFI=1（WebServer 走网络）"
+#endif
+
 #if EN_MQTT
 #include <PubSubClient.h>
 #include "config.h"               // MQTT_UID 在 config.h（含 include guard，重复包含安全）
@@ -148,6 +156,17 @@ void relayOn()  { digitalWrite(PIN_RELAY, RELAY_ACTIVE_HIGH ? HIGH : LOW); }
 void relayOff() { digitalWrite(PIN_RELAY, RELAY_ACTIVE_HIGH ? LOW  : HIGH); }
 // AR08 备注：relayIsOn() 已并入水位保护按状态判定方案，保留给排障用（读回输出锁存电平）
 
+// ---------- v1.6 安全映射：替代 Arduino map() 宏 ----------
+// 为什么不用 map()：它是宏，内部做 (x-in_min)*(out_max-out_min)/(in_max-in_min)，
+// 当 in_max == in_min 时【除零】→ ESP32 硬件异常 panic → 重启。
+// 而"标定值填成相等/填反"是本项目最容易发生的误操作。AR16 审计发现，v1.6 修复。
+int safeMap(int x, int inMin, int inMax, int outMin, int outMax) {
+  if (inMax == inMin) return outMin;              // 退化：不除零，直接给端点值
+  long v = (long)(x - inMin) * (outMax - outMin) / (long)(inMax - inMin) + outMin;
+  int lo = min(outMin, outMax), hi = max(outMin, outMax);
+  return (int)constrain(v, (long)lo, (long)hi);
+}
+
 // ---------- 模拟口均值滤波：10 次取平均，抑制读数抖动（报告可写的技术点） ----------
 int readAverage(int pin) {
   long sum = 0;
@@ -158,7 +177,7 @@ int readAverage(int pin) {
 void readSensors() {
   gSoilRaw  = readAverage(PIN_SOIL);
   // 电容式传感器：干=高raw 湿=低raw → 映射成 0-100%
-  gSoilPct  = constrain(map(gSoilRaw, SOIL_RAW_WET, SOIL_RAW_DRY, 100, 0), 0, 100);
+  gSoilPct  = safeMap(gSoilRaw, SOIL_RAW_WET, SOIL_RAW_DRY, 100, 0);   // v1.6: 防除零
   gLightRaw = readAverage(PIN_LIGHT);
 #if EN_DHT
   gHum  = dht.readHumidity();
@@ -184,7 +203,7 @@ void levelTick() {
     levelLast = rawLow;
     levelSame = 0;
   }
-  if (levelSame >= LEVEL_STABLE_N - 1) {          // 连续 3 次一致才采信
+  if (levelSame >= LEVEL_STABLE_N) {              // v1.6: 原 >= N-1 实际只等 2 次（200ms），与注释不符
     if (!gLevelReady) {
       gLevelReady = true;
       Serial.printf("[水位] 首次判定：%s（%s）\n",
@@ -409,7 +428,14 @@ void handleRoot() {                             // 局域网保底网页（答�
 
 void setup() {
   Serial.begin(115200);
-  Serial.println("\n===== 智能花房养护站 v1.5 启动 =====");
+
+  // ===== v1.6：继电器电平【第一优先】锁定 =====
+  // 必须在任何可能停机的检查之前！否则 EN_WATER=1 时走到下面的标定停机分支，
+  // 继电器引脚仍是高阻 → 低电平触发模块可能误吸合 → 泵空转（AR17 重审发现）。
+  digitalWrite(PIN_RELAY, RELAY_ACTIVE_HIGH ? LOW : HIGH);
+  pinMode(PIN_RELAY, OUTPUT);
+  relayOff();
+  Serial.println("\n===== 智能花房养护站 v1.6 启动 =====");
   Serial.printf("功能开关: DHT=%d OLED=%d WATER=%d LEVEL=%d WIFI=%d MQTT=%d WEB=%d\n",
                 EN_DHT, EN_OLED, EN_WATER, EN_LEVEL, EN_WIFI, EN_MQTT, EN_WEB);   // v1.1：排障先看烧的是哪套配置
   Serial.printf("标定: dry=%d wet=%d 缺水阈值=%d%%\n", SOIL_RAW_DRY, SOIL_RAW_WET, SOIL_THRESHOLD_PCT);
@@ -424,11 +450,26 @@ void setup() {
                 (int)LEVEL_STABLE_N, LEVEL_INTERVAL_MS);
 #endif
 
-  if (SOIL_RAW_DRY <= SOIL_RAW_WET) {           // v1.1 标定防呆：干点必须大于湿点，填反立刻报错
-    Serial.println("!! [自检失败] SOIL_RAW_DRY <= SOIL_RAW_WET，标定值疑似填反，请检查后重烧 !!");
+  // ===== v1.6 标定合法性【硬停机】=====
+  // 旧版只 Serial.println 警告就继续跑 → loop 里 map() 除零 → panic → 无限重启，
+  // 串口只能看到一行警告就重启，极难排查（AR16 审计 P0-2）。现在直接停机，红灯快闪挂起。
+  bool calBad = false;
+  if (SOIL_RAW_DRY <= SOIL_RAW_WET) {
+    Serial.println("!! [致命] SOIL_RAW_DRY <= SOIL_RAW_WET —— 标定值填反或相等 !!");
+    calBad = true;
   }
-  if (SOIL_RAW_DRY > 4095 || SOIL_RAW_WET > 4095 || SOIL_RAW_DRY < 0 || SOIL_RAW_WET < 0) {  // AR08 防呆
-    Serial.println("!! [自检失败] 标定值超出 ADC 0..4095 量程，12 位 ADC 读不到，请检查 !!");
+  if (SOIL_RAW_DRY > 4095 || SOIL_RAW_WET > 4095 || SOIL_RAW_DRY < 0 || SOIL_RAW_WET < 0) {
+    Serial.println("!! [致命] 标定值超出 ADC 0..4095 量程 !!");
+    calBad = true;
+  }
+  if (calBad) {
+    Serial.println("!! [停机] 已锁定，不进入 loop（防止 map 除零导致无限重启）!!");
+    Serial.println("!! [停机] 请改回正确标定值后重新烧录，或先保持 EN_WATER=0 !!");
+    pinMode(PIN_LED_R, OUTPUT);
+    for (;;) {                                    // 红灯 100ms 快闪 = 「标定非法」专用码
+      digitalWrite(PIN_LED_R, (millis() / 100) % 2);
+      delay(100);
+    }
   }
   if (SOIL_RAW_DRY - SOIL_RAW_WET < 800) {      // AR08 防呆：量程太窄映射会放大噪声
     Serial.println("!! [自检警告] 干湿标定差 <800，湿度%会对读数噪声过敏，建议重测标定 !!");
@@ -436,12 +477,7 @@ void setup() {
 
   pinMode(PIN_LED_R, OUTPUT); digitalWrite(PIN_LED_R, LOW);
   pinMode(PIN_LED_G, OUTPUT); digitalWrite(PIN_LED_G, LOW);
-  // v1.3：先把"断开"电平锁进输出寄存器，再打开输出驱动。
-  // 低电平触发的继电器模块，若先 pinMode 再写电平，中间有几微秒是浮空/低电平 → 会"咔"一下吸合，
-  // 表现就是"一上电水泵就转"。顺序反过来可以消掉这个毛刺。
-  digitalWrite(PIN_RELAY, RELAY_ACTIVE_HIGH ? LOW : HIGH);
-  pinMode(PIN_RELAY, OUTPUT);
-  relayOff();                                   // 上电继电器必须断开
+  // v1.3 的上电毛刺消除已在 setup 开头完成（v1.6 前移，见上方）
 
 #if EN_DHT
   dht.begin();
