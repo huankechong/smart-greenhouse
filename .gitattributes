@@ -1,0 +1,32 @@
+# 行尾策略（2026-10-24 建，AR17 P2「CRLF/LF 混用」问题的根治）
+# 背景：本会话多次因 CRLF/LF 混用导致 Python 字符串匹配失败，且 gcode 行尾敏感
+
+# 默认：文本文件统一 LF（仓库内），检出到工作区按平台
+* text=auto eol=lf
+
+# ===== 二进制 / 行尾敏感：禁止任何转换 =====
+*.gcode    -text
+*.3mf      -text
+*.stl      -text
+*.glb      -text
+*.npz      -text
+*.png      -text
+*.jpg      -text
+*.jpeg     -text
+*.pdf      -text
+*.zip      -text
+
+# ===== 强制 LF（脚本类，避免跨平台漂移）=====
+*.py       text eol=lf
+*.ino      text eol=lf
+*.h        text eol=lf
+*.js       text eol=lf
+*.md       text eol=lf
+*.json     text eol=lf
+*.txt      text eol=lf
+*.ini      text eol=lf
+.gitignore text eol=lf
+
+# Windows 脚本若将来添加，保持 CRLF
+*.bat      text eol=crlf
+*.cmd      text eol=crlf
