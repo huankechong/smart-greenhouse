@@ -14,8 +14,10 @@
   ✅ 桶身高 127（实测）。⏳ 仍待实测: **翻边高度**（决定裙边能有多深，暂用 6）
 
 结构 (打印朝向 = 使用朝向翻面, Z0 = 盖顶面贴床):
-  · 盖板圆盘  φ138.4 x 4   —— φ138.4 = 翻边外 132 + 裙边壁 2.8x2  [按实测最外侧132]
-  · 裙边环    内 φ132.8 x 高 6 —— 套住桶口翻边外径 (直径向隙 0.8, FDM 常规), 防侧移
+  · 盖板圆盘  φ138.4 x 4   —— = 凸出环 φ132 + 裙壁 2.8x2 + 隙 0.8  [按 D=132 算，实测后跟随]
+  · 裙边环    【两级阶梯】—— 上段内 φ124.8 x 高 5（套桶口上段 φ124，紧配 0.4/边）
+                            下段内 φ132.8 x 高 2（套向外凸出的环，紧配 0.4/边）
+                            总高 7 = 5 + 2，套满两级台阶
                 裙边高必须 <= 翻边高, 否则裙边底会顶在翻边下的台阶上装不进
   · 螺母凸台  外 φ20 x 高 0.8, 环形, 在盖板下面 (桶内侧) —— M10 螺母对角 19.6 < 20,
     螺母整个坐在凸台环面上 = 替代垫片 (2026-10-19 定版: 免垫片方案)
@@ -58,17 +60,23 @@ P10 = {
     # [2026-10-23 到货实测·领导量具] 1L 透明打包桶 —— 实测优先于商品页标注
     #   桶底直径 105 / 桶口内径 120 / 桶身口沿 124 / 桶口最外侧 132 / 桶高 127
     #   桶口有加强翻边（外凸 4mm），盖要压在翻边顶面、裙边套 132
-    "bucket_mouth_od": 132.0,   # 桶口【最外侧】外径 = 加强翻边外缘 132（实测）
-    #   桶口剖面: 内壁 φ120 | 桶身口沿 φ124（壁厚2）| 翻边最外 φ132（外凸4）
+    # ★ 2026-10-24 更正：桶口是【两级台阶】，此前把最外圈当成上段顶面是错的
+    #   实测 + 手绘图确认：上段 5mm 外径 φ124；下段向外凸出 2mm（φ124~132 之间，待实测）
+    #   => 裙边必须做【两级阶梯】才能咬住；单级 φ132.8 会悬空 4.4mm、咬合为 0
+    "bucket_rim_od": 124.0,   # 上段（桶口最上面那圈）外径 [实测]
+    "bucket_lip_od": 132.0,   # 下段凸出环外径 [待实测，暂取上限 132 → 宁可松不可紧]
+    "lip_upper_h": 5.0,       # 上段高度 [手绘图 5mm]
+    "lip_lower_h": 2.0,       # 凸出环高度 [手绘图 2mm]
+    "bucket_mouth_od": 132.0, # [兼容旧字段] = bucket_lip_od
     #   → 盖板压在【翻边顶面】、裙边套【翻边外径132】；按124做盖板会浮空6.4mm
     "bucket_mouth_id": 120.0,   # 桶口内径 [实测120，与商品页一致]
     "bucket_h": 127.0,          # 桶身高 [实测 127] —— 只影响浮球杆尖高度与装配图, 不影响盖子本体几何
 
     # 替换盖
     "skirt_clear": 0.8,         # 裙边内径向隙 (FDM)
-    "skirt_h": 6.0,             # 裙边高（套翻边外径132）—— 必须 <= 翻边高，否则底缘顶在翻边下台阶装不进 [翻边高待实测]
+    "skirt_h": 7.0,             # 裙边总高 = 上段5 + 凸出环2（套满两级）
     "skirt_wall": 2.8,          # 裙边壁厚 -> 盖外径 = 132 + 0.8 + 5.6 = 138.4
-    "plate_t": 4.0,             # 盖板厚 [定版: 给 M10 螺母留咬合]
+    "plate_t": 3.5,             # 盖板厚 [2026-10-24: 4->3.5 减重；螺纹咬合 3.5+0.8=4.3mm 够]
 
     "boss_od": 20.0,            # 螺母凸台外径 (M10 六角对角 19.6 内, 整面承力)
     "boss_h": 0.8,              # 凸台高 = 替代垫片
@@ -92,17 +100,26 @@ def C(cx, cy, cz, r, h, sections=96):
 
 def build_lid(p):
     """打印朝向建模: z=0 为盖顶面(贴床), 凸台/裙边朝上。"""
-    flange_d = p["bucket_mouth_od"] + p["skirt_clear"] + 2 * p["skirt_wall"]
-    skirt_id = p["bucket_mouth_od"] + p["skirt_clear"]
+    flange_d = p["bucket_lip_od"] + p["skirt_clear"] + 2 * p["skirt_wall"]
+    skirt_id = p["bucket_lip_od"] + p["skirt_clear"]          # 下段孔（最外）
+    upper_id = p["bucket_rim_od"] + p["skirt_clear"]           # 上段孔（φ124.8）
     pt = p["plate_t"]
+    hu, hl = p["lip_upper_h"], p["lip_lower_h"]
     body = union([
         C(0, 0, pt / 2, flange_d / 2, pt, p["sections"]),                      # 盖板
         C(0, 0, pt + p["boss_h"] / 2, p["boss_od"] / 2, p["boss_h"], 64),      # 凸台
         C(0, 0, pt + p["skirt_h"] / 2, flange_d / 2, p["skirt_h"], p["sections"]),  # 裙外
     ], engine="manifold")
-    # 裙边中空
-    body = difference([body, C(0, 0, pt + p["skirt_h"] / 2, skirt_id / 2,
-                               p["skirt_h"] + 4, p["sections"])], engine="manifold")
+    # 裙边中空 —— 【两级阶梯】：上段套 φ124（5mm 紧配），下段套凸出环（2mm 紧配）
+    # 用明确 z 区间构造，避免"中心+高度"算偏导致阶梯位置错误（2026-10-24 踩过）
+    # ⚠️ 上段孔只能从【盖板底面】往下切，绝不能往上切进盖板本体
+    #    （2026-10-24 踩过：写成 -2 把盖板中心 φ124.8 全挖空，凸台悬空成两个体）
+    z_up0, z_up1 = pt - 0.05, pt + hu         # 只切进盖板 0.05mm 保证布尔连通
+    z_lo0, z_lo1 = pt + hu, pt + hu + hl + 2  # 下段孔：z=pt+hu → 穿透裙底
+    body = difference([body,
+        C(0, 0, (z_up0 + z_up1) / 2, upper_id / 2, z_up1 - z_up0, p["sections"]),
+        C(0, 0, (z_lo0 + z_lo1) / 2, skirt_id / 2, z_lo1 - z_lo0, p["sections"]),
+    ], engine="manifold")
     cuts = [
         C(0, 0, pt / 2, p["float_hole_d"] / 2, pt + 2 * p["boss_h"] + 4, 64),  # 中心浮球孔(贯穿凸台)
         C(0, -p["tube_off"], pt / 2, p["tube_hole_d"] / 2, pt + 4, 64),        # 水管孔
@@ -117,8 +134,8 @@ def build_lid(p):
 def check_geometry(p, mesh):
     """参数反算校验, 任一不过返回非空错误串。"""
     errs = []
-    flange_d = p["bucket_mouth_od"] + p["skirt_clear"] + 2 * p["skirt_wall"]
-    skirt_id = p["bucket_mouth_od"] + p["skirt_clear"]
+    flange_d = p["bucket_lip_od"] + p["skirt_clear"] + 2 * p["skirt_wall"]
+    skirt_id = p["bucket_rim_od"] + p["skirt_clear"]      # 用【最窄的上段】做保护区判据（更严）
     # ① M10 螺母 (对角 19.6) 必须整个坐在凸台环内
     if 19.6 > p["boss_od"]:
         errs.append(f"螺母对角 19.6 > 凸台外径 {p['boss_od']}")

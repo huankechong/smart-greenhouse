@@ -198,12 +198,13 @@ BUCKET_WALL = (BUCKET_RIM_OD - BUCKET_MOUTH_ID) / 2           # 2.0 侧壁厚（
 BOT_R, TOP_R, TANK_H, TANK_T = BUCKET_BOT_OD / 2, BUCKET_RIM_OD / 2, BUCKET_H, BUCKET_WALL
 #   桶高 127（2026-10-23 实测）；桶底厚未实测，暂按侧壁厚 2.0 建模
 # 替换盖几何（与 p10_tank_lid.py 同参数）
-LID_SKIRT_CLR, LID_SKIRT_WALL, LID_SKIRT_H = 0.8, 2.8, 6.0   # 裙边高 <= 翻边高
+LID_SKIRT_CLR, LID_SKIRT_WALL, LID_SKIRT_H = 0.8, 2.8, 7.0   # 两级：上5 + 凸出2
+LID_RIM_OD, LID_LIP_OD = 124.0, 132.0                        # 上段 / 凸出环外径
 LID_FLANGE_R = (BUCKET_MOUTH_OD + LID_SKIRT_CLR + 2 * LID_SKIRT_WALL) / 2   # 69.2 盖板半径
 LID_SKIRT_IR = (BUCKET_MOUTH_OD + LID_SKIRT_CLR) / 2                       # 66.4 裙边内孔半径
 TANK_Z = 3.0
 TRIM = TANK_Z + TANK_H            # 123 桶口
-LID_T = 4.0
+LID_T = 3.5   # 与 p10 plate_t 同步
 LID_TOP = TRIM + LID_T            # 127 盖顶
 TUBE_XY = (TANK[0], TANK[1] - 22.0)   # 盖顶水管孔 φ10（-Y 22）
 WIRE_XY = (TANK[0], TANK[1] - 45.0)   # 盖顶过线孔 φ8（-Y 45，与水管同侧，电缆不横跨盖顶）
@@ -239,7 +240,8 @@ _lid = trimesh.boolean.union([
     _cyl(10.0, 0.8, 48, z=TRIM - 0.4, x=TANK[0], y=TANK[1]),
 ], engine="manifold")
 _lid = trimesh.boolean.difference([_lid,
-    _cyl(LID_SKIRT_IR, LID_SKIRT_H + 0.4, 96, z=TRIM - LID_SKIRT_H / 2, x=TANK[0], y=TANK[1]),  # 裙边内孔（套桶口外壁124）
+    _cyl((LID_RIM_OD + LID_SKIRT_CLR) / 2, 5.4, 96, z=TRIM - 2.5, x=TANK[0], y=TANK[1]),   # 上段孔 φ124.8
+    _cyl(LID_SKIRT_IR, 2.4, 96, z=TRIM - 6.0, x=TANK[0], y=TANK[1]),                        # 下段孔 φ132.8
     _cyl(5.25, 70.0, 32, z=LID_TOP - 25.0, x=TANK[0], y=TANK[1]),                 # 浮球杆孔 φ10.5
     _cyl(5.0, LID_T + 4, 24, z=TRIM + LID_T / 2, x=TUBE_XY[0], y=TUBE_XY[1]),     # 水管孔 φ10
     _cyl(4.0, LID_T + 4, 24, z=TRIM + LID_T / 2, x=WIRE_XY[0], y=WIRE_XY[1]),     # 过线孔 φ8
