@@ -256,10 +256,11 @@ _float = trimesh.boolean.difference(
     [_cyl(14.0, 18.0, 48, z=0.0), _cyl(3.3, 20.0, 32, z=0.0)], engine="manifold")
 add(place(_float, TANK[0], TANK[1], 84.0), "float", "浮子")
 
-# ---------- 5. 水泵座 + 水泵（桶内居中）----------
+# ---------- 5. 水泵（自带吸盘，直接吸在桶底；固定座已作废）----------
 PUMP = (85.0, 32.0)
 INNER_FLOOR = TANK_Z + TANK_T      # 5.0 桶内底（槽底3 + 壁厚2）
-add(place(M_P0.build_pump_mount(M_P0.PARAMS["pump"]), PUMP[0], PUMP[1], INNER_FLOOR), "white", "水泵固定座")
+# 2026-10-24：泵自带吸盘，固定座作废（02 件不打印）—— 吸盘本身就把泵垫高约 2~3mm，
+#               吸水口仍有间隙，所以下面的 _PZ 不用改（那 3mm 现在由吸盘提供）
 # 实物泵体 41 × 39 × 30（含出水嘴 37），底脚 32 × 28 —— 方块 + 顶面出水嘴
 _PZ = INNER_FLOOR + 3.0            # 8.0 泵体底面
 add(place(box([41.0, 39.0, 30.0]), PUMP[0], PUMP[1], _PZ + 15.0), "pump", "水泵")
