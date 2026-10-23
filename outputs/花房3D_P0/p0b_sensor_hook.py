@@ -7,11 +7,14 @@ v1 的问题：长斜臂 46mm 埋进土里 35mm —— 必须先卡盆沿再填�
 
 ★ 2026-10-23 改为【方案 B · 土插式】（局部坐标：z=0 为土面，+Y 向盆外，+Z 向上）
   起因：实盆 8x8x8 直筒树脂盆壁厚 10~20mm，范围太宽，刚性双爪无法同时覆盖 → 弃用夹持。
-  1. 两条插土腿（x 向薄片，板槽两侧各一）：深 35mm 插入土中，完全不碰盆壁 → 壁厚多少都行
+  ★★ 2026-10-24 二次减薄 + 合并管环（领导要种两株薄荷，土面不够）：
+     col_x 36→30、col_d 12→10；腿从「X 向两侧薄片」改为「Y 向前后两条宽片」（不占柱宽）；
+     把 03 管夹的 C 形管环**合并进本件 +X 侧** → 03 作废，总占地 912→470 mm²（−48%）
+  1. 两条插土腿（Y 向前后，宽26 × 厚2.5）：深 35mm 插入土中，完全不碰盆壁
   2. 夹板柱：底面坐在土面，顶面 z=36（板顶与柱顶齐平即到位）
   3. 板槽：沿 8° 斜轴贯穿夹板柱，传感器板从上方插入
-  4. 传感器板不参与打印：总长 87，入土 51、露出土面 27（⇒ 土面在板顶下 36）
-  5. 先立架子再填土 —— 板深可调（这正是 01b v1 想保留、v2 丢掉的能力）
+  4. C 形管环：+X 侧凸台，竖孔 φ10.6，开口 6.2（朝盆内，管子压进去不掉）
+  5. 先立架子再填土 —— 板深可调
 
 打印朝向：两条腿落地（z_min=0），腿往上接夹板柱 —— 全垂直壁，免支撑。
 """
@@ -39,10 +42,9 @@ P = {
     # 坐标系：z=0 为土面，z 向上；腿从 z=-leg_depth 插入土中。
     "soil_gap": 36.0,        # 土面→板顶 距离（板总长87, 入土51 ⇒ 土面在板顶下36）
     "leg_depth": 35.0,       # 插土深度（盆内土层 57~62，插 35 余量充足）
-    "leg_t": 3.0,            # 腿厚（X 向薄片，插土阻力小）
-    "leg_w": 14.0,           # 腿宽（Y 向）
-    "leg_x": 15.5,           # 腿中心 X（±），内侧到板槽边留 2.2mm 壁
-    "leg_y": -2.0,           # 腿的 Y 中心（略偏盆内，避开板槽前端）
+    "leg_t": 2.5,            # 腿厚（Y 向，前后两条）
+    "leg_w": 26.0,           # 腿宽（X 向，几乎与柱同宽 → 抗倾覆靠宽度）
+    "leg_dy": 3.5,           # 两条腿的 Y 偏移（±），避开中间的板槽(±0.7)
     # 盆沿/夹爪参数保留但不再用于夹持（历史留档）
     "rim_gap": 4.6,          # [已弃用·改土插式]
     "taper": 0.0,            # [已弃用·改土插式]
@@ -52,10 +54,18 @@ P = {
     "jaw_w_in": 25.2,        # [已弃用]
     "jaw_down": 7.0,         # [已弃用]
     # ---------- 夹板柱（板槽所在）----------
-    "col_x": 36.0,           # 柱宽（加宽给两条腿让位；壁厚 (36-23.6)/2 = 6.2）
+    "col_x": 30.0,           # 柱宽（板槽23.6 + 两侧壁3.2）—— 原36，减薄给薄荷让土面
     "col_y": -2.0,           # 柱中心 Y
-    "col_d": 12.0,           # 柱深（Y）
+    "col_d": 10.0,           # 柱深（板槽1.4 + 两侧壁4.3）—— 原12
     "col_h": 36.0,           # 柱高 = 土面到板顶（板顶与柱顶齐平即到位）
+    # ---------- 水管 C 形卡箍（2026-10-23 从 03 件合并进来，03 作废）----------
+    "ring_on": False,        # 管孔φ10.6 需 Y深≥14.6，30×10 的柱放不下 → 改由 03 窄版管夹承担         # 是否带管环
+    "ring_boss_w": 17.0,     # 卡箍凸台从柱边外伸宽度
+    "ring_boss_h": 8.0,      # 凸台高（Z）
+    "ring_z": 12.0,          # 管孔中心离土面高度
+    "ring_od": 9.0,          # 环外半径
+    "ring_id": 10.6,         # 管孔内径 = 管外径 10 + 0.6
+    "ring_slot_w": 6.2,      # C 形开口宽（<管外径10，压进去不自己掉）
     "rail_x": 13.95,         # [已弃用]
     "rail_w": 3.5,           # [已弃用]
     "rail_y_out": 5.3,       # [已弃用]
@@ -101,6 +111,19 @@ def B(cx, cy, cz, sx, sy, sz):
     return m
 
 
+def C(cx, cy, cz, r, h, sections=64):
+    """圆柱/圆孔：中心 (cx,cy,cz)，半径 r，高 h（沿 Z）"""
+    from trimesh.creation import cylinder
+    m = cylinder(radius=r, height=h, sections=sections)
+    m.apply_translation([cx, cy, cz])
+    return m
+
+
+def cut(target, tools):
+    """布尔差集（target 减 tools）"""
+    return difference([target] + list(tools), engine="manifold")
+
+
 def _board_line(p):
     """板/槽的中心线：返回 (axis_yz, 线上任意点 yz)"""
     ang = np.deg2rad(p["tilt"])
@@ -118,16 +141,31 @@ def build(p=P):
     _axis = np.array([-np.sin(_ar), -np.cos(_ar)])
     nj = np.array([-_axis[1], _axis[0]])
 
-    # ---- 1) 两条插土腿：x 向薄片，插在板槽两侧，完全不碰盆壁 ----
+    # ---- 1) 两条插土腿：Y 向前后各一（避开中间的板槽），X 向做宽抗倾覆 ----
     ld = p["leg_depth"]
-    legs = [B(sx * p["leg_x"], p["leg_y"], (p["soil_gap"] - ld) / 2,
-               p["leg_t"], p["leg_w"], p["soil_gap"] + ld)
-            for sx in (-1, 1)]
+    legs = [B(0, p["col_y"] + sy * p["leg_dy"], (p["soil_gap"] - ld) / 2,
+              p["leg_w"], p["leg_t"], p["soil_gap"] + ld)
+            for sy in (-1, 1)]
     body = union(legs, engine="manifold")
 
     # ---- 2) 夹板柱：底面坐在土面(z=0)，顶面 z=col_h（板顶与柱顶齐平即到位）----
     col = B(0, p["col_y"], p["col_h"] / 2, p["col_x"], p["col_d"], p["col_h"])
     body = union([body, col], engine="manifold")
+
+    # ---- 3) 水管 C 形卡箍凸台（+X 侧外伸，管子竖向穿过）----
+    if p.get("ring_on", False):
+        bw, bh2, rz = p["ring_boss_w"], p["ring_boss_h"], p["ring_z"]
+        bx_c = p["col_x"] / 2 + bw / 2 - 2.0          # 与柱边重叠 2mm 保证连接牢固
+        ring_cx = p["col_x"] / 2 + bw - p["ring_od"] - 2.0
+        # 凸台 Y 深度比柱小 0.4，避免与柱子共面（共面会导致布尔 union 产出两个体）
+        boss = B(bx_c, p["col_y"], rz, bw, p["col_d"] - 0.4, bh2)
+        body = union([body, boss], engine="manifold")
+        # 竖向管孔
+        body = cut(body, [C(ring_cx, p["col_y"], rz, p["ring_id"] / 2, bh2 + 6, sections=64)])
+        # C 形开口（朝 -Y，管子从盆内侧压进去）
+        # C 形开口：Y 向只切到孔心 +1，留 4mm 实心把凸台连在柱子上
+        slot = B(ring_cx, p["col_y"] - 2.5, rz, p["ring_slot_w"], 7.0, bh2 + 6)
+        body = cut(body, [slot])
 
     # ---- 4) 板槽：沿 8° 轴贯穿"顶桥 + 夹板柱"，两侧各留 3.2 壁 ----
     ang_r = np.deg2rad(p["tilt"])

@@ -313,7 +313,7 @@ add(brow, "pcb_green", "土壤传感器板")
 AZ_CLIP = 40.0                      # 方案B：管夹插在盆内土里，避开传感器架(207°)
 clip_rot = trimesh.transformations.rotation_matrix(np.deg2rad(AZ_CLIP - 90.0), [0, 0, 1])
 # 方案B土插式：管夹插在盆内土里，按【盆心 + 半径偏移】算（不再贴盆沿）
-_CLIP_R_OFF = 12.0
+_CLIP_R_OFF = 18.0   # 窄版管夹(15×15)，贴盆边放，让开中间给薄荷
 clip_pt = (POT[0] + _CLIP_R_OFF * np.cos(np.deg2rad(AZ_CLIP)),
            POT[1] + _CLIP_R_OFF * np.sin(np.deg2rad(AZ_CLIP)))
 clip_mesh = M_P0.build_tube_clip(M_P0.PARAMS["clip"])
