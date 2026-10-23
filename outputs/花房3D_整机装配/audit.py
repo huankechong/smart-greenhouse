@@ -83,10 +83,8 @@ for name, stl in [("01b_sensor_rim_hook", "01b_sensor_rim_hook_v2.stl"),
     m = trimesh.load(os.path.join(ROOT, "花房3D_P0", "STL", stl))
     g = round(m.volume * 1.24 / 1000, 1)
     checks.append((f"P0 文档 {stl} 估重 {g}g 是否出现", str(g) in d))
-    bb = [round(x, 2) for x in m.extents]
-    expect = {"01b_sensor_rim_hook_v2.stl": "30 × 19.78 × 32.78",
-              "02_pump_mount_v1.stl": "57 × 55 × 25",
-              "03_tube_clip_v1.stl": "26 × 26.6 × 31.4"}[stl]
+    # 外形期望由 STL 实际 extents 动态生成 —— 改模型后不必再手改本文件
+    expect = " × ".join(f"{x:g}" for x in (round(v, 2) for v in m.extents))
     checks.append((f"P0 文档 {stl} 外形写作「{expect}」", expect in d))
 
 # P1P2
@@ -99,11 +97,10 @@ for stl, key in [("04_oled_stand_v1.stl", "21.1"),
 
 # 底盘
 d2 = doc(os.path.join(ROOT, "花房3D_整机底盘", "交付说明_整机底盘两片式v1.md"))
-for stl, key in [("06a_base_left_v1.stl", "299.8"), ("06b_base_right_v1.stl", "291.8"),
-                 ("06c_joint_block_v1.stl", "4.2")]:
+for stl in ["06a_base_left_v1.stl", "06b_base_right_v1.stl", "06c_joint_block_v1.stl"]:
     m = trimesh.load(os.path.join(ROOT, "花房3D_整机底盘", "STL", stl))
     g = round(m.volume * 1.24 / 1000, 1)
-    checks.append((f"底盘 文档 {stl} 实际 {g}g / 文档写 {key}g", abs(g - float(key)) < 0.6))
+    checks.append((f"底盘 文档 {stl} 实际 {g}g 是否出现", f"{g} g" in d2))
 
 # 装配
 d3 = doc(os.path.join(ROOT, "花房3D_整机装配", "交付说明_整机示意模型.md"))

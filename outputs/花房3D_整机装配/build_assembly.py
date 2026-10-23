@@ -157,10 +157,10 @@ for jy in M_BASE.P["joint_y"]:
     add(place(M_BASE.build_block(M_BASE.P), 0, jy, PT - M_BASE.P["recess_d"]), "base", "连接块")
 
 # ---------- 2. 花盆 + 土 ----------
-POT = (-105.0, 60.0)
-R_BOT, R_TOP, POT_H, FLOOR = 29.0, 41.0, 85.0, 3.0
+POT = (-111.0, 60.0)         # 与底盘 pot_pos 同步 [2026-10-23 换 8x8x8 直筒盆]
+R_BOT, R_TOP, POT_H, FLOOR = 40.0, 40.0, 80.0, 3.0   # 8x8x8 直筒盆: 外φ80恒定, 高80, 底厚3
 pot = trimesh.boolean.difference(
-    [frustum(R_BOT, R_TOP, POT_H), place(frustum(24.0, 37.0, POT_H - FLOOR), 0, 0, FLOOR)],
+    [frustum(R_BOT, R_TOP, POT_H), place(frustum(37.0, 37.0, POT_H - FLOOR), 0, 0, FLOOR)],
     engine="manifold")
 add(place(pot, POT[0], POT[1], 2.0), "pot", "花盆")
 
@@ -269,8 +269,8 @@ add(place(cylinder(radius=6.0, height=7.0, sections=32), PUMP[0] - 2.0, PUMP[1],
 # ---------- 6. 水管（v2：末端竖直穿过夹孔，孔径 8.6 / 管径 8，全程不蹭夹壁）----------
 # 管孔世界坐标在夹子放置后算出（第 8 节），这里先按 AZ_CLIP 推导
 _AZR = np.deg2rad(-12.0)
-_RIM_R = (37.0 + 41.0) / 2
-_CLIP_X = -105.0 + _RIM_R * np.cos(_AZR)
+_RIM_R = (37.0 + 40.0) / 2
+_CLIP_X = -111.0 + _RIM_R * np.cos(_AZR)
 _CLIP_Y = 60.0 + _RIM_R * np.sin(_AZR)
 _HOLE_X = _CLIP_X + (-11.0) * np.cos(_AZR)
 _HOLE_Y = _CLIP_Y + (-11.0) * np.sin(_AZR)
@@ -288,8 +288,8 @@ tube_pts = [
 add(tube_path(tube_pts, r=4.0), "tube", "水管")
 
 # ---------- 7. 土壤传感器: 盆沿挂钩式 (不在盆里立着) ----------
-RIM_R = (37.0 + 41.0) / 2          # 盆沿壁中线半径(内37/外41)
-RIM_Z = 2.0 + POT_H                 # 盆沿顶面 = 87
+RIM_R = (37.0 + 40.0) / 2          # 盆沿壁中线半径(内37/外40, 8x8x8 直筒盆)
+RIM_Z = 2.0 + POT_H                 # 盆沿顶面 = 82 (8x8x8 直筒盆)
 PLANT_AZ = np.degrees(np.arctan2(PLANT[1] - POT[1], PLANT[0] - POT[0]))
 AZ = PLANT_AZ + 180.0               # 挂在植株对面
 rim_pt = (POT[0] + RIM_R * np.cos(np.deg2rad(AZ)),

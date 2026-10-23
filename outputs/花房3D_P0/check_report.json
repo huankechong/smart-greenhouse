@@ -14,25 +14,25 @@
   ],
   "z_min": 0.0,
   "est_mass_g_PLA": 24.7,
-  "stl": "d:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_P0\\STL\\02_pump_mount_v1.stl",
-  "preview": "d:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_P0\\preview\\02_pump_mount.png"
+  "stl": "D:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_P0\\STL\\02_pump_mount_v1.stl",
+  "preview": "D:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_P0\\preview\\02_pump_mount.png"
  },
  {
   "name": "03_tube_clip | 水管末端固定夹",
   "watertight": true,
   "winding_consistent": true,
-  "volume_mm3": 9534.4,
-  "surface_mm2": 4321.7,
-  "triangles": 376,
+  "volume_mm3": 9537.3,
+  "surface_mm2": 4315.0,
+  "triangles": 336,
   "bodies": 1,
   "bbox_mm": [
    26.0,
-   26.58,
-   31.38
+   26.3,
+   31.2
   ],
   "z_min": 0.0,
   "est_mass_g_PLA": 11.8,
-  "stl": "d:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_P0\\STL\\03_tube_clip_v1.stl",
-  "preview": "d:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_P0\\preview\\03_tube_clip.png"
+  "stl": "D:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_P0\\STL\\03_tube_clip_v1.stl",
+  "preview": "D:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_P0\\preview\\03_tube_clip.png"
  }
 ]
