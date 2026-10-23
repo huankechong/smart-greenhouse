@@ -185,7 +185,16 @@ for i in range(7):
 
 # ---------- 4. 水箱：1L 打包桶（圆台）+ 3D 替换盖 + P52 浮球（AR08 圆桶化）----------
 TANK = (85.0, 32.0)
-BOT_R, TOP_R, TANK_H, TANK_T = 53.0, 68.0, 120.0, 1.4   # 底 φ106 / 口外径 φ136 / 桶身 120 / 壁 ≈1.4
+# ★ 1L 打包桶【2026-10-23 到货实测·领导量具】底 φ105 / 口内 φ120 / 口外 φ124
+#   商品页原标"上径 136"是含提手凸缘的最大外径，桶本体口沿外径只有 124
+BUCKET_BOT_OD, BUCKET_MOUTH_ID, BUCKET_MOUTH_OD = 105.0, 120.0, 124.0
+BUCKET_WALL = (BUCKET_MOUTH_OD - BUCKET_MOUTH_ID) / 2      # 2.0 侧壁厚（实测推算）
+BOT_R, TOP_R, TANK_H, TANK_T = BUCKET_BOT_OD / 2, BUCKET_MOUTH_OD / 2, 120.0, BUCKET_WALL
+#   桶高 120 为商品页推算值【未实测】；桶底厚未实测，暂按侧壁厚 2.0 建模
+# 替换盖几何（与 p10_tank_lid.py 同参数）
+LID_SKIRT_CLR, LID_SKIRT_WALL, LID_SKIRT_H = 0.8, 2.8, 8.0
+LID_FLANGE_R = (BUCKET_MOUTH_OD + LID_SKIRT_CLR + 2 * LID_SKIRT_WALL) / 2   # 65.2 盖板半径
+LID_SKIRT_IR = (BUCKET_MOUTH_OD + LID_SKIRT_CLR) / 2                       # 62.4 裙边内孔半径
 TANK_Z = 3.0
 TRIM = TANK_Z + TANK_H            # 123 桶口
 LID_T = 4.0
@@ -212,19 +221,19 @@ _water = place(frustum(_r_at(0) - 0.6, _r_at(85.0) - 0.6, 85.0, 72),
                TANK[0], TANK[1], TANK_Z + TANK_T)
 add(trimesh.boolean.difference([_water, _wedge], engine="manifold"), "water", "水体")
 
-# 第 10 件替换盖：φ142.4×4 板 + 裙边内 φ136.8×8 + φ20×0.8 螺母凸台，三孔
+# 第 10 件替换盖：φ130.4×4 板 + 裙边内 φ124.8×8 + φ20×0.8 螺母凸台，三孔 [实测124后修正]
 _lid = trimesh.boolean.union([
-    _cyl(71.2, LID_T, 96, z=TRIM + LID_T / 2, x=TANK[0], y=TANK[1]),
-    _cyl(71.2, 8.0, 96, z=TRIM - 4.0, x=TANK[0], y=TANK[1]),
+    _cyl(LID_FLANGE_R, LID_T, 96, z=TRIM + LID_T / 2, x=TANK[0], y=TANK[1]),
+    _cyl(LID_FLANGE_R, LID_SKIRT_H, 96, z=TRIM - LID_SKIRT_H / 2, x=TANK[0], y=TANK[1]),
     _cyl(10.0, 0.8, 48, z=TRIM - 0.4, x=TANK[0], y=TANK[1]),
 ], engine="manifold")
 _lid = trimesh.boolean.difference([_lid,
-    _cyl(68.4, 8.4, 96, z=TRIM - 4.0, x=TANK[0], y=TANK[1]),                    # 裙边内孔（套桶口）
+    _cyl(LID_SKIRT_IR, LID_SKIRT_H + 0.4, 96, z=TRIM - LID_SKIRT_H / 2, x=TANK[0], y=TANK[1]),  # 裙边内孔（套桶口外壁124）
     _cyl(5.25, 70.0, 32, z=LID_TOP - 25.0, x=TANK[0], y=TANK[1]),                 # 浮球杆孔 φ10.5
     _cyl(5.0, LID_T + 4, 24, z=TRIM + LID_T / 2, x=TUBE_XY[0], y=TUBE_XY[1]),     # 水管孔 φ10
     _cyl(4.0, LID_T + 4, 24, z=TRIM + LID_T / 2, x=WIRE_XY[0], y=WIRE_XY[1]),     # 过线孔 φ8
-    _cyl(13.0, 14.0, 40, z=TRIM - 1.0, x=TANK[0] + 71.2, y=TANK[1]),              # 指位缺口（+X）
-    _cyl(13.0, 14.0, 40, z=TRIM - 1.0, x=TANK[0] - 71.2, y=TANK[1]),              # 指位缺口（−X）
+    _cyl(13.0, 14.0, 40, z=TRIM - 1.0, x=TANK[0] + LID_FLANGE_R, y=TANK[1]),    # 指位缺口（+X）
+    _cyl(13.0, 14.0, 40, z=TRIM - 1.0, x=TANK[0] - LID_FLANGE_R, y=TANK[1]),    # 指位缺口（−X）
 ], engine="manifold")
 add(_lid, "white", "水箱盖")
 
@@ -238,10 +247,10 @@ add(place(_float, TANK[0], TANK[1], 84.0), "float", "浮子")
 
 # ---------- 5. 水泵座 + 水泵（桶内居中）----------
 PUMP = (85.0, 32.0)
-INNER_FLOOR = TANK_Z + TANK_T      # 4.4 桶内底
+INNER_FLOOR = TANK_Z + TANK_T      # 5.0 桶内底（槽底3 + 壁厚2）
 add(place(M_P0.build_pump_mount(M_P0.PARAMS["pump"]), PUMP[0], PUMP[1], INNER_FLOOR), "white", "水泵固定座")
 # 实物泵体 41 × 39 × 30（含出水嘴 37），底脚 32 × 28 —— 方块 + 顶面出水嘴
-_PZ = INNER_FLOOR + 3.0            # 7.4 泵体底面
+_PZ = INNER_FLOOR + 3.0            # 8.0 泵体底面
 add(place(box([41.0, 39.0, 30.0]), PUMP[0], PUMP[1], _PZ + 15.0), "pump", "水泵")
 add(place(cylinder(radius=6.0, height=7.0, sections=32), PUMP[0] - 2.0, PUMP[1], _PZ + 33.5),
     "pump", "泵出水嘴")
