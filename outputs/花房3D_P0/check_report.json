@@ -21,9 +21,9 @@
   "name": "03_tube_clip | 水管末端固定夹",
   "watertight": true,
   "winding_consistent": true,
-  "volume_mm3": 9537.3,
-  "surface_mm2": 4315.0,
-  "triangles": 336,
+  "volume_mm3": 8819.2,
+  "surface_mm2": 4392.4,
+  "triangles": 344,
   "bodies": 1,
   "bbox_mm": [
    26.0,
@@ -31,7 +31,7 @@
    31.2
   ],
   "z_min": 0.0,
-  "est_mass_g_PLA": 11.8,
+  "est_mass_g_PLA": 10.9,
   "stl": "D:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_P0\\STL\\03_tube_clip_v1.stl",
   "preview": "D:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_P0\\preview\\03_tube_clip.png"
  }

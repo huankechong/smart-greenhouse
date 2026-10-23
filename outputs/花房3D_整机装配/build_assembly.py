@@ -121,7 +121,7 @@ def _cyl(r, h, sec=20, axis="z", x=0.0, y=0.0, z=0.0):
     return m
 
 
-def tube_path(points, r=4.0):
+def tube_path(points, r=5.0):   # 硅胶管外径 10 (实测)
     parts = []
     pts = [np.asarray(p, dtype=float) for p in points]
     for a, b in zip(pts[:-1], pts[1:]):
@@ -285,7 +285,7 @@ tube_pts = [
     (_HOLE_X, _HOLE_Y, 136.0),      # 到盆沿管孔正上方
     (_HOLE_X, _HOLE_Y, 81.0),       # 竖直下穿管孔（全程同轴，不蹭壁）
 ]
-add(tube_path(tube_pts, r=4.0), "tube", "水管")
+add(tube_path(tube_pts, r=5.0), "tube", "水管")   # 外径 10 (实测)
 
 # ---------- 7. 土壤传感器: 盆沿挂钩式 (不在盆里立着) ----------
 RIM_R = (37.0 + 40.0) / 2          # 盆沿壁中线半径(内37/外40, 8x8x8 直筒盆)

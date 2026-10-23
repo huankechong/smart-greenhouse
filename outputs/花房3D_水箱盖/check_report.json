@@ -3,8 +3,8 @@
   "name": "10_tank_lid | 水箱替换盖",
   "watertight": true,
   "winding_consistent": true,
-  "volume_mm3": 37012.7,
-  "surface_mm2": 35808.8,
+  "volume_mm3": 36943.7,
+  "surface_mm2": 35752.3,
   "triangles": 1916,
   "bodies": 1,
   "bbox_mm": [
@@ -13,11 +13,11 @@
    10.0
   ],
   "z_min": 0.0,
-  "est_mass_g_PLA": 45.9,
+  "est_mass_g_PLA": 45.8,
   "stl": "D:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_水箱盖\\STL\\10_tank_lid_v1.stl",
   "preview": "D:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_水箱盖\\preview\\10_tank_lid.png",
   "geometry_checks": {
-   "水管孔缘-凸台间隙": 7.0,
+   "水管孔缘-凸台间隙": 6.0,
    "浮球杆尖-泵顶间隙": 141.5,
    "errors": []
   }
