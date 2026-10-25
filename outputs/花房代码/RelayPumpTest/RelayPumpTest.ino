@@ -126,10 +126,12 @@ void handleCmd(String cmd) {
 
   if (low == "auto") {
     autoMode = true;
-    autoPhaseOn = false;
     autoTimer = millis();
     timedOffAt = 0;
     Serial.println(F("[动作] 进入自动循环：吸合3秒 / 停10秒（stop 退出）"));
+    // 进入时立即吸合一次 —— 否则要干等 10 秒才动，现场会误判成"没反应"
+    doOn("自动循环（首次）");
+    autoMode = true;                  // doOn 会清 autoMode，这里补回
     return;
   }
 
