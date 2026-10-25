@@ -47,10 +47,8 @@ NODE="C:/Users/junbo/.workbuddy/binaries/node/versions/22.22.2-6/node.exe"
 ```
 
 - Arduino：`outputs/.tools/arduino-cli/arduino-cli.exe`（1.5.2-rc.1）+ `esp32:esp32@2.0.18-arduino.5`（fqbn `esp32:esp32:esp32`）。编译缓存被强杀损坏时用 `--build-path` 换新目录，别怀疑代码。
-- 固件版本：**v1.6**（v1.5.1 → v1.6 修 AR16 审计缺陷：safeMap 防除零 + 标定非法硬停机 +
-  继电器电平前移到 setup 首行 + MQTT/WiFi 组合 #error 守卫 + 消抖对齐注释）。
-  **双形态编译已验证**：默认 269KB/20%，全 7 开关 902KB/68% Flash、14% RAM。
-- 固件源码唯一真相源：`outputs/花房代码/GreenHouse_v1/`。
+- 固件版本：**v1.6**，双形态编译已验证（默认 269KB/20%，全开关 902KB/68%）。改动历史见 AR16–AR17。
+- 固件源码唯一真相源：`outputs/花房代码/GreenHouse_v1/`；继电器/水泵联调用 `RelayPumpTest/`（测完必须烧回主固件）。
 
 ### 4.1 Git 提交到 GitHub（本机已就绪，2026-10-20 实测）
 

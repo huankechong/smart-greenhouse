@@ -38,7 +38,8 @@ ESP32 + 土壤湿度/光敏/DHT11 传感 → 自动浇水（继电器 + 底吸�
 │   ├── private/                            # 内部邮件（含个人信息，.gitignore 排除，不入仓库）
 │   └── 审计报告/AR02 · AR03 · AR04 · AR05 · AR06 · AR07 · AR08 · AR09 · AR10.md
 └── outputs/             # 交付物 + 生成脚本（不是文档）
-    ├── 花房代码/GreenHouse_v1/     # Arduino 固件（.ino + config.h 占位符 + 编译说明）
+    ├── 花房代码/GreenHouse_v1/     # Arduino 主固件（.ino + config.h 占位符 + 编译说明）
+    ├── 花房代码/RelayPumpTest/     # 继电器/水泵 串口测试固件（实验室联调用，测完烧回主固件）
     ├── 花房代码/AR01_…             # 固件审计报告（跟着代码放）
     ├── 花房3D_P0/                  # 01b 土插支架 / 03 窄版管夹（02 水泵座已作废存档）
     ├── 花房3D_P1P2/                # 04 OLED 支架 / 07 DHT11 座 / 08 扎线座
