@@ -4,9 +4,9 @@
   "private": true,
   "description": "BIUH DT 2026 秋《Introduction to Project Work》期末项目：智能花房养护站",
   "scripts": {
-    "verify-html": "node outputs/花房3D_整机装配/verify_html.js"
+    "verify-html": "cd outputs/花房3D_整机装配 && node verify_html.js"
   },
   "dependencies": {
-    "puppeteer": "^23.0.0"
+    "playwright": "^1.40.0"
   }
 }
