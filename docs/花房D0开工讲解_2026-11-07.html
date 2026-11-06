@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智能花房 · D0 开工讲解（2026-11-07）</title>
+<style>
+  :root {
+    --green: #2e7d32;
+    --green-light: #e8f5e9;
+    --green-border: #a5d6a7;
+    --ink: #1b2b1e;
+    --muted: #5f6f63;
+    --amber: #b45309;
+    --amber-light: #fef3c7;
+    --red: #b91c1c;
+    --red-light: #fee2e2;
+    --blue: #1d4ed8;
+    --blue-light: #dbeafe;
+    --paper: #fbfdfb;
+    --card: #ffffff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-snap-type: y proximity; scroll-behavior: smooth; }
+  body {
+    font-family: "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.65;
+  }
+  section.page {
+    min-height: 100vh;
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 48px 56px 72px;
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+  }
+  .pagenum {
+    position: absolute;
+    bottom: 20px;
+    right: 28px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .timebadge {
+    display: inline-block;
+    background: var(--green-light);
+    border: 1px solid var(--green-border);
+    color: var(--green);
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 999px;
+    padding: 2px 14px;
+    margin-left: 12px;
+    vertical-align: middle;
+  }
+  h1 { font-size: 44px; color: var(--green); line-height: 1.25; }
+  h2 { font-size: 30px; color: var(--green); margin-bottom: 22px; }
+  h3 { font-size: 19px; margin: 18px 0 8px; }
+  p.lead { font-size: 17px; color: var(--muted); }
+  .kicker {
+    letter-spacing: .35em;
+    font-size: 14px;
+    color: var(--green);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid #dfe7e0;
+    border-radius: 14px;
+    padding: 18px 22px;
+    box-shadow: 0 1px 3px rgba(27,43,30,.05);
+  }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 12px; overflow: hidden; }
+  th { background: var(--green-light); color: var(--green); text-align: left; font-size: 15px; }
+  th, td { padding: 10px 14px; border-bottom: 1px solid #e5efe6; font-size: 15px; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  .flow { display: flex; align-items: stretch; gap: 8px; margin: 18px 0 6px; flex-wrap: wrap; }
+  .flow .node {
+    flex: 1 1 150px;
+    background: var(--green-light);
+    border: 1.5px solid var(--green-border);
+    border-radius: 12px;
+    padding: 14px 12px;
+    text-align: center;
+  }
+  .flow .node b { display: block; font-size: 16px; color: var(--green); }
+  .flow .node span { font-size: 13px; color: var(--muted); }
+  .flow .arrow { align-self: center; font-size: 22px; color: var(--green); font-weight: 700; }
+  .tag { display: inline-block; font-size: 12.5px; font-weight: 700; border-radius: 6px; padding: 1px 8px; margin-right: 6px; }
+  .tag-r1 { background: var(--green-light); color: var(--green); border: 1px solid var(--green-border); }
+  .tag-r2 { background: var(--blue-light); color: var(--blue); border: 1px solid #93c5fd; }
+  .tag-r3 { background: var(--amber-light); color: var(--amber); border: 1px solid #fcd34d; }
+  .tag-r4 { background: #f3e8ff; color: #7e22ce; border: 1px solid #d8b4fe; }
+  .warn {
+    background: var(--red-light);
+    border-left: 4px solid var(--red);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-top: 14px;
+    font-size: 15px;
+  }
+  .warn b { color: var(--red); }
+  .tip {
+    background: var(--amber-light);
+    border-left: 4px solid var(--amber);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-top: 14px;
+    font-size: 15px;
+  }
+  details.notes {
+    margin-top: 18px;
+    background: #fffdf5;
+    border: 1px dashed #d9c99a;
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 14px;
+    color: #6b5d33;
+  }
+  details.notes summary { cursor: pointer; font-weight: 700; color: var(--amber); }
+  details.notes ul { margin: 8px 0 4px 18px; }
+  details.notes li { margin: 4px 0; }
+  .checklist { list-style: none; }
+  .checklist li { padding: 6px 0 6px 30px; position: relative; font-size: 15.5px; }
+  .checklist li::before {
+    content: "☐";
+    position: absolute; left: 4px; top: 5px;
+    color: var(--green); font-size: 17px;
+  }
+  .small { font-size: 13.5px; color: var(--muted); }
+  .hl { background: linear-gradient(transparent 62%, #d9f2dc 62%); font-weight: 700; }
+  code { background: #eef3ee; border-radius: 5px; padding: 1px 7px; font-family: Consolas, monospace; font-size: 14px; color: #14532d; }
+  @media print {
+    html { scroll-snap-type: none; }
+    body { background: #fff; }
+    section.page { min-height: auto; page-break-after: always; padding: 24px 8mm; }
+    details.notes { display: block; }
+    .pagenum { color: #888; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════ P1 封面 ═══════════ -->
+<section class="page">
+  <div class="kicker">SMART GREENHOUSE · DAY 0</div>
+  <h1>智能花房养护站<br>D0 开工讲解</h1>
+  <p class="lead" style="margin-top:20px; font-size:18px;">
+    2026-11-07（周六）· 宿舍电子实验日 · 全员到场
+  </p>
+  <div style="margin-top:28px;" class="grid4">
+    <div class="card" style="text-align:center;"><b style="color:var(--green); font-size:22px;">7 分钟</b><br><span class="small">讲完就开干</span></div>
+    <div class="card" style="text-align:center;"><b style="color:var(--green); font-size:22px;">4 个人</b><br><span class="small">今天各领各的活</span></div>
+    <div class="card" style="text-align:center;"><b style="color:var(--green); font-size:22px;">2 段硬日期</b><br><span class="small">D0 今天 · D+2 周一交打印</span></div>
+    <div class="card" style="text-align:center;"><b style="color:var(--green); font-size:22px;">1 个 commit</b><br><span class="small">散会前人人交一个</span></div>
+  </div>
+  <details class="notes">
+    <summary>🎤 讲稿提示 · 封面（20 秒）</summary>
+    <ul>
+      <li>开场白：「花房已经做了一大半，今天你们三个正式进场。我用 7 分钟讲清楚三件事：项目是什么、已经做到哪、今天怎么干。」</li>
+      <li>先开这个页面投屏或让大家围过来看手机/笔记本。</li>
+    </ul>
+  </details>
+  <div class="pagenum">1 / 7</div>
+</section>
+
+<!-- ═══════════ P2 项目是什么（黑盒） ═══════════ -->
+<section class="page">
+  <h2>① 项目是什么<span class="timebadge">⏱ 30 秒</span></h2>
+  <p class="lead" style="margin-bottom:6px;">一句话：<b>一个会自己浇水的花盆，手机上还能远程看数据、远程浇水。</b></p>
+  <div class="flow">
+    <div class="node"><b>4 个传感器</b><span>土壤湿度 · 光照<br>温湿度 · 水位浮球</span></div>
+    <div class="arrow">→</div>
+    <div class="node" style="background:#e7f0ff; border-color:#93c5fd;"><b>ESP32 大脑</b><span>读数判断<br>「土干了没有」</span></div>
+    <div class="arrow">→</div>
+    <div class="node"><b>继电器 + 水泵</b><span>自动浇水<br>低水位自动断泵</span></div>
+  </div>
+  <div class="flow">
+    <div class="node" style="background:#f3e8ff; border-color:#d8b4fe;"><b>OLED 屏 + 双色灯</b><span>现场看数据<br>绿=湿 红=干</span></div>
+    <div class="arrow">→</div>
+    <div class="node" style="background:#fff7ed; border-color:#fdba74;"><b>巴法云 MQTT</b><span>数据上云<br>微信小程序远程浇水</span></div>
+  </div>
+  <div class="tip">🎤 <b>器件传阅环节（讲到这里做）</b>：把 <b>ESP32 板 → 继电器模块 → 水泵 → 土壤传感器</b> 按顺序每人手里传几秒，指着实物说名字。30 秒传完，比图有冲击力。</div>
+  <details class="notes">
+    <summary>🎤 讲稿提示 · 原理（30 秒，不展开）</summary>
+    <ul>
+      <li>只讲黑盒：「传感器告诉大脑土干不干，干了大脑就开泵浇水，浇完关上。数据顺便传到云上，手机能看能控制。」</li>
+      <li>谁问原理就一句话带过：「接线细节都在《接线规划表》里，干活的时候照表接，现在不用记。」</li>
+    </ul>
+  </details>
+  <div class="pagenum">2 / 7</div>
+</section>
+
+<!-- ═══════════ P3 已经做到哪 ═══════════ -->
+<section class="page">
+  <h2>② 已经做到哪了<span class="timebadge">⏱ 90 秒</span></h2>
+  <p class="lead">这三周领导一个人把<b>地基</b>全打完了——下面这些<b>你们不用重做</b>，但开工前要知道：</p>
+  <table style="margin-top:16px;">
+    <tr><th style="width:38%;">已完成</th><th>对你们意味着</th></tr>
+    <tr><td>ESP32 烧录通路全通（COM6 实机验证）</td><td>今天插上就能烧，不用配环境</td></tr>
+    <tr><td>9 件 3D 打印件 STL + gcode <b>全部切好</b></td><td>R3 不碰切片，周一交打印就行</td></tr>
+    <tr><td>继电器测试固件已烧在板上（实测通过）</td><td>今天第 2 件任务跳过烧录直接测</td></tr>
+    <tr><td>关键尺寸全部实测回填（桶/管/盆/传感器）</td><td>打印件尺寸可信，试装大概率顺利</td></tr>
+    <tr><td>组队已在课程 docx 备案（4 人名单）</td><td>合规问题已解决</td></tr>
+  </table>
+  <div class="warn" style="margin-top:16px;"><b>⚠️ 还欠一件硬事：</b>土壤传感器的干/湿两个标定值没测过（没插过真土）。<b>没测出来之前，自动浇水功能锁死不开启</b>——这是全项目写错代价最高的一条，等试装完插进真土再测（计划 D+6）。</div>
+  <details class="notes">
+    <summary>🎤 讲稿提示 · 进度（90 秒）</summary>
+    <ul>
+      <li>「从 10 月 20 号到现在，固件、3D 建模、切片、尺寸实测都是我做的。你们进场不是从零开始，是接一个半成品往下推。」</li>
+      <li>提到标定锁死时加重语气：「这条是安全阀——标定值瞎填，要么花渴死要么泡烂。」</li>
+      <li>预防落差感：「每人产出都会是报告和答辩 PPT 里独立署名的一节，不是打杂。」</li>
+    </ul>
+  </details>
+  <div class="pagenum">3 / 7</div>
+</section>
+
+<!-- ═══════════ P4 今天怎么干 ═══════════ -->
+<section class="page">
+  <h2>③ 今天怎么干<span class="timebadge">⏱ 3 分钟</span></h2>
+  <h3>上午 · 站会 10 分钟（就在现在）</h3>
+  <ul class="checklist">
+    <li>对号帽子：编程强 → <span class="tag tag-r2">R2</span>；会 CAD/打印 → <span class="tag tag-r3">R3</span>；文笔强细心 → <span class="tag tag-r4">R4</span>（<b>MacBook 那位不坐 R3</b>，原因后面讲）</li>
+    <li>确认必读三文档已收到：《AI 工作交接文档》《10月26日实验室操作清单》《接线规划表》</li>
+  </ul>
+  <h3>全天 · 电子实验（我主操，照操作清单顺序，别打乱）</h3>
+  <div class="flow">
+    <div class="node"><b>1. 继电器</b><span>板上固件现成<br>听「咔哒」就过</span></div>
+    <div class="arrow">→</div>
+    <div class="node"><b>2. 水泵</b><span>量筒量水<br>记 ml/s 表</span></div>
+    <div class="arrow">→</div>
+    <div class="node"><b>3. 六项传感器</b><span>逐个点亮<br>一次只接一个</span></div>
+    <div class="arrow">→</div>
+    <div class="node"><b>4. 浮球极性</b><span>万用表蜂鸣档<br>10 分钟收尾</span></div>
+  </div>
+  <div class="grid2" style="margin-top:14px;">
+    <div class="card">
+      <b>非主操的两位干什么</b>
+      <ul class="small" style="margin:6px 0 0 18px;">
+        <li>轮流拍照录像——补素材欠账 <b>≥8 张</b>（串口截图/继电器吸合/出水视频/OLED 屏照）</li>
+        <li>记出水量表（几秒出多少 ml）——这是后面固件浇水时长的依据</li>
+      </ul>
+    </div>
+    <div class="card">
+      <b>散会前 · 人人一个 commit</b>
+      <ul class="small" style="margin:6px 0 0 18px;">
+        <li>在自己目录建一个小文件（两行字都行）走连接器提交</li>
+        <li>标题带前缀 <code>[R2]</code>/<code>[R3]</code>/<code>[R4]</code>——当场验证链路通不通</li>
+      </ul>
+    </div>
+  </div>
+  <div class="tip">🎤 <b>器材传阅第二落点</b>：讲第 1~4 步时，分别举起对应器件（继电器→水泵→各传感器→浮球）说「就测这个」。收尾提醒：<b>借的器材晚上清点、水擦干、照片传电脑备份</b>（微信传图会被清理）。</div>
+  <details class="notes">
+    <summary>🎤 讲稿提示 · 今天（3 分钟）</summary>
+    <ul>
+      <li>强调顺序不能乱：「继电器和水泵是串联验证——继电器先单独响，再让它带泵；传感器一次只接一个，全接上出了问题查不动。」</li>
+      <li>点名确认：讲完对号后逐个问「你今天拍哪几张 / 记什么表 / 建什么文件」，让每人复述一遍自己的活。</li>
+      <li>周一预告：「今天全在宿舍做桌面实验；3D 打印周一（D+2）我带 R3 去实验室交件。」</li>
+    </ul>
+  </details>
+  <div class="pagenum">4 / 7</div>
+</section>
+
+<!-- ═══════════ P5 你的帽子 ═══════════ -->
+<section class="page">
+  <h2>④ 你的帽子和这周交什么<span class="timebadge">⏱ 90 秒</span></h2>
+  <div class="grid4">
+    <div class="card" style="border-top:4px solid var(--green);">
+      <span class="tag tag-r1">R1 领导</span>
+      <h3>系统负责人</h3>
+      <p class="small">固件唯一修改人 · 标定 · 集成 · 答辩主答</p>
+      <p class="small" style="margin-top:8px;"><b>本周交：</b>实验数据回填固件、烧回主程序</p>
+    </div>
+    <div class="card" style="border-top:4px solid var(--blue);">
+      <span class="tag tag-r2">R2</span>
+      <h3>上云与数据</h3>
+      <p class="small">巴法云 · 小程序 · MQTT 远程浇水 · 数据导出归档</p>
+      <p class="small" style="margin-top:8px;"><b>本周交：</b>建联调记录文件；<span class="hl">D+3 前上云准备完成</span>（注册/建主题/绑小程序）</p>
+    </div>
+    <div class="card" style="border-top:4px solid var(--amber);">
+      <span class="tag tag-r3">R3</span>
+      <h3>结构与打印</h3>
+      <p class="small">机时 · 打印盯机 · 试装 · 偏差回填（<b>Windows + 本机 Git</b>）</p>
+      <p class="small" style="margin-top:8px;"><b>本周交：</b><span class="hl">D+2（周一）上午随我去实验室交打印</span>；取件后试装记偏差表</p>
+    </div>
+    <div class="card" style="border-top:4px solid #7e22ce;">
+      <span class="tag tag-r4">R4</span>
+      <h3>文档与影像</h3>
+      <p class="small">素材库 · 全程拍照 · Fritzing 电路图 · 报告 · PPT</p>
+      <p class="small" style="margin-top:8px;"><b>本周交：</b>今晚建素材库（命名 <code>S1-xxx</code>）；<span class="hl">D+5 前报告大纲 + Fritzing 初稿</span></p>
+    </div>
+  </div>
+  <div class="warn"><b>⚠️ MacBook 为什么不能坐 R3：</b>打印件文件超过 1 MB，走不了网页连接器上传，必须用 Windows 电脑本机推——不是能力问题，是工具边界。坐 R2/R4 都行。</div>
+  <details class="notes">
+    <summary>🎤 讲稿提示 · 分工（90 秒）</summary>
+    <ul>
+      <li>先问再定：「你们先说说自己想干哪块？」再按强项校正——「能力对口优先」。</li>
+      <li>R2 强调一条：「云上历史数据有免费保留期，上云成功<b>当天就导出</b>，不许拖。」</li>
+      <li>R3 强调红线：「打印件不许手改，尺寸要改只改参数表，我复核后重跑脚本。」</li>
+      <li>R4 强调：「素材当场拍当场归档，事后补拍的一眼假，答辩照片真实性是隐性评分点。」</li>
+    </ul>
+  </details>
+  <div class="pagenum">5 / 7</div>
+</section>
+
+<!-- ═══════════ P6 两条铁律+协作规则 ═══════════ -->
+<section class="page">
+  <h2>⑤ 两条铁律 + 三个协作习惯<span class="timebadge">⏱ 30 秒</span></h2>
+  <div class="grid2">
+    <div class="warn" style="margin-top:0;">
+      <b>铁律一 · 自动浇水现在是锁死的</b><br>
+      <span class="small">土壤标定值没实测之前，<code>EN_WATER = 0</code>，谁都不许开。D+6 插真土标定后才解锁。</span>
+    </div>
+    <div class="warn" style="margin-top:0;">
+      <b>铁律二 · 大文件不走网页连接器</b><br>
+      <span class="small">STL / 大图 / 视频（&gt;1 MB）交给 R1/R3 本机推。连接器只走文档、小图，且<b>不改别人的文件</b>。</span>
+    </div>
+  </div>
+  <table style="margin-top:16px;">
+    <tr><th style="width:26%;">习惯</th><th>规则</th></tr>
+    <tr><td><b>留痕</b></td><td>commit / PR 标题都带 <code>[R1]</code>~<code>[R4]</code> 前缀；素材命名 <code>S{阶段}-{描述}</code> —— 答辩被问「这块谁做的」能秒答</td></tr>
+    <tr><td><b>单一真相源</b></td><td>文档只认 <code>docs/</code>，不许各自存「我的最终版」</td></tr>
+    <tr><td><b>站会</b></td><td><b>每周六上午 30 分钟</b>：每人 2 分钟说「交了什么 / 卡在哪」；谁请假，他的活有人顶，项目不能停</td></tr>
+  </table>
+  <details class="notes">
+    <summary>🎤 讲稿提示 · 铁律（30 秒）</summary>
+    <ul>
+      <li>两条铁律各一句带过，重点让组员记住「浇水锁死」和「大文件找 R1/R3」。</li>
+      <li>顺手发手册：《GitHub与Agent提交代码_零基础手册》群里有，连接器怎么用、报错怎么查都在里面。</li>
+    </ul>
+  </details>
+  <div class="pagenum">6 / 7</div>
+</section>
+
+<!-- ═══════════ P7 本周死线速览 ═══════════ -->
+<section class="page">
+  <h2>⑥ 本周（S1）死线速览<span class="timebadge">⏱ 贴墙用</span></h2>
+  <table>
+    <tr><th style="width:18%;">时间</th><th style="width:14%;">谁</th><th>交什么</th></tr>
+    <tr><td><b>D0 今天</b></td><td>全员</td><td>电子实验四件套跑完 + 素材 ≥8 张 + <b>人人一个 [Rn] commit</b></td></tr>
+    <tr><td>D0 晚</td><td><span class="tag tag-r4">R4</span></td><td>素材库建好，今天所有照片按 <code>S1-xxx</code> 归档</td></tr>
+    <tr><td><b>D+1</b></td><td><span class="tag tag-r1">R1</span></td><td>ml/s 折算 <code>WATER_MS</code>、浮球极性回填，烧回主固件 v1.6</td></tr>
+    <tr><td><b>D+2（周一上午）</b></td><td><span class="tag tag-r3">R3</span></td><td><b>实验室交打印</b>（gcode 现成）+ 现场核对打印机型号/喷嘴 + 问清取件时间</td></tr>
+    <tr><td>D+3</td><td><span class="tag tag-r2">R2</span></td><td>巴法云注册 + 双主题建立 + 小程序绑定（纯软件，不等硬件）</td></tr>
+    <tr><td>D+5</td><td><span class="tag tag-r4">R4</span></td><td>报告大纲 + Fritzing 整机电路图初稿</td></tr>
+  </table>
+  <p class="small" style="margin-top:14px;">📌 排期说明：答辩新日期老师还没公布，全计划用相对天数（D+n）排；公布后只换算后半程，前两周照跑。<br>📌 下一站会：<b>下周六上午</b>；R3 取件试装后在站会带偏差表。</p>
+  <div class="card" style="margin-top:16px; background:var(--green-light); border-color:var(--green-border);">
+    <b style="color:var(--green); font-size:18px;">今天结束时的画面：</b>
+    <span>继电器响过、水泵出过水、六个传感器逐个亮过、浮球极性记下了、四个人各自仓库里有第一个 commit——花房正式从单人项目变成小组项目。</span>
+  </div>
+  <details class="notes">
+    <summary>🎤 讲稿提示 · 收尾（15 秒）</summary>
+    <ul>
+      <li>指着死线表说：「就这些，谁觉得自己做不到当天说，当场调。」</li>
+      <li>然后合上电脑：「散会，开干——先从继电器开始，器材都在这桌上。」</li>
+    </ul>
+  </details>
+  <div class="pagenum">7 / 7</div>
+</section>
+
+<script>
+  // 演示模式：←/→ 或 PgUp/PgDn 翻页
+  const pages = [...document.querySelectorAll('section.page')];
+  let cur = 0;
+  function go(i) {
+    cur = Math.max(0, Math.min(pages.length - 1, i));
+    pages[cur].scrollIntoView({ behavior: 'smooth' });
+  }
+  document.addEventListener('keydown', e => {
+    if (['ArrowRight','ArrowDown','PageDown',' '].includes(e.key)) { e.preventDefault(); go(cur + 1); }
+    if (['ArrowLeft','ArrowUp','PageUp'].includes(e.key)) { e.preventDefault(); go(cur - 1); }
+  });
+  window.addEventListener('scroll', () => {
+    const y = window.scrollY + window.innerHeight / 2;
+    pages.forEach((p, i) => { if (y >= p.offsetTop && y < p.offsetTop + p.offsetHeight) cur = i; });
+  }, { passive: true });
+</script>
+</body>
+</html>
