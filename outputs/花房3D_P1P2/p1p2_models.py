@@ -40,11 +40,23 @@ PARAMS = {
         "base_x": 36.0,          # 底盘宽
         "base_y": 34.0,          # 底盘深
         "base_t": 3.0,           # 底盘厚
-        "slope_y": 24.0,         # 斜面投影深度 (决定支架高度)
-        "slope_z": 24.0,         # 斜面投影高度
+        "slope_y": 26.5,         # 斜面投影深度（24→26.5：加长斜面给下沿留挡边）
+        "slope_z": 26.5,         # 斜面投影高度
         "pocket_clear": 0.9,     # 板槽单边间隙 [公差]
         "pocket_depth": 2.4,     # 板槽深 (= PCB 1.6 + 余量), 板面与斜面齐平
-        "open_ext": 4.0,         # 底端开口延长, 给 4 针排针让位
+        "open_ext": 0.6,         # 板槽下端延长（2026-11-07: 4.0→0.6，下端做挡边防板下滑）
+        # ---- 2026-11-07 走线位（原设计板背只留 0.8mm，排针+杜邦头塞不进）----
+        "leg_h": 10.0,           # 腿高：底座抬高，排针/杜邦头从底座下方出线
+        "leg_w": 8.0,            # 腿截面
+        "lift": 0.0,             # 模块沿斜面上移量（斜面已加长，靠斜面自身留挡边）
+        "wire_w": 13.0,          # 排针过线口宽（4P 排针 10.2 + 余量）
+        "wire_len": 5.5,         # 过线口沿斜面长度（排针塑壳 2.54 + 两侧余量）
+        "wire_depth": 11.0,      # 排针段局部加深（需 > 排针2.5 + 杜邦头2.5 + 槽深2.4）
+        "base_slot_y": 6.0,      # 底座竖槽中心（局部 y）
+        "base_slot_len": 9.0,    # 底座竖槽长度（沿 y，须盖住杜邦头背面 2.3）
+        "ic_w": 14.0,            # 板背元件让位宽（模块背面元件最高按 1.2 计）
+        "ic_len": 9.5,           # 让位沿斜面长度（覆盖板下缘往上 9.5）
+        "ic_depth": 4.0,         # 让位总深（板槽 2.4 + 元件 1.0 + 余量）
     },
     # ---------- 件 5: 双色 LED 灯罩 [已作废删除 2026-10-20: 无半透明耗材, 项目取消] ----------
     # ---------- 件 6: 整合底板 [已作废删除 2026-10-20: 被两片式底盘 06a/06b/06c 取代] ----------
@@ -150,25 +162,44 @@ def frame_part(mesh, deg_x, origin):
 def build_oled_stand(p):
     bx, by, bt = p["base_x"], p["base_y"], p["base_t"]
     sy, sz = p["slope_y"], p["slope_z"]
+    z0 = p["leg_h"]                # 腿高：底座抬离板面，排针+杜邦头从下方出线
     lip = 4.0                      # 斜面下沿距底盘前缘的距离, 避免刀口
     ang = -45.0
 
-    # 底盘 (完整保留, 不参与斜切)
-    body = B(0, 0, bt / 2, bx, by, bt)
+    # ---- 1) 底座抬升 10mm：周边裙墙 + 两条内筋 ----
+    # 不用四条腿：36×34 的底板底面会变成悬空天花，免支撑打不出来。
+    # 裙墙 + 内筋把底面分成 ≤14mm 的小格，全是垂直壁 + 短桥，免支撑可打；
+    # 背面裙墙留 13×7 过线口，线从底座下往后出。
+    h = z0
+    skirt_t = 3.0
+    fin_x = 8.5
+    outer = B(0, 0, h / 2, bx, by, h)
+    inner = B(0, 0, h / 2, bx - 2 * skirt_t, by - 2 * skirt_t, h + 2)
+    plinth = cut(outer, [inner])
+    plinth = add(plinth, [B(sx * fin_x, 0, h / 2 + 0.3, skirt_t,
+                            by - 2 * skirt_t, h + 0.6) for sx in (-1, 1)])
+    # 背面过线口（13 宽 × 7 高），与底座竖槽同宽
+    wire_gate = B(0, -by / 2 + skirt_t / 2, 3.5, p["wire_w"], skirt_t + 2, 7.0)
+    plinth = cut(plinth, [wire_gate])
+
+    # ---- 2) 底盘 + 楔块（整体抬到腿上，打印仍 z_min=0） ----
+    body = B(0, 0, z0 + bt / 2, bx, by, bt)
 
     # 楔块: 先单独切出 45 度斜面, 再与底盘合并 —— 否则切刀会把底盘一起削掉
-    wedge = B(0, 0, bt + sz / 2, bx, by, sz)
-    plane_pt = np.array([0.0, by / 2 - lip, bt])          # 斜面下沿点
+    wedge = B(0, 0, z0 + bt + sz / 2, bx, by, sz)
+    plane_pt = np.array([0.0, by / 2 - lip, z0 + bt])          # 斜面下沿点
     cutter = B(0, 0, 30.0, 120, 120, 60)                  # 局部 z 0..60
     cutter = frame_part(cutter, ang, plane_pt)
     wedge = cut(wedge, [cutter])
     body = add(body, [wedge])
+    body = add(body, [plinth])
 
-    # 斜面参数
+    # 斜面参数（模块沿斜面整体上移 lift：下沿留 8.7mm 挡边，排针处才有材料开过线口）
     n = np.array([0.0, np.sin(np.deg2rad(45)), np.cos(np.deg2rad(45))])   # 斜面法线(朝上前)
-    slope_mid = plane_pt + np.array([0, -sy / 2, sz / 2])                 # 斜面中点
+    up = np.array([0.0, -np.sin(np.deg2rad(45)), np.cos(np.deg2rad(45))])  # 上坡方向
+    slope_mid = plane_pt + np.array([0, -sy / 2, sz / 2]) + up * p["lift"]  # 斜面中点
 
-    # 板槽: 局部 z=0 为斜面, 向材料内切 pocket_depth; 下坡侧开口给排针让位
+    # ---- 3) 板槽: 局部 z=0 为斜面, 向材料内切 pocket_depth; 下端挡边 0.6 防板下滑 ----
     pw = p["oled_w"] + p["pocket_clear"]
     d = p["pocket_depth"]
     pocket_len = p["oled_h"] + p["pocket_clear"] + p["open_ext"]
@@ -177,8 +208,25 @@ def build_oled_stand(p):
     pocket = frame_part(pocket, ang, slope_mid)
     body = cut(body, [pocket])
 
-    # v2 防脱卡爪（2026-10-19 AR05，落实"碰倒屏幕脱出"限制）：
-    # 上坡端两只 1.2mm 厚弹性爪，向槽内悬伸 1.5mm，压住板上缘（0.6 过盈，PLA 弹性扣入）
+    # ---- 4) ★ 排针过线位（2026-11-07 新增）----
+    # 板下缘 4P 排针塑壳 2.5 + 杜邦母头 2.5，沿板背法线共需 ~7.5mm；原槽深 2.4 只剩 0.8mm。
+    # 做法：排针段局部加深 11mm（切穿底座上表面）+ 底座开 13×7 竖槽 → 到底座下方，
+    #      4 个杜邦头藏在 10mm 高的腿腔里，线从底座下往后走。
+    board_bot = upslope_edge + p["oled_h"] + p["pocket_clear"]            # 板下缘（沿斜面）
+    strip = B(0, board_bot - p["wire_len"] / 2 + 0.6,
+              1.0 - (1.0 + p["wire_depth"]) / 2,
+              p["wire_w"], p["wire_len"], 1.0 + p["wire_depth"])
+    body = cut(body, [frame_part(strip, ang, slope_mid)])
+    bslot = B(0, p["base_slot_y"], z0 + bt / 2, p["wire_w"], p["base_slot_len"], bt + 2)
+    body = cut(body, [bslot])
+
+    # 板背元件让位（0.96" 模块背面常有 1mm 级元件/焊点）：板下缘往上 8mm 局部加深到 3.6
+    icr = B(0, board_bot - p["ic_len"] / 2 + 0.1,
+            1.0 - (1.0 + p["ic_depth"]) / 2,
+            p["ic_w"], p["ic_len"], 1.0 + p["ic_depth"])
+    body = cut(body, [frame_part(icr, ang, slope_mid)])
+
+    # ---- 5) v2 防脱卡爪（上坡端两只 1.2mm 厚弹性爪，压住板上缘）----
     claw_h, claw_w, claw_over = 1.2, 4.0, 1.5
     claws = []
     for sx in (-1, 1):

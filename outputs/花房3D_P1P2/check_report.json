@@ -3,18 +3,18 @@
   "name": "04_oled_stand | OLED 45°斜面支架",
   "watertight": true,
   "winding_consistent": true,
-  "volume_mm3": 17047.8,
-  "triangles": 92,
+  "volume_mm3": 22075.8,
+  "triangles": 236,
   "bodies": 1,
   "bbox_mm": [
    36.0,
    34.0,
-   27.0
+   39.5
   ],
   "z_min": 0.0,
-  "est_mass_g_PLA": 21.1,
-  "stl": "d:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_P1P2\\STL\\04_oled_stand_v1.stl",
-  "preview": "d:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_P1P2\\preview\\04_oled_stand.png"
+  "est_mass_g_PLA": 27.4,
+  "stl": "D:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_P1P2\\STL\\04_oled_stand_v1.stl",
+  "preview": "D:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_P1P2\\preview\\04_oled_stand.png"
  },
  {
   "name": "07_dht11_holder | DHT11 小座",
@@ -30,8 +30,8 @@
   ],
   "z_min": 0.0,
   "est_mass_g_PLA": 14.9,
-  "stl": "d:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_P1P2\\STL\\07_dht11_holder_v1.stl",
-  "preview": "d:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_P1P2\\preview\\07_dht11_holder.png"
+  "stl": "D:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_P1P2\\STL\\07_dht11_holder_v1.stl",
+  "preview": "D:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_P1P2\\preview\\07_dht11_holder.png"
  },
  {
   "name": "08_cable_clip | 扎线固定座",
@@ -47,7 +47,7 @@
   ],
   "z_min": 0.0,
   "est_mass_g_PLA": 4.8,
-  "stl": "d:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_P1P2\\STL\\08_cable_clip_v1.stl",
-  "preview": "d:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_P1P2\\preview\\08_cable_clip.png"
+  "stl": "D:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_P1P2\\STL\\08_cable_clip_v1.stl",
+  "preview": "D:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_P1P2\\preview\\08_cable_clip.png"
  }
 ]
