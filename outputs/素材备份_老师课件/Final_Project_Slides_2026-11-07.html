@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>期末项目（Final Project）安排与说明 · 幻灯片</title>
+  <style>
+    /* ============================================================
+    配色方案(完整提取自 temp.html :root):
+    深海军蓝 #003e60 | 青色 #0098be | 绿色 #058e67
+    浅冰蓝 #bbdfe6 | 琥珀 #d97a1f | Neutral: #eef6f9/#dceef4/#e1edf2/#7f8c99
+    ============================================================ */
+    :root {
+      --navy: #003e60;
+      --navy-2: #002b45;
+      --navy-3: #0a4d6e;
+      --cyan: #0098be;
+      --green: #058e67;
+      --ice: #bbdfe6;
+      --ice-2: #dceef4;
+      --ice-3: #eef6f9;
+      --white: #ffffff;
+      --ink: #33475b;
+      --gray: #7f8c99;
+      --line: #e1edf2;
+      --amber: #d97a1f;
+      --font: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", "Source Han Sans SC", "Segoe UI", Arial, sans-serif;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden
+    }
+
+    body {
+      background: radial-gradient(1200px 700px at 70% -10%, #0d4a6b 0%, #062c42 45%, #041e30 100%);
+      font-family: var(--font);
+      user-select: none;
+      overscroll-behavior: none;
+    }
+
+    /* ---------------- 16:9 舞台(1280×720) ---------------- */
+    #stage {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 1280px;
+      height: 720px;
+      transform: translate(-50%, -50%);
+      transform-origin: center center;
+      background: #fff;
+      overflow: hidden;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, .45);
+    }
+
+    /* ---------------- 幻灯片切换(仅 transform/opacity → 合成层 60fps) ---------------- */
+    .slide {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: scale(.975);
+      transition: opacity .48s ease, transform .48s ease, visibility 0s linear .48s;
+      will-change: transform, opacity;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      padding: 54px 72px 58px;
+    }
+
+    .slide.active {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: none;
+      z-index: 2;
+      transition: opacity .5s ease .04s, transform .55s cubic-bezier(.22, .61, .36, 1) .04s;
+    }
+
+    .slide.out-l {
+      transform: translateX(-64px) scale(.975)
+    }
+
+    .slide.out-r {
+      transform: translateX(64px) scale(.975)
+    }
+
+    /* ---------------- 分层入场动画(CSS3 关键帧) ---------------- */
+    .a {
+      opacity: 0
+    }
+
+    .slide.active .a {
+      animation: rise .65s cubic-bezier(.22, .61, .36, 1) both;
+      animation-delay: calc(130ms + var(--d, 0)*95ms);
+    }
+
+    .slide.active .aL {
+      animation-name: riseL
+    }
+
+    .slide.active .aR {
+      animation-name: riseR
+    }
+
+    .slide.active .aPop {
+      animation-name: pop
+    }
+
+    .slide.active .aFade {
+      animation-name: fade
+    }
+
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(30px)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    @keyframes riseL {
+      from {
+        opacity: 0;
+        transform: translateX(-38px)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    @keyframes riseR {
+      from {
+        opacity: 0;
+        transform: translateX(38px)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    @keyframes pop {
+      from {
+        opacity: 0;
+        transform: scale(.85)
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1)
+      }
+    }
+
+    @keyframes fade {
+      from {
+        opacity: 0
+      }
+
+      to {
+        opacity: 1
+      }
+    }
+
+    /* ---------------- 内容页头部 ---------------- */
+    .s-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 24px
+    }
+
+    .s-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: var(--cyan);
+      margin-bottom: 10px;
+    }
+
+    .s-tag i {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      background: linear-gradient(135deg, var(--cyan), var(--green));
+      display: inline-block
+    }
+
+    .s-head h2 {
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--navy);
+      letter-spacing: 1px;
+      line-height: 1.2
+    }
+
+    .s-head h2 em {
+      font-style: normal;
+      color: var(--cyan)
+    }
+
+    .s-en {
+      color: var(--gray);
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 3.5px;
+      text-transform: uppercase;
+      white-space: nowrap;
+      padding-bottom: 7px;
+    }
+
+    .s-rule {
+      height: 4px;
+      width: 84px;
+      border-radius: 2px;
+      background: linear-gradient(90deg, var(--cyan), var(--green));
+      margin-top: 14px
+    }
+
+    .s-body {
+      flex: 1;
+      margin-top: 26px;
+      display: flex;
+      flex-direction: column;
+      min-height: 0
+    }
+
+    /* ---------------- 内容页脚(装饰条 + 页码) ---------------- */
+    .s-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 16px;
+      margin-top: 18px;
+      border-top: 1px solid var(--line);
+    }
+
+    .fbar {
+      display: flex;
+      align-items: center;
+      gap: 7px
+    }
+
+    .fbar i {
+      height: 10px;
+      border-radius: 5px;
+      display: block
+    }
+
+    .fbar i.dot {
+      width: 10px !important;
+      border-radius: 50%
+    }
+
+    .pgno {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--navy);
+      letter-spacing: 2px
+    }
+
+    .pgno b {
+      color: var(--cyan)
+    }
+
+    /* ---------------- 深色页(封面/目录/结尾) ---------------- */
+    .slide.dark {
+      background: linear-gradient(155deg, #01486f 0%, var(--navy) 46%, var(--navy-2) 100%);
+      color: #fff;
+    }
+
+    .dark .s-tag {
+      color: var(--ice)
+    }
+
+    .dark .s-head h2 {
+      color: #fff
+    }
+
+    /* 底部彩色装饰条 */
+    .cover-bars {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      padding: 0 26px;
+      height: 170px;
+      overflow: hidden
+    }
+
+    .cover-bars i {
+      flex: 1;
+      border-radius: 5px 5px 0 0;
+      transform-origin: bottom;
+      transform: scaleY(0);
+      min-height: 12px
+    }
+
+    .slide.active .cover-bars i {
+      animation: barUp .85s cubic-bezier(.22, .61, .36, 1) both;
+      animation-delay: calc(.3s + var(--d)*45ms)
+    }
+
+    @keyframes barUp {
+      from {
+        transform: scaleY(0)
+      }
+
+      to {
+        transform: scaleY(1)
+      }
+    }
+
+    /* 封面 */
+    .cover-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center
+    }
+
+    .cover-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 15px;
+      letter-spacing: 4px;
+      font-weight: 700;
+      color: var(--ice);
+      text-transform: uppercase
+    }
+
+    .cover-tag .pill {
+      background: rgba(0, 152, 190, .28);
+      border: 1px solid rgba(187, 223, 230, .4);
+      padding: 8px 18px;
+      border-radius: 999px;
+      letter-spacing: 3px
+    }
+
+    .cover-title {
+      font-size: 92px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      line-height: 1.05;
+      margin-top: 36px;
+      background: linear-gradient(100deg, #fff 20%, var(--ice) 60%, #7fc4d6 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .cover-sub {
+      font-size: 30px;
+      font-weight: 600;
+      color: #fff;
+      margin-top: 20px;
+      letter-spacing: 2px
+    }
+
+    .cover-desc {
+      font-size: 17px;
+      color: var(--ice);
+      margin-top: 16px;
+      line-height: 1.8;
+      max-width: 880px
+    }
+
+    .cover-desc b {
+      color: #fff
+    }
+
+    .cover-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 26px
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, .09);
+      border: 1px solid rgba(187, 223, 230, .35);
+      color: #eaf6fa;
+      font-size: 15px;
+      font-weight: 600;
+      padding: 10px 18px;
+      border-radius: 999px;
+      letter-spacing: .5px;
+    }
+
+    .chip b {
+      color: #fff
+    }
+
+    /* 目录页 */
+    .toc-wrap {
+      flex: 1;
+      display: flex;
+      min-height: 0
+    }
+
+    .toc-grid {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 8px 44px;
+      padding: 24px 56px 18px 8px
+    }
+
+    .toc-item {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      border-bottom: 1px solid rgba(187, 223, 230, .25);
+      padding-bottom: 22px
+    }
+
+    .toc-num {
+      font-size: 44px;
+      font-weight: 900;
+      color: #fff;
+      line-height: 1;
+      min-width: 56px
+    }
+
+    .toc-emoji {
+      font-size: 34px;
+      margin-top: -16px
+    }
+
+    .toc-item h3 {
+      font-size: 23px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: 2px
+    }
+
+    .toc-item p {
+      font-size: 13px;
+      color: var(--ice);
+      letter-spacing: 2px;
+      margin-top: 6px;
+    }
+
+    .toc-side {
+      writing-mode: vertical-rl;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 64px;
+      font-weight: 900;
+      letter-spacing: 12px;
+      color: rgba(187, 223, 230, .3);
+      border-left: 1px solid rgba(187, 223, 230, .2);
+    }
+
+    /* 结尾页 */
+    .end-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center
+    }
+
+    .end-emoji {
+      font-size: 84px
+    }
+
+    .end-title {
+      font-size: 84px;
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: 10px;
+      margin-top: 18px;
+      background: linear-gradient(100deg, #fff 20%, var(--ice) 60%, #7fc4d6 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .end-sub {
+      font-size: 22px;
+      color: var(--ice);
+      letter-spacing: 5px;
+      margin-top: 22px
+    }
+
+    .end-tag {
+      margin-top: 30px;
+      font-size: 14px;
+      letter-spacing: 4px;
+      color: rgba(187, 223, 230, .6);
+      text-transform: uppercase
+    }
+
+    /* ---------------- 卡片组件 ---------------- */
+    .grid {
+      display: grid;
+      gap: 16px;
+      flex: 1;
+      min-height: 0
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-top: 4px solid var(--cyan);
+      border-radius: 14px;
+      padding: 18px 20px;
+      box-shadow: 0 8px 22px rgba(0, 62, 96, .07);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-height: 0;
+    }
+
+    .card.g {
+      border-top-color: var(--green)
+    }
+
+    .card.n {
+      border-top-color: var(--navy)
+    }
+
+    .card.amber {
+      border-top-color: var(--amber)
+    }
+
+    .c-top {
+      display: flex;
+      align-items: center;
+      gap: 12px
+    }
+
+    .ic {
+      width: 44px;
+      height: 44px;
+      flex: none;
+      border-radius: 12px;
+      font-size: 23px;
+      background: var(--ice-3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card.g .ic {
+      background: #e2f3ec
+    }
+
+    .card.n .ic {
+      background: #e6eff5
+    }
+
+    .card.amber .ic {
+      background: #fbeedd
+    }
+
+    .c-top h3 {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--navy);
+      letter-spacing: .5px
+    }
+
+    .c-top h3 small {
+      display: block;
+      font-size: 10.5px;
+      color: var(--gray);
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-top: 2px
+    }
+
+    .card p {
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--ink)
+    }
+
+    .hl {
+      color: var(--cyan);
+      font-weight: 800
+    }
+
+    .hl-g {
+      color: var(--green);
+      font-weight: 800
+    }
+
+    .hl-a {
+      color: var(--amber);
+      font-weight: 800
+    }
+
+    .bignum {
+      font-size: 34px;
+      font-weight: 900;
+      color: var(--ice);
+      letter-spacing: 3px;
+      line-height: 1
+    }
+
+    /* 深色金句卡 */
+    .quote-card {
+      background: linear-gradient(150deg, var(--navy-3), var(--navy) 60%, var(--navy-2));
+      border-radius: 16px;
+      padding: 26px 30px;
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      box-shadow: 0 14px 34px rgba(0, 43, 69, .35);
+    }
+
+    .quote-card .q-emoji {
+      font-size: 40px;
+      flex: none;
+      line-height: 1.2
+    }
+
+    .quote-card h3 {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--ice);
+      letter-spacing: 3px;
+      margin-bottom: 10px;
+      text-transform: uppercase
+    }
+
+    .quote-card p {
+      font-size: 18.5px;
+      line-height: 1.85;
+      color: #fff;
+      font-weight: 600
+    }
+
+    .quote-card p b {
+      color: #8fd8ea
+    }
+
+    /* 底部结论条 */
+    .concl {
+      margin-top: auto;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: #f2f9fb;
+      border: 1px dashed var(--ice);
+      border-radius: 12px;
+      padding: 14px 22px;
+      font-size: 15.5px;
+      line-height: 1.7;
+      color: var(--ink);
+    }
+
+    .concl b {
+      color: var(--navy)
+    }
+
+    /* 两栏布局 */
+    .duo {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      flex: 1;
+      min-height: 0
+    }
+
+    .duo .card {
+      justify-content: flex-start
+    }
+
+    /* 三段式流程 */
+    .flow {
+      display: flex;
+      align-items: stretch;
+      gap: 14px;
+      margin-top: 18px
+    }
+
+    .flow-step {
+      flex: 1;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      border-top: 4px solid var(--cyan);
+      box-shadow: 0 8px 22px rgba(0, 62, 96, .07);
+    }
+
+    .flow-step.amber {
+      border-top-color: var(--amber)
+    }
+
+    .flow-step.green {
+      border-top-color: var(--green)
+    }
+
+    .fs-emoji {
+      font-size: 30px
+    }
+
+    .flow-step h3 {
+      font-size: 19px;
+      font-weight: 800;
+      color: var(--navy)
+    }
+
+    .flow-step p {
+      font-size: 14.5px;
+      line-height: 1.65;
+      color: var(--ink)
+    }
+
+    .flow-arrow {
+      display: flex;
+      align-items: center;
+      font-size: 30px;
+      color: var(--cyan);
+      font-weight: 900
+    }
+
+    /* 统计大数字 */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .stat {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px 20px 16px;
+      box-shadow: 0 8px 22px rgba(0, 62, 96, .07);
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      border-bottom: 4px solid var(--cyan);
+    }
+
+    .stat.g {
+      border-bottom-color: var(--green)
+    }
+
+    .stat.n {
+      border-bottom-color: var(--navy)
+    }
+
+    .stat .lbl {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--cyan);
+      letter-spacing: 2px
+    }
+
+    .stat.g .lbl {
+      color: var(--green)
+    }
+
+    .stat.n .lbl {
+      color: var(--navy)
+    }
+
+    .stat .num {
+      font-size: 42px;
+      font-weight: 900;
+      color: var(--navy);
+      letter-spacing: 1px;
+      line-height: 1.1;
+      white-space: nowrap;
+    }
+
+    .stat .num small {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--gray);
+      letter-spacing: 1px
+    }
+
+    .stat .sub {
+      font-size: 13px;
+      color: var(--gray);
+      line-height: 1.6
+    }
+
+    /* 浅色圆角标签 */
+    .lchip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--ice-3);
+      border: 1px solid var(--ice-2);
+      color: var(--navy);
+      font-size: 15px;
+      font-weight: 800;
+      padding: 9px 16px;
+      border-radius: 999px;
+      letter-spacing: .5px;
+    }
+
+    .lchip b {
+      color: var(--cyan)
+    }
+
+    /* 开放时间表 */
+    .hours {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 4px
+    }
+
+    .hours .hrow {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--ice-3);
+      border: 1px solid var(--ice-2);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--ink)
+    }
+
+    .hours .hrow b {
+      margin-left: auto;
+      color: var(--navy);
+      letter-spacing: 1px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    /* 徽章前提 */
+    .prems {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px
+    }
+
+    .prem {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px 12px;
+      box-shadow: 0 8px 22px rgba(0, 62, 96, .07);
+      border-bottom: 4px solid var(--cyan);
+    }
+
+    .prem:nth-child(2) {
+      border-bottom-color: var(--green)
+    }
+
+    .prem:nth-child(3) {
+      border-bottom-color: var(--amber)
+    }
+
+    .prem:nth-child(4) {
+      border-bottom-color: var(--navy)
+    }
+
+    .prem span {
+      font-size: 30px
+    }
+
+    .prem h3 {
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--navy);
+      letter-spacing: 2px
+    }
+
+    .prem p {
+      font-size: 12.5px;
+      color: var(--gray);
+      text-align: center;
+      line-height: 1.5
+    }
+
+    /* ---------------- 视口 HUD: 进度条 / 页码 / 箭头按钮 ---------------- */
+    #hud {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 10;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 14px 22px;
+    }
+
+    #progress {
+      flex: 1;
+      height: 4px;
+      background: rgba(255, 255, 255, .18);
+      border-radius: 2px;
+      overflow: hidden
+    }
+
+    #progress i {
+      display: block;
+      height: 100%;
+      width: 100%;
+      border-radius: 2px;
+      background: linear-gradient(90deg, var(--cyan), var(--green));
+      transform-origin: left center;
+      transform: scaleX(0);
+      transition: transform .45s cubic-bezier(.22, .61, .36, 1);
+    }
+
+    #pageNo {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--ice);
+      letter-spacing: 2px;
+      white-space: nowrap
+    }
+
+    #pageNo b {
+      color: #fff
+    }
+
+    #nav {
+      position: fixed;
+      right: 22px;
+      bottom: 14px;
+      display: flex;
+      gap: 12px;
+      z-index: 11
+    }
+
+    #nav button {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: rgba(0, 62, 96, .55);
+      border: 1px solid rgba(187, 223, 230, .45);
+      color: #fff;
+      font-size: 26px;
+      line-height: 1;
+      cursor: pointer;
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform .15s ease, opacity .15s ease;
+    }
+
+    #nav button:hover {
+      background: rgba(0, 152, 190, .72);
+      transform: scale(1.07)
+    }
+
+    #nav button:active {
+      transform: scale(.94)
+    }
+
+    #nav button:disabled {
+      opacity: .25;
+      cursor: default;
+      transform: none;
+      background: rgba(0, 62, 96, .55)
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="stage">
+
+    <!-- ============ 1. 封面 ============ -->
+    <section class="slide dark active" id="s1">
+      <div class="cover-wrap">
+        <div class="cover-tag a" style="--d:0"><span class="pill">🎓 FINAL PROJECT · 期末项目</span></div>
+        <h1 class="cover-title a" style="--d:1">期末项目安排</h1>
+        <div class="cover-sub a" style="--d:2">Final Project 安排与说明</div>
+        <p class="cover-desc a" style="--d:3">本项目主要由<b>实验室动手实践 · 期末报告 · 期末展示</b>三部分组成；<br>展示环节分两个阶段进行，提交截止日期为 <b>2026 年 11 月 24 日</b>，C312 / C313 / C314 实验室开放支持。</p>
+        <div class="cover-chips a" style="--d:4">
+          <span class="chip">🧩 组成部分 <b>3</b> 个</span>
+          <span class="chip">🎤 展示阶段 <b>2</b> 轮</span>
+          <span class="chip">📅 提交截止 <b>11·24</b></span>
+          <span class="chip">🏫 开放实验室 <b>3</b> 间</span>
+        </div>
+      </div>
+      <div class="cover-bars">
+        <i style="--d:0;background:#0098be;height:120px"></i>
+        <i style="--d:1;background:#058e67;height:88px"></i>
+        <i style="--d:2;background:#bbdfe6;height:140px"></i>
+        <i style="--d:3;background:#0a4d6e;height:70px"></i>
+        <i style="--d:4;background:#0098be;height:110px"></i>
+        <i style="--d:5;background:#d97a1f;height:64px"></i>
+        <i style="--d:6;background:#bbdfe6;height:130px"></i>
+        <i style="--d:7;background:#058e67;height:92px"></i>
+      </div>
+    </section>
+
+    <!-- ============ 2. 目录 ============ -->
+    <section class="slide dark" id="s2">
+      <div class="s-head">
+        <div class="a" style="--d:0">
+          <div class="s-tag"><i></i>CONTENTS · 目录</div>
+          <h2>期末项目的内容地图</h2>
+        </div>
+        <div class="s-en a" style="--d:1">Agenda</div>
+      </div>
+      <div class="s-rule a" style="--d:1"></div>
+      <div class="toc-wrap">
+        <div class="toc-grid">
+          <div class="toc-item aL" style="--d:2">
+            <div class="toc-num">01</div>
+            <div class="toc-emoji">🧩</div>
+            <div>
+              <h3>项目构成</h3>
+              <p>Components · 三大组成部分</p>
+            </div>
+          </div>
+          <div class="toc-item aL" style="--d:3">
+            <div class="toc-num">02</div>
+            <div class="toc-emoji">🎤</div>
+            <div>
+              <h3>期末展示说明</h3>
+              <p>Presentation · 两阶段 + 英语加分项</p>
+            </div>
+          </div>
+          <div class="toc-item aL" style="--d:4">
+            <div class="toc-num">03</div>
+            <div class="toc-emoji">📅</div>
+            <div>
+              <h3>关键时间节点</h3>
+              <p>Deadline · 提交截止 2026·11·24</p>
+            </div>
+          </div>
+          <div class="toc-item aL" style="--d:5">
+            <div class="toc-num">04</div>
+            <div class="toc-emoji">🏫</div>
+            <div>
+              <h3>实验室开放与安全</h3>
+              <p>Lab Access &amp; Safety · C312 / C313 / C314</p>
+            </div>
+          </div>
+        </div>
+        <div class="toc-side aR" style="--d:6">PROJECT</div>
+      </div>
+    </section>
+
+    <!-- ============ 3. 项目构成 ============ -->
+    <section class="slide" id="s3">
+      <div class="s-head">
+        <div class="a" style="--d:0">
+          <div class="s-tag"><i></i>01 · PROJECT COMPONENTS</div>
+          <h2>项目构成：<em>三大组成部分</em></h2>
+        </div>
+        <div class="s-en a" style="--d:1">Components</div>
+      </div>
+      <div class="s-rule a" style="--d:1"></div>
+      <div class="s-body">
+        <div class="grid" style="grid-template-columns:repeat(3,1fr)">
+          <div class="card a" style="--d:2">
+            <div class="c-top">
+              <div class="ic">🧪</div>
+              <h3>实验室动手实践<small>Lab Hands-on Practice</small></h3>
+            </div>
+            <div class="bignum">01</div>
+            <p>动手实践是本项目<span class="hl">三大组成部分</span>之一，在开放实验室中完成。</p>
+          </div>
+          <div class="card g a" style="--d:3">
+            <div class="c-top">
+              <div class="ic">📝</div>
+              <h3>期末报告<small>Final Report</small></h3>
+            </div>
+            <div class="bignum">02</div>
+            <p>期末报告是本项目<span class="hl-g">三大组成部分</span>之一，记录项目完成过程。</p>
+          </div>
+          <div class="card n a" style="--d:4">
+            <div class="c-top">
+              <div class="ic">🎤</div>
+              <h3>期末展示<small>Final Presentation</small></h3>
+            </div>
+            <div class="bignum">03</div>
+            <p>期末展示<span class="hl">分两个阶段</span>进行，详情见下页说明。</p>
+          </div>
+        </div>
+        <div class="concl a" style="--d:5">
+          <span style="font-size:22px">📌</span>
+          <span><b>结构总览：</b>本项目主要由<b>实验室动手实践、期末报告、期末展示</b>三个部分组成。</span>
+        </div>
+      </div>
+      <div class="s-foot">
+        <div class="fbar"><i style="width:26px;background:var(--cyan)"></i><i
+            style="width:16px;background:var(--green)"></i><i style="width:10px;background:var(--ice)"></i><i
+            class="dot" style="width:10px;background:var(--amber)"></i></div>
+        <div class="pgno"><b>03</b> / 07</div>
+      </div>
+    </section>
+
+    <!-- ============ 4. 期末展示两阶段 ============ -->
+    <section class="slide" id="s4">
+      <div class="s-head">
+        <div class="a" style="--d:0">
+          <div class="s-tag"><i></i>02 · FINAL PRESENTATION</div>
+          <h2>期末展示：<em>两阶段进行</em></h2>
+        </div>
+        <div class="s-en a" style="--d:1">Two Stages</div>
+      </div>
+      <div class="s-rule a" style="--d:1"></div>
+      <div class="s-body">
+        <div class="flow" style="margin-top:6px">
+          <div class="flow-step aL" style="--d:2">
+            <div class="fs-emoji">📋</div>
+            <h3>第一阶段 · 集中展示</h3>
+            <p>老师将对每个小组的项目完成情况进行<span class="hl">初步评分</span>，表现优异的小组将<span class="hl">晋级</span>。</p>
+          </div>
+          <div class="flow-arrow aPop" style="--d:3">➜</div>
+          <div class="flow-step green aR" style="--d:4">
+            <div class="fs-emoji">🎖️</div>
+            <h3>第二阶段 · 进阶展示</h3>
+            <p>邀请 <span class="hl-g">DT 部门</span>的其他老师共同参与评分；晋级小组需准备完善的展示材料（如 <span class="hl">PPT 幻灯片</span>）并逐个进行汇报。</p>
+          </div>
+        </div>
+        <div class="card amber a" style="--d:5;margin-top:18px;flex-direction:row;align-items:center;gap:14px">
+          <div class="ic">🌟</div>
+          <p><span class="hl-a">加分项：</span>强烈建议使用<span class="hl-a">英语</span>进行展示，这将显著提高该部分的评分。建议大家提前熟悉相关专业术语，做好充分准备。</p>
+        </div>
+        <div class="concl a" style="--d:6">
+          <span style="font-size:22px">🗣️</span>
+          <span><b>准备要点：</b>完善 PPT 等展示材料 · 提前熟悉专业术语 · 争取用英语汇报（加分项）。</span>
+        </div>
+      </div>
+      <div class="s-foot">
+        <div class="fbar"><i style="width:26px;background:var(--cyan)"></i><i
+            style="width:16px;background:var(--green)"></i><i style="width:10px;background:var(--ice)"></i><i
+            class="dot" style="width:10px;background:var(--amber)"></i></div>
+        <div class="pgno"><b>04</b> / 07</div>
+      </div>
+    </section>
+
+    <!-- ============ 5. 关键时间节点与实验室开放 ============ -->
+    <section class="slide" id="s5">
+      <div class="s-head">
+        <div class="a" style="--d:0">
+          <div class="s-tag"><i></i>03 · DEADLINE &amp; LAB ACCESS</div>
+          <h2>关键时间节点 与 <em>实验室开放</em></h2>
+        </div>
+        <div class="s-en a" style="--d:1">Timeline · Lab</div>
+      </div>
+      <div class="s-rule a" style="--d:1"></div>
+      <div class="s-body">
+        <div class="stats">
+          <div class="stat a" style="--d:2">
+            <div class="lbl">📅 提交截止日期</div>
+            <div class="num">2026·11·24</div>
+            <div class="sub">2026 年 11 月 24 日 · 成果统一提交</div>
+          </div>
+          <div class="stat g a" style="--d:3">
+            <div class="lbl">🏫 开放实验室</div>
+            <div class="num">3<small> 间</small></div>
+            <div class="sub">C312 · C313 · C314</div>
+          </div>
+          <div class="stat n a" style="--d:4">
+            <div class="lbl">⏰ 开放时段</div>
+            <div class="num">2<small> 类</small></div>
+            <div class="sub">工作日 / 周末 分时段开放</div>
+          </div>
+        </div>
+        <div class="duo" style="flex:none;margin-top:16px">
+          <div class="card aL" style="--d:5">
+            <div class="c-top">
+              <div class="ic">📍</div>
+              <h3>开放实验室<small>Labs Open</small></h3>
+            </div>
+            <div class="aFade" style="--d:6;display:flex;gap:10px;flex-wrap:wrap">
+              <span class="lchip">🚪 C312</span>
+              <span class="lchip">🚪 C313</span>
+              <span class="lchip">🚪 C314</span>
+            </div>
+            <p>请大家利用<b>课余时间</b>，前往上述实验室完成 Final Project。</p>
+          </div>
+          <div class="card g aR" style="--d:7">
+            <div class="c-top">
+              <div class="ic">⏰</div>
+              <h3>开放时间<small>Opening Hours</small></h3>
+            </div>
+            <div class="hours">
+              <div class="hrow aFade" style="--d:8">📆 周一至周五<b>18:30 – 20:30</b></div>
+              <div class="hrow aFade" style="--d:9">🌙 周六、周日<b>09:00 – 20:30</b></div>
+            </div>
+          </div>
+        </div>
+        <div class="concl a" style="--d:10">
+          <span style="font-size:22px">⏳</span>
+          <span><b>提醒：</b>实验须在开放时段内进行，并注意 <b>2026 年 11 月 24 日</b>的提交截止。</span>
+        </div>
+      </div>
+      <div class="s-foot">
+        <div class="fbar"><i style="width:26px;background:var(--cyan)"></i><i
+            style="width:16px;background:var(--green)"></i><i style="width:10px;background:var(--ice)"></i><i
+            class="dot" style="width:10px;background:var(--amber)"></i></div>
+        <div class="pgno"><b>05</b> / 07</div>
+      </div>
+    </section>
+
+    <!-- ============ 6. 实验室安全须知 ============ -->
+    <section class="slide" id="s6">
+      <div class="s-head">
+        <div class="a" style="--d:0">
+          <div class="s-tag"><i></i>04 · LAB SAFETY</div>
+          <h2>实验室安全须知：<em>安全与整洁</em></h2>
+        </div>
+        <div class="s-en a" style="--d:1">Safety First</div>
+      </div>
+      <div class="s-rule a" style="--d:1"></div>
+      <div class="s-body">
+        <div class="prems" style="grid-template-columns:repeat(3,1fr)">
+          <div class="prem aPop" style="--d:2"><span>📏</span>
+            <h3>严格遵守安全准则</h3>
+            <p>开放期间，所有同学务必严格遵守实验室安全准则</p>
+          </div>
+          <div class="prem aPop" style="--d:3"><span>🧪</span>
+            <h3>确保实验环境安全</h3>
+            <p>实验过程中确保实验环境的安全</p>
+          </div>
+          <div class="prem aPop" style="--d:4"><span>🧹</span>
+            <h3>保持环境整洁</h3>
+            <p>确保实验环境的整洁，有序开展实验</p>
+          </div>
+        </div>
+        <div class="quote-card a" style="--d:5;margin-top:22px">
+          <div class="q-emoji">🛡️</div>
+          <div>
+            <h3>安全须知 · Safety Notice</h3>
+            <p>在实验室开放期间，<b>所有同学务必严格遵守实验室安全准则</b>，确保实验环境的<b>安全与整洁</b>。</p>
+          </div>
+        </div>
+        <div class="concl a" style="--d:6">
+          <span style="font-size:22px">🚨</span>
+          <span><b>安全第一：</b>安全与整洁是顺利完成 Final Project 的基本前提。</span>
+        </div>
+      </div>
+      <div class="s-foot">
+        <div class="fbar"><i style="width:26px;background:var(--cyan)"></i><i
+            style="width:16px;background:var(--green)"></i><i style="width:10px;background:var(--ice)"></i><i
+            class="dot" style="width:10px;background:var(--amber)"></i></div>
+        <div class="pgno"><b>06</b> / 07</div>
+      </div>
+    </section>
+
+    <!-- ============ 7. 结尾 ============ -->
+    <section class="slide dark" id="s7">
+      <div class="end-wrap">
+        <div class="end-emoji aPop" style="--d:0">🎉</div>
+        <div class="end-title a" style="--d:1">加油！</div>
+        <div class="end-sub a" style="--d:2">祝各组顺利完成 Final Project · 11 月 24 日前提交</div>
+        <div class="end-tag a" style="--d:3">FINAL PROJECT · DEADLINE 2026-11-24</div>
+      </div>
+      <div class="cover-bars">
+        <i style="--d:0;background:#058e67;height:110px"></i>
+        <i style="--d:1;background:#bbdfe6;height:78px"></i>
+        <i style="--d:2;background:#0098be;height:140px"></i>
+        <i style="--d:3;background:#d97a1f;height:60px"></i>
+        <i style="--d:4;background:#0a4d6e;height:96px"></i>
+        <i style="--d:5;background:#bbdfe6;height:124px"></i>
+        <i style="--d:6;background:#0098be;height:84px"></i>
+        <i style="--d:7;background:#058e67;height:132px"></i>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- 视口 HUD：进度条 + 页码 -->
+  <div id="hud">
+    <div id="progress"><i></i></div>
+    <div id="pageNo"><b>01</b> / 07</div>
+  </div>
+  <!-- 右下角翻页箭头(触控端补充控制) -->
+  <div id="nav">
+    <button id="prevBtn" aria-label="上一页" title="上一页 (←)">‹</button>
+    <button id="nextBtn" aria-label="下一页" title="下一页 (→)">›</button>
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+      var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+      var total = slides.length;
+      var cur = 0;
+      var stage = document.getElementById('stage');
+      var prevBtn = document.getElementById('prevBtn');
+      var nextBtn = document.getElementById('nextBtn');
+      var progressBar = document.querySelector('#progress i');
+      var pageNo = document.getElementById('pageNo');
+
+      /* ---------- 16:9 等比缩放适配 ---------- */
+      function fit() {
+        var s = Math.min(window.innerWidth / 1280, window.innerHeight / 720);
+        stage.style.transform = 'translate(-50%,-50%) scale(' + s + ')';
+      }
+      window.addEventListener('resize', fit);
+      fit();
+
+      /* ---------- 翻页引擎 ---------- */
+      function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+      function updateHud() {
+        progressBar.style.transform = 'scaleX(' + ((cur + 1) / total) + ')';
+        pageNo.innerHTML = '<b>' + pad(cur + 1) + '</b> / ' + pad(total);
+        prevBtn.disabled = cur === 0;
+        nextBtn.disabled = cur === total - 1;
+      }
+
+      function goTo(n) {
+        if (n < 0 || n >= total || n === cur) return;
+        var prev = slides[cur];
+        var next = slides[n];
+        var fwd = n > cur;
+        // 退场：旧页滑出
+        prev.classList.remove('active');
+        prev.classList.add(fwd ? 'out-l' : 'out-r');
+        // 入场：新页从对侧就位 → 强制回流 → 触发过渡
+        next.classList.remove('out-l', 'out-r');
+        next.classList.add(fwd ? 'out-r' : 'out-l');
+        void next.offsetWidth;
+        next.classList.remove('out-l', 'out-r');
+        next.classList.add('active');
+        cur = n;
+        updateHud();
+      }
+      function next() { goTo(cur + 1); }
+      function prev() { goTo(cur - 1); }
+
+      /* ---------- 键盘控制 ---------- */
+      window.addEventListener('keydown', function (e) {
+        switch (e.key) {
+          case 'ArrowRight':
+          case 'PageDown':
+          case ' ':
+            e.preventDefault(); next(); break;
+          case 'ArrowLeft':
+          case 'PageUp':
+            e.preventDefault(); prev(); break;
+          case 'Home':
+            e.preventDefault(); goTo(0); break;
+          case 'End':
+            e.preventDefault(); goTo(total - 1); break;
+        }
+      });
+
+      /* ---------- 鼠标滚轮(节流防惯性连翻) ---------- */
+      var wheelLock = 0;
+      window.addEventListener('wheel', function (e) {
+        var now = Date.now();
+        if (now - wheelLock < 650) return;
+        if (Math.abs(e.deltaY) < 24) return;
+        wheelLock = now;
+        if (e.deltaY > 0) next(); else prev();
+      }, { passive: true });
+
+      /* ---------- 触控滑动(平板补充) ---------- */
+      var tx = 0, ty = 0;
+      window.addEventListener('touchstart', function (e) {
+        tx = e.touches[0].clientX;
+        ty = e.touches[0].clientY;
+      }, { passive: true });
+      window.addEventListener('touchend', function (e) {
+        var dx = e.changedTouches[0].clientX - tx;
+        var dy = e.changedTouches[0].clientY - ty;
+        if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+          if (dx < 0) next(); else prev();
+        }
+      }, { passive: true });
+
+      /* ---------- 箭头按钮 ---------- */
+      prevBtn.addEventListener('click', prev);
+      nextBtn.addEventListener('click', next);
+
+      updateHud();
+    })();
+  </script>
+</body>
+
+</html>
