@@ -330,7 +330,7 @@ hole_xy = (clip_pt[0] + CLIP_RY * np.cos(np.deg2rad(AZ_CLIP)),
 
 # ---------- 9. P1: OLED 支架 + 屏 ----------
 OLED = (-45.0, 38.0)
-add(place(M_P1.build_oled_stand(M_P1.PARAMS["oled"]), OLED[0], OLED[1], PT), "white", "OLED 45°支架")
+add(place(M_P1.build_oled_stand(M_P1.PARAMS["oled"]), OLED[0], OLED[1], PT - 3.0), "white", "OLED 45°支架")   # 嵌槽 3.0
 scr = box([26.9, 28.5, 1.6])          # [实测 2026-11-08] 板面在斜面内, 厚度沿法线
 scr.apply_transform(trimesh.transformations.rotation_matrix(np.deg2rad(-45), [1, 0, 0]))
 # 2026-11-07 改版：支架抬到 10mm 腿上、斜面加长到 26.5，屏心随模型重算
@@ -338,10 +338,10 @@ scr.apply_translation([OLED[0], 36.80, 32.94])
 add(scr, "screen", "OLED 屏")
 
 # ---------- 10. 双色 LED（裸灯珠，灯罩已取消：无半透明耗材）----------
-LED = (-17.0, 14.0)   # 2026-11-08 挪位：原 (-22,18) 与 04 屏架底座干涉 24.7mm³
+LED = (-16.0, 12.5)   # 2026-11-08：挪位 + 嵌槽（槽深 1.6，与板面齐平）
 # [实测 2026-11-08] 实物是 18.8×13.5 三针模块（板载 5mm LED），不是裸灯珠 → 平放板面
-add(place(box([18.8, 13.5, 1.6]), LED[0], LED[1], PT + 0.8), "pcb_green", "LED 模块")
-add(place(cylinder(radius=2.5, height=8.6, sections=32), LED[0], LED[1] + 0.5, PT + 1.6 + 4.3), "led", "LED 灯珠")
+add(place(box([18.8, 13.5, 1.6]), LED[0], LED[1], PT - 1.6 + 0.8), "pcb_green", "LED 模块")
+add(place(cylinder(radius=2.5, height=8.6, sections=32), LED[0], LED[1] + 0.5, PT + 0.0 + 4.3), "led", "LED 灯珠")
 
 # ---------- 11. 面包板 + ESP32 + 继电器 ----------
 SEAT = PT - 3.5                      # 槽深 3.5 -> 槽底 z=4.5, 件必须坐进去
@@ -355,21 +355,21 @@ add(place(box([26.2, 50.0, 16.0]), -45.0, -20.0, SEAT + 8.0), "relay", "继电�
 # ---------- 12. P2: DHT11 座 + 模块 ----------
 # DHT11 从 (-52,92) 移到 (-45,-60)：原位置正对屏幕视线, 正面遮挡 42%/高角度 47%
 DHT = (-45.0, -67.0)   # 2026-11-08 后移 7：让开转 90° 后的继电器槽（y -45.5..5.5）与走线间隙
-add(place(M_P1.build_dht_holder(M_P1.PARAMS["dht"]), DHT[0], DHT[1], PT), "white", "DHT11 座")
+add(place(M_P1.build_dht_holder(M_P1.PARAMS["dht"]), DHT[0], DHT[1], PT - 4.5), "white", "DHT11 座")   # 嵌槽 4.5
 # 07 改版后托盘居中（旧版偏移 8mm），模块随之居中
-add(place(box([29.0, 12.0, 7.0]), DHT[0], DHT[1], PT + 64.0), "pcb_green", "DHT11")
+add(place(box([29.0, 12.0, 7.0]), DHT[0], DHT[1], PT + 64.0 - 4.5), "pcb_green", "DHT11")
 
 # ---------- 12.5 P2: 光敏电阻小柱 + 模块（2026-11-08 新增） ----------
 # 位置 (-110,-5)：花盆前脚边；到 ESP32 约 50mm，离双色 LED 90mm，上方无遮挡
 LDR = (-110.0, -5.0)
-add(place(M_P1.build_ldr_stand(M_P1.PARAMS["ldr"]), LDR[0], LDR[1], PT), "white", "光敏电阻座")
+add(place(M_P1.build_ldr_stand(M_P1.PARAMS["ldr"]), LDR[0], LDR[1], PT - 4.0), "white", "光敏电阻座")   # 嵌槽 4.0
 _ldr_mod = box([32.0, 14.0, 1.6])
 _ldr_mod.apply_transform(trimesh.transformations.rotation_matrix(np.deg2rad(-45), [1, 0, 0]))
-_ldr_mod.apply_translation([LDR[0], LDR[1] + 0.21, PT + 26.21])
+_ldr_mod.apply_translation([LDR[0], LDR[1] + 0.21, PT + 26.21 - 4.0])
 add(_ldr_mod, "pcb_green", "光敏模块")
 
 # ---------- 13. P2: 扎线固定座 ----------
-add(place(M_P1.build_cable_clip(M_P1.PARAMS["clip3"]), -75.0, 8.0, PT, rz=8), "white", "扎线座")
+add(place(M_P1.build_cable_clip(M_P1.PARAMS["clip3"]), -75.0, 8.0, PT - 2.0, rz=8), "white", "扎线座")   # 嵌槽 2.0
 
 
 # ============================================================

@@ -50,6 +50,15 @@ P = {
     "relay_pos": (-45.0, -20.0),
     "pocket_clear": 0.6,
     "pocket_depth": 3.5,        # 槽底仍 z=4.5
+    # ---- 2026-11-08 小件嵌槽（领导定：完全嵌平 = 槽深取件底座高度）----
+    # (x, y, 槽宽, 槽深, 槽深Z, 绕Z旋转°)
+    "fits": [
+        ("04 屏架", -45.0,  38.0, 36.4, 34.4, 3.0, 0.0),   # 底座裙墙 10 高，8mm 板只能沉 3
+        ("07 DHT",  -45.0, -67.0, 34.6, 34.6, 4.5, 0.0),   # 台锥 28→34，全沉
+        ("11 光敏", -110.0, -5.0, 30.6, 30.6, 4.0, 0.0),   # 台锥 24→30，全沉
+        ("08 扎线", -75.0,   8.0, 33.4, 20.4, 2.0, 8.0),   # 底板 2 厚，与板面齐平
+        ("LED 模块", -16.0, 12.5, 19.2, 13.9, 1.6, 0.0),   # 模块 1.6 厚，齐平（离 04 槽留 0.6）
+    ],
 
     # 右片区 (x>0): 水箱 —— 2026-10-20 改 1L 圆桶 (AR08)
     # 圆桶底径 105（2026-10-23 到货实测；商品页原标 106），原矩形槽 120.6×92.6 在
@@ -163,13 +172,20 @@ def build_half(p, side):
             holes.append(B(pos[0], pos[1], pt - p["pocket_depth"] / 2,
                            w + p["pocket_clear"], h + p["pocket_clear"],
                            p["pocket_depth"] + 2))
-        # 裸 LED 安装孔 (φ5.2 通孔, 引脚从底面走线)
-        holes.append(C(p["led_pos"][0], p["led_pos"][1], pt / 2,
-                       p["led_d"] / 2, pt + 4, sections=48))
-        # 电控区扎带槽
+        # 电控区扎带槽（2026-11-08：去掉 (-70,0) 那个——08 底座嵌槽会把它穿通）
         for yy in (-85, 0):
             for xx in (-140, -70):
+                if (xx, yy) == (-70, 0):
+                    continue
                 holes.append(B(xx, yy, pt / 2, p["slot_l"], p["slot_w"], pt + 4))
+        # 小件嵌槽（完全嵌平）
+        for _nm, fx, fy, fw, fh, fd, fr in p["fits"]:
+            box_cut = box(extents=[fw + p["pocket_clear"], fh + p["pocket_clear"], fd + 2])
+            if fr:
+                box_cut.apply_transform(trimesh.transformations.rotation_matrix(
+                    np.deg2rad(fr), [0, 0, 1]))
+            box_cut.apply_translation([fx, fy, pt + 1.0 - fd / 2])   # 底面正好落在 pt-fd
+            holes.append(box_cut)
     else:
         # 圆槽：竖壁圆柱切 5 深（1L 桶落座），见参数注释
         holes.append(C(p["tank_pos"][0], p["tank_pos"][1], pt - p["tank_depth"] / 2,

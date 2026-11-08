@@ -3,17 +3,17 @@
   "name": "06a_base_left | 整机底盘·左片",
   "watertight": true,
   "bodies": 1,
-  "volume_mm3": 223506.6,
-  "triangles": 1702,
+  "volume_mm3": 208696.2,
+  "triangles": 1574,
   "bbox_mm": [
    160.0,
    230.0,
    8.0
   ],
   "z_min": 0.0,
-  "solid_g_PLA": 277.1,
-  "real_g_at_20pct": 91.5,
-  "stl": "D:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_整机底盘\\STL\\06a_base_left_v1.stl"
+  "solid_g_PLA": 258.8,
+  "real_g_at_20pct": 85.4,
+  "stl": "D:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\3D打印件\\花房3D_整机底盘\\STL\\06a_base_left_v1.stl"
  },
  {
   "name": "06b_base_right | 整机底盘·右片",
@@ -29,7 +29,7 @@
   "z_min": 0.0,
   "solid_g_PLA": 293.1,
   "real_g_at_20pct": 96.7,
-  "stl": "D:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_整机底盘\\STL\\06b_base_right_v1.stl"
+  "stl": "D:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\3D打印件\\花房3D_整机底盘\\STL\\06b_base_right_v1.stl"
  },
  {
   "name": "06c_joint_block | 连接块 ×2",
@@ -45,6 +45,6 @@
   "z_min": 0.0,
   "solid_g_PLA": 4.2,
   "real_g_at_20pct": 1.4,
-  "stl": "D:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\花房3D_整机底盘\\STL\\06c_joint_block_v1.stl"
+  "stl": "D:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\3D打印件\\花房3D_整机底盘\\STL\\06c_joint_block_v1.stl"
  }
 ]
