@@ -33,8 +33,8 @@ os.makedirs(PREVIEW_DIR, exist_ok=True)
 PARAMS = {
     # ---------- 件 4: OLED 45 度斜面支架 ----------
     "oled": {
-        "oled_w": 27.3,          # [市售常见值 0.96寸 I2C OLED 模块宽, 实物卡尺待测]
-        "oled_h": 27.3,          # [市售常见值 模块高, 实物卡尺待测]
+        "oled_w": 26.9,          # [实测 2026-11-08] 模块宽
+        "oled_h": 28.5,          # [实测 2026-11-08] 模块高（丝印正读方向）
         "pcb_t": 1.6,            # [市售常见值 PCB 厚]
         "tilt": 45.0,            # 屏面倾角 [设计决策: 隔桌可读]
         "base_x": 36.0,          # 底盘宽
@@ -42,39 +42,43 @@ PARAMS = {
         "base_t": 3.0,           # 底盘厚
         "slope_y": 26.5,         # 斜面投影深度（24→26.5：加长斜面给下沿留挡边）
         "slope_z": 26.5,         # 斜面投影高度
-        "pocket_clear": 0.9,     # 板槽单边间隙 [公差]
+        "pocket_clear": 0.5,     # 板槽单边间隙 [实测 2026-11-08]
         "pocket_depth": 2.4,     # 板槽深 (= PCB 1.6 + 余量), 板面与斜面齐平
-        "open_ext": 0.6,         # 板槽下端延长（2026-11-07: 4.0→0.6，下端做挡边防板下滑）
+        "open_ext": 0.5,         # 板槽下端延长（下端做挡边防板下滑）
         # ---- 2026-11-07 走线位（原设计板背只留 0.8mm，排针+杜邦头塞不进）----
         "leg_h": 10.0,           # 腿高：底座抬高，排针/杜邦头从底座下方出线
         "leg_w": 8.0,            # 腿截面
         "lift": 0.0,             # 模块沿斜面上移量（斜面已加长，靠斜面自身留挡边）
+        # 2026-11-08 实测：排针在**上缘**（丝印正读时），过线口改到上缘、从托背上方穿出
         "wire_w": 13.0,          # 排针过线口宽（4P 排针 10.2 + 余量）
-        "wire_len": 5.5,         # 过线口沿斜面长度（排针塑壳 2.54 + 两侧余量）
-        "wire_depth": 11.0,      # 排针段局部加深（需 > 排针2.5 + 杜邦头2.5 + 槽深2.4）
-        "base_slot_y": 6.0,      # 底座竖槽中心（局部 y）
-        "base_slot_len": 9.0,    # 底座竖槽长度（沿 y，须盖住杜邦头背面 2.3）
-        "ic_w": 14.0,            # 板背元件让位宽（模块背面元件最高按 1.2 计）
-        "ic_len": 9.5,           # 让位沿斜面长度（覆盖板下缘往上 9.5）
-        "ic_depth": 4.0,         # 让位总深（板槽 2.4 + 元件 1.0 + 余量）
+        "wire_len": 5.5,         # 过线口沿斜面长度（覆盖上缘挡边）
+        "wire_depth": 14.0,      # 过线口深度（打穿上缘并通到托背外）
+        "claw_x": 10.5,          # 防脱爪横向位置（让开中间 13 宽的过线口）
     },
     # ---------- 件 5: 双色 LED 灯罩 [已作废删除 2026-10-20: 无半透明耗材, 项目取消] ----------
     # ---------- 件 6: 整合底板 [已作废删除 2026-10-20: 被两片式底盘 06a/06b/06c 取代] ----------
     # ---------- 件 7: DHT11 小座 ----------
+    # 2026-11-07 改版（领导：原造型太丑）：
+    #   原版 = 10×10 细方杆 + 35×18 平板头 + 三角撑，头底还有 12.5mm 悬空（免支撑打不好）。
+    #   新版 = 台锥底座 + 16→12.5 收腰柱 + 45° 喇叭口展开到托盘（把悬空变成斜裙）。
     "dht": {
         "mod_w": 30.0,           # [市售常见值 DHT11 模块板宽, 实物卡尺待测]
         "mod_h": 13.0,           # [市售常见值 模块板深]
         "mod_t": 1.6,
-        "base_x": 34.0,
-        "base_y": 34.0,
-        "base_t": 3.0,
-        "post": 10.0,            # 立柱截面
-        "post_h": 55.0,          # 立柱高 [设计决策: 探头抬到叶面以上]
-        "head_x": 35.0,          # 比模块宽 30 每侧留 2 壁厚
-        "head_y": 18.0,          # 比模块深 13 每侧留 2 壁厚
-        "head_t": 5.0,
+        "base_bot": 28.0,        # 底座下平面（台锥小端）
+        "base_top": 34.0,        # 底座上平面（台锥大端）
+        "base_t": 4.5,           # 底座高（33.7° 斜面，免支撑）
+        "post_b": 16.0,          # 柱底截面
+        "post_t": 12.5,          # 柱顶截面（收腰 2.4°）
+        "head_w": 35.0,          # 托盘宽（比模块宽 30 每侧留 2.05 壁）
+        "head_d": 18.0,          # 托盘深
+        "head_t": 4.3,           # 托盘厚
+        "total_h": 62.8,         # 总高（与旧版一致，装配不用重摆）
         "pocket_clear": 0.9,
         "pocket_depth": 2.5,     # 模块 1.6 厚, 槽深 2.5 留 0.9 余量
+        "wire_w": 12.0,          # 背面过线口宽
+        "wire_d": 5.2,           # 过线口深（切穿背壁）
+        "wire_h": 4.8,           # 过线口高
     },
     # ---------- 件 8: 扎线固定座 ----------
     "clip3": {
@@ -86,6 +90,29 @@ PARAMS = {
         "wire_d": 5.5,           # 线孔直径 [市售常见值 杜邦线/硅胶线束 5~6]
         "neck_w": 3.4,           # 顶部收口宽 < 线径 => 卡进去不脱 [公差]
         "base_t": 2.0,
+    },
+    # ---------- 件 11: 光敏电阻小柱（2026-11-08 新增） ----------
+    # 光敏模块是 4P 板（VCC/GND/AO/DO，DO 不接），板上无安装孔 → 用托盘 + 卡边。
+    # 放在花盆脚边 (-110,-5)：到 ESP32 约 50mm，离双色 LED 90mm，上方无遮挡。
+    "ldr": {
+        "mod_w": 32.0,           # [市售常见值 光敏模块板宽，实物卡尺待测]
+        "mod_d": 14.0,           # 板深
+        "mod_t": 1.6,
+        "base_bot": 24.0,
+        "base_top": 30.0,
+        "base_t": 4.0,
+        "post_b": 11.0,
+        "post_t": 10.0,
+        "post_top": 26.0,        # 柱顶中心高度（45° 斜切成托盘的支撑面）
+        "head_w": 34.0,
+        "head_d": 18.0,
+        "head_t": 4.2,
+        "tilt": 45.0,            # 托盘仰角（与屏架同语言）
+        "pocket_clear": 0.6,     # 单边间隙
+        "pocket_depth": 2.6,     # 板 1.6 + 1.0
+        "pin_slot_w": 12.0,      # 排针过线槽宽（4P 10.2 + 余量）
+        "pin_slot_l": 4.5,       # 槽沿斜面长度（排针段 2.54 + 余量）
+        "head_shift": 0.0,       # [弃用] 试过 1.4 会让托盘与柱分离（bodies=2）
     },
 }
 
@@ -208,29 +235,18 @@ def build_oled_stand(p):
     pocket = frame_part(pocket, ang, slope_mid)
     body = cut(body, [pocket])
 
-    # ---- 4) ★ 排针过线位（2026-11-07 新增）----
-    # 板下缘 4P 排针塑壳 2.5 + 杜邦母头 2.5，沿板背法线共需 ~7.5mm；原槽深 2.4 只剩 0.8mm。
-    # 做法：排针段局部加深 11mm（切穿底座上表面）+ 底座开 13×7 竖槽 → 到底座下方，
-    #      4 个杜邦头藏在 10mm 高的腿腔里，线从底座下往后走。
-    board_bot = upslope_edge + p["oled_h"] + p["pocket_clear"]            # 板下缘（沿斜面）
-    strip = B(0, board_bot - p["wire_len"] / 2 + 0.6,
+    # ---- 4) ★ 排针过线位（2026-11-08 实测：4 针在模块**上缘**）----
+    # 上缘挡边 + 托盘顶面开 13 宽缺口 → 排针塑壳 + 杜邦头从托盘背上方穿出，线沿屏背往电子件走
+    strip = B(0, -((p["oled_h"] + p["pocket_clear"]) / 2) + 1.0,
               1.0 - (1.0 + p["wire_depth"]) / 2,
               p["wire_w"], p["wire_len"], 1.0 + p["wire_depth"])
     body = cut(body, [frame_part(strip, ang, slope_mid)])
-    bslot = B(0, p["base_slot_y"], z0 + bt / 2, p["wire_w"], p["base_slot_len"], bt + 2)
-    body = cut(body, [bslot])
 
-    # 板背元件让位（0.96" 模块背面常有 1mm 级元件/焊点）：板下缘往上 8mm 局部加深到 3.6
-    icr = B(0, board_bot - p["ic_len"] / 2 + 0.1,
-            1.0 - (1.0 + p["ic_depth"]) / 2,
-            p["ic_w"], p["ic_len"], 1.0 + p["ic_depth"])
-    body = cut(body, [frame_part(icr, ang, slope_mid)])
-
-    # ---- 5) v2 防脱卡爪（上坡端两只 1.2mm 厚弹性爪，压住板上缘）----
+    # ---- 5) 防脱卡爪（外移让开中间过线口；上坡端两只 1.2mm 弹性爪）----
     claw_h, claw_w, claw_over = 1.2, 4.0, 1.5
     claws = []
     for sx in (-1, 1):
-        c = B(sx * 7.5, upslope_edge + claw_over / 2, -claw_h / 2 + 0.2,
+        c = B(sx * p["claw_x"], upslope_edge + claw_over / 2, -claw_h / 2 + 0.2,
               claw_w, claw_over + 1.2, claw_h)
         claws.append(frame_part(c, ang, slope_mid))
     body = add(body, claws)
@@ -247,33 +263,91 @@ def build_oled_stand(p):
 # ============================================================
 # 件 7: DHT11 小座
 # ============================================================
+def loft_rect(z0, z1, w0, d0, w1, d1, cx=0.0, cy=0.0):
+    """矩形截面的直纹放样（下 w0×d0 → 上 w1×d1），用于台锥/收腰/喇叭口"""
+    v = np.array([
+        [cx - w0 / 2, cy - d0 / 2, z0], [cx + w0 / 2, cy - d0 / 2, z0],
+        [cx + w0 / 2, cy + d0 / 2, z0], [cx - w0 / 2, cy + d0 / 2, z0],
+        [cx - w1 / 2, cy - d1 / 2, z1], [cx + w1 / 2, cy - d1 / 2, z1],
+        [cx + w1 / 2, cy + d1 / 2, z1], [cx - w1 / 2, cy + d1 / 2, z1],
+    ])
+    f = np.array([
+        [0, 3, 2], [0, 2, 1], [4, 5, 6], [4, 6, 7],
+        [0, 1, 5], [0, 5, 4], [1, 2, 6], [1, 6, 5],
+        [2, 3, 7], [2, 7, 6], [3, 0, 4], [3, 4, 7],
+    ])
+    m = trimesh.Trimesh(vertices=v, faces=f, process=True)
+    m.fix_normals()
+    return m
+
+
 def build_dht_holder(p):
-    bx, by, bt = p["base_x"], p["base_y"], p["base_t"]
-    post, ph = p["post"], p["post_h"]
-    hx, hy, ht = p["head_x"], p["head_y"], p["head_t"]
+    """台锥底座 → 收腰柱 → 45° 喇叭口 → 托盘（2026-11-07 重做造型）"""
+    H = p["total_h"]
+    bt, b0, b1 = p["base_t"], p["base_bot"], p["base_top"]
+    pb, pt_ = p["post_b"], p["post_t"]
+    hw, hd, ht = p["head_w"], p["head_d"], p["head_t"]
+    flare_h = (hw - pt_) / 2.0                 # x 向 45°（略小于 45，斜裙自支撑）
+    z_flare = H - ht - flare_h                 # 喇叭口起点
 
-    # 底盘 (四角做倒角, 减少翘边)
-    body = B(0, 0, bt / 2, bx, by, bt)
-    body = add(body, [B(0, -by / 2 + post / 2, bt + ph / 2, post, post, ph)])
-    body = add(body, [B(0, -by / 2 + hy / 2, bt + ph + ht / 2 - 0.5, hx, hy, ht + 0.5)])
-    # 立柱前侧斜撑: 托住头部前伸的悬臂, 45 度免支撑
-    body = add(body, [prism_yz(
-        [(-by / 2 + post, bt + ph - 15), (-by / 2 + post, bt + ph + 0.5),
-         (-by / 2 + post + 15, bt + ph + 0.5)],
-        -post / 2, post / 2)])
+    body = loft_rect(0.0, bt, b0, b0, b1, b1)                                  # 台锥底座
+    body = add(body, [loft_rect(bt - 0.3, z_flare + 0.3, pb, pb, pt_, pt_)])   # 收腰柱
+    body = add(body, [loft_rect(z_flare - 0.3, z_flare + flare_h + 0.3,
+                                pt_, pt_, hw, hd)])                            # 喇叭口
+    body = add(body, [B(0, 0, H - ht / 2 - 0.15, hw, hd, ht + 0.3)])           # 托盘
 
-    # 模块沉槽 (朝上敞开) + 线缆缺口
-    pocket = B(0, -by / 2 + hy / 2, bt + ph + ht - p["pocket_depth"] / 2 + 0.5,
+    # 模块沉槽（朝上敞开）
+    pocket = B(0, 0, H - p["pocket_depth"] / 2 + 0.5,
                p["mod_w"] + p["pocket_clear"], p["mod_h"] + p["pocket_clear"],
-               p["pocket_depth"] + 2)
+               p["pocket_depth"] + 1.0)
     body = cut(body, [pocket])
-    body = cut(body, [B(0, -by / 2 + 1.0, bt + ph + ht - 2.0, 12, 8, 6)])
+    # 背面过线口（切穿背壁，杜邦头能退出）
+    body = cut(body, [B(0, -hd / 2 + p["wire_d"] / 2, H - p["wire_h"] / 2 - 0.2,
+                        p["wire_w"], p["wire_d"], p["wire_h"] + 1.0)])
     return body
 
 
 # ============================================================
 # 件 8: 扎线固定座
 # ============================================================
+def build_ldr_stand(p):
+    """光敏电阻小柱（2026-11-08）：台锥底 + 收腰柱 + 45° 斜面托盘（排针从上缘穿出）"""
+    b0, b1, bt = p["base_bot"], p["base_top"], p["base_t"]
+    pb, pt_ = p["post_b"], p["post_t"]
+    ztop = p["post_top"]
+    hw, hd, ht = p["head_w"], p["head_d"], p["head_t"]
+    ang = -p["tilt"]
+    n = np.array([0.0, np.sin(np.deg2rad(p["tilt"])),
+                  np.cos(np.deg2rad(p["tilt"]))])
+
+    body = loft_rect(0.0, bt, b0, b0, b1, b1)                                  # 台锥底座
+    body = add(body, [loft_rect(bt - 0.3, ztop + 1.0, pb, pb, pt_, pt_)])      # 收腰柱（试过前移 2 会与托盘分离，回退）
+
+    # 柱顶沿托盘底面 45° 切平（托盘底下是 45° 斜面，免支撑）
+    head_c = np.array([0.0, 0.0, ztop])                    # 托盘中心
+    head_c = head_c + np.array([0.0, np.sin(np.deg2rad(p["tilt"])),
+                                -np.cos(np.deg2rad(p["tilt"]))]) * p["head_shift"]
+    plane_pt = head_c - n * (ht / 2)
+    cutter = B(0, 0, 30.0, 120, 120, 60)
+    body = cut(body, [frame_part(cutter, ang, plane_pt)])
+
+    # 托盘
+    body = add(body, [frame_part(B(0, 0, 0, hw, hd, ht), ang, head_c)])
+
+    # 模块沉槽（板 32×14，单边留 0.6）
+    pocket = B(0, 0, ht / 2 - p["pocket_depth"] / 2 + 0.5,
+               p["mod_w"] + 2 * p["pocket_clear"],
+               p["mod_d"] + 2 * p["pocket_clear"],
+               p["pocket_depth"] + 1.0)
+    body = cut(body, [frame_part(pocket, ang, head_c)])
+
+    # 上缘排针过线槽（4P 塑壳 2.5 + 杜邦头 2.5 从托盘背面穿出，落在托盘后上方空中）
+    slot = B(0, -(p["mod_d"] / 2 - p["pin_slot_l"] / 2 + 1.0), 0,
+             p["pin_slot_w"], p["pin_slot_l"], ht + 2.0)
+    body = cut(body, [frame_part(slot, ang, head_c)])
+    return body
+
+
 def build_cable_clip(p):
     n, pitch = p["n"], p["pitch"]
     bw = pitch * (n - 1) + pitch
@@ -411,6 +485,7 @@ BUILDERS = [
     ("04_oled_stand", "OLED 45°斜面支架", build_oled_stand, PARAMS["oled"]),
     ("07_dht11_holder", "DHT11 小座", build_dht_holder, PARAMS["dht"]),
     ("08_cable_clip", "扎线固定座", build_cable_clip, PARAMS["clip3"]),
+    ("11_ldr_stand", "光敏电阻小柱", build_ldr_stand, PARAMS["ldr"]),
 ]
 
 

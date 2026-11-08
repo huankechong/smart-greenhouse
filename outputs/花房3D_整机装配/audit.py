@@ -89,8 +89,9 @@ for name, stl in [("01b_sensor_rim_hook", "01b_sensor_rim_hook_v2.stl"),
 
 # P1P2
 d1 = doc(os.path.join(ROOT, "花房3D_P1P2", "交付说明_P1P2五件v1.md"))
-for stl, key in [("04_oled_stand_v1.stl", "27.4"),
-                 ("07_dht11_holder_v1.stl", "14.9"), ("08_cable_clip_v1.stl", "4.8")]:
+for stl, key in [("04_oled_stand_v1.stl", "27.7"),
+                 ("07_dht11_holder_v1.stl", "23.1"), ("08_cable_clip_v1.stl", "4.8"),
+                 ("11_ldr_stand_v1.stl", "7.7")]:
     m = trimesh.load(os.path.join(ROOT, "花房3D_P1P2", "STL", stl))
     g = round(m.volume * 1.24 / 1000, 1)
     checks.append((f"P1P2 文档 {stl} 实际 {g}g / 文档写 {key}g", abs(g - float(key)) < 0.15))

@@ -1,25 +1,25 @@
 {
     "error_string": "Success.",
     "layer_height": 0.20000000298023224,
-    "peak_rss_mb": 152.84765625,
+    "peak_rss_mb": 149.58203125,
     "plate_index": 1,
     "return_code": 0,
     "sliced_plates": [
         {
             "feature_type_times": {
-                "Bottom surface": 31.265132904052734,
-                "Bridge": 53.589962005615234,
-                "Brim": 36.84410858154297,
+                "Bottom surface": 31.26514434814453,
+                "Bridge": 67.47870635986328,
+                "Brim": 36.844112396240234,
                 "Custom": 1.0024793148040771,
-                "Inner wall": 485.6728820800781,
-                "Internal solid infill": 104.17864227294922,
-                "Outer wall": 324.02618408203125,
-                "Overhang wall": 12.724211692810059,
+                "Inner wall": 474.0332946777344,
+                "Internal solid infill": 103.3741226196289,
+                "Outer wall": 313.8563232421875,
+                "Overhang wall": 1.7496169805526733,
                 "Skirt": 3.4988205432891846,
-                "Sparse infill": 472.76446533203125,
-                "Top surface": 19.25623893737793,
-                "Travel": 245.94241333007813,
-                "Undefined": 245.72344970703125
+                "Sparse infill": 467.1363525390625,
+                "Top surface": 22.553930282592773,
+                "Travel": 236.29624938964844,
+                "Undefined": 236.07728576660156
             },
             "filament_change_times": 0,
             "filaments": [
@@ -32,7 +32,7 @@
             ],
             "id": 1,
             "layer_filament_change": 0,
-            "main_predication": 1789.7864990234375,
+            "main_predication": 1758.09619140625,
             "obj_cached_cnt": 0,
             "objects": [
                 {
@@ -46,49 +46,49 @@
                     },
                     "id": 5,
                     "name": "04_oled_stand_v1.stl",
-                    "triangle_count": 236
+                    "triangle_count": 188
                 }
             ],
             "times": {
                 "conflict_check_time": 0,
                 "detect_overhangs_time": 0,
-                "export_gcode_time": 187,
+                "export_gcode_time": 185,
                 "flush_plan_time": 0,
                 "generate_support_material_time": 5,
-                "infill_generate_time": 18,
-                "infill_time": 29,
+                "infill_generate_time": 17,
+                "infill_time": 28,
                 "ironing_time": 0,
-                "make_perimeters_time": 24,
+                "make_perimeters_time": 26,
                 "multifilament_segment_2d_time": 0,
-                "other_slice_time": 2,
+                "other_slice_time": 5,
                 "prepare_infill_time": 11,
-                "region_split_time": 0,
+                "region_split_time": 1,
                 "skirt_brim_time": 2,
-                "slice_layers_time": 4,
-                "sliced_time": 259,
-                "sliced_time_with_cache": 189,
+                "slice_layers_time": 6,
+                "sliced_time": 264,
+                "sliced_time_with_cache": 187,
                 "support_detect_time": 0,
                 "support_interface_time": 0,
                 "support_normal_generate_time": 0,
                 "support_toolpath_time": 0,
                 "support_tree_generate_time": 0,
                 "toolpath_time": 7,
-                "wall_time": 20,
-                "wipe_tower_time": 3
+                "wall_time": 19,
+                "wipe_tower_time": 5
             },
-            "total_predication": 1790.570068359375,
-            "triangle_count": 236,
+            "total_predication": 1758.8797607421875,
+            "triangle_count": 188,
             "warning_message": "It seems object 04_oled_stand_v1.stl has floating regions. Please re-orient the object or enable support generation."
         }
     ],
     "sparse_infill_density": 20.0,
     "times": {
-        "export_3mf_time": 93,
+        "export_3mf_time": 97,
         "export_slicedata_time": 0,
-        "export_time": 288,
-        "import_time": 1,
+        "export_time": 447,
+        "import_time": 7,
         "load_slicedata_time": 0,
-        "prepare_time": 9
+        "prepare_time": 28
     },
     "wall_loops": 3
 }
