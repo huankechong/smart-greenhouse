@@ -1,0 +1,94 @@
+{
+    "error_string": "Success.",
+    "layer_height": 0.20000000298023224,
+    "peak_rss_mb": 122.18359375,
+    "plate_index": 1,
+    "return_code": 0,
+    "sliced_plates": [
+        {
+            "feature_type_times": {
+                "Bottom surface": 28.865331649780273,
+                "Bridge": 32.62446594238281,
+                "Brim": 18.213552474975586,
+                "Custom": 1.0435187816619873,
+                "Inner wall": 360.2957458496094,
+                "Internal solid infill": 65.7212905883789,
+                "Outer wall": 313.6182861328125,
+                "Overhang wall": 0.7795740962028503,
+                "Skirt": 2.6308140754699707,
+                "Sparse infill": 153.66871643066406,
+                "Top surface": 32.22748565673828,
+                "Travel": 102.77936553955078,
+                "Undefined": 102.52705383300781
+            },
+            "filament_change_times": 0,
+            "filaments": [
+                {
+                    "filament_id": "",
+                    "id": 1,
+                    "main_used_g": 0.0,
+                    "total_used_g": 0.0
+                }
+            ],
+            "id": 1,
+            "layer_filament_change": 0,
+            "main_predication": 1111.4332275390625,
+            "obj_cached_cnt": 0,
+            "objects": [
+                {
+                    "bbox": {
+                        "depth": 29.999998092651367,
+                        "height": 33.84888458251953,
+                        "width": 33.999996185302734,
+                        "x": 121.24999237060547,
+                        "y": 112.99999237060547,
+                        "z": 0.0
+                    },
+                    "id": 5,
+                    "name": "11_ldr_stand_v1.stl",
+                    "triangle_count": 110
+                }
+            ],
+            "times": {
+                "conflict_check_time": 0,
+                "detect_overhangs_time": 0,
+                "export_gcode_time": 142,
+                "flush_plan_time": 0,
+                "generate_support_material_time": 3,
+                "infill_generate_time": 2,
+                "infill_time": 6,
+                "ironing_time": 0,
+                "make_perimeters_time": 10,
+                "multifilament_segment_2d_time": 0,
+                "other_slice_time": 2,
+                "prepare_infill_time": 4,
+                "region_split_time": 0,
+                "skirt_brim_time": 0,
+                "slice_layers_time": 2,
+                "sliced_time": 169,
+                "sliced_time_with_cache": 142,
+                "support_detect_time": 0,
+                "support_interface_time": 0,
+                "support_normal_generate_time": 0,
+                "support_toolpath_time": 0,
+                "support_tree_generate_time": 0,
+                "toolpath_time": 3,
+                "wall_time": 8,
+                "wipe_tower_time": 2
+            },
+            "total_predication": 1112.2244873046875,
+            "triangle_count": 110,
+            "warning_message": "It seems object 11_ldr_stand_v1.stl has floating cantilever. Please re-orient the object or enable support generation."
+        }
+    ],
+    "sparse_infill_density": 20.0,
+    "times": {
+        "export_3mf_time": 68,
+        "export_slicedata_time": 0,
+        "export_time": 357,
+        "import_time": 1,
+        "load_slicedata_time": 0,
+        "prepare_time": 8
+    },
+    "wall_loops": 3
+}
