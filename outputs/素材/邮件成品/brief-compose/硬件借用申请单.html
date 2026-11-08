@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="docx-page-size" content="A4">
+<title>硬件借用申请单</title>
+<style>
+  p { font-family: SimSun; font-size: 12pt; margin: 4pt 0; line-height: 1.4; }
+  h1 { font-family: SimHei; font-size: 20pt; text-align: center; margin: 6pt 0 2pt 0; }
+  h2 { font-family: SimHei; font-size: 13.5pt; margin: 8pt 0 3pt 0; }
+  td, th { font-family: SimSun; font-size: 10.5pt; padding: 3pt 5pt; border: 0.75pt solid #444444; line-height: 1.3; }
+  th { font-family: SimHei; background-color: #EFEFEF; }
+  table { border-collapse: collapse; width: 100%; }
+  .sub { font-family: SimSun; font-size: 10.5pt; color: #555555; text-align: center; margin: 0 0 6pt 0; }
+  .note { font-family: SimSun; font-size: 10pt; color: #555555; margin: 3pt 0; }
+  .sign { font-family: SimSun; font-size: 12pt; margin: 8pt 0 2pt 0; }
+</style>
+</head>
+<body>
+
+<h1>硬件借用申请单</h1>
+<p class="sub">Hardware Borrowing Application ·《Introduction to Project Work》期末项目</p>
+
+<h2>一、申请人信息</h2>
+<table>
+  <tr>
+    <td style="width:22%; background-color:#F2F2F2;"><b>姓名</b></td>
+    <td style="width:28%;">Liu Junbo（刘俊博）</td>
+    <td style="width:22%; background-color:#F2F2F2;"><b>学号</b></td>
+    <td style="width:28%;">x20260134</td>
+  </tr>
+  <tr>
+    <td style="background-color:#F2F2F2;"><b>班级</b></td>
+    <td>DT 1 班（2026 级 Digital Technologies）</td>
+    <td style="background-color:#F2F2F2;"><b>联系电话</b></td>
+    <td>155-2254-7886</td>
+  </tr>
+  <tr>
+    <td style="background-color:#F2F2F2;"><b>课程名称</b></td>
+    <td>Introduction to Project Work（He Pu 老师、Li Qiang 老师）</td>
+    <td style="background-color:#F2F2F2;"><b>申请日期</b></td>
+    <td>2026 年 10 月 17 日</td>
+  </tr>
+</table>
+
+<h2>二、申请事项</h2>
+<p>本人正在进行《Introduction to Project Work》课程期末个人项目「智能花房养护站（Smart GreenHouse）」的开发（期末考核为实物 demo + 汇报，答辩时间 2026 年 11 月 16 日），特向实验室申请：</p>
+<p><b>1. 借用实验套件中的部分模块器件</b>（共 9 项，详见第三部分清单，全部为创乐博 Arduino 套件标准配件）；</p>
+<p><b>2. 借用焊接工具：电烙铁（焊枪）与焊锡丝</b>（用于将排针焊接至电容式土壤湿度传感器，属一次性加工，用毕即还，详见清单第 9 项）；</p>
+<p><b>3. 借用万用表 ×1 台</b>（数字式即可），用于焊接后排针通断检查与整机电路调试的电压/电阻测量，用毕即还（详见清单第 10 项）；</p>
+<p><b>4. 申请实验室 3D 打印机（拓竹 X2D）的使用权限</b>（按实验室预约流程使用，用于打印项目外壳，耗材使用实验室现有 PLA）。</p>
+
+<h2>三、借用信息与器件明细清单</h2>
+<table>
+  <tr>
+    <td style="width:22%; background-color:#F2F2F2;"><b>借用期限</b></td>
+    <td style="width:28%;">2026 年 10 月 ____ 日 领用</td>
+    <td style="width:22%; background-color:#F2F2F2;"><b>归还期限</b></td>
+    <td style="width:28%;">2026 年 12 月 14 日前</td>
+  </tr>
+  <tr>
+    <td style="background-color:#F2F2F2;"><b>使用地点</b></td>
+    <td>实验室 ____ （全程不带离实验室）</td>
+    <td style="background-color:#F2F2F2;"><b>领用 / 归还方式</b></td>
+    <td>按实验室登记制度，当面清点交接</td>
+  </tr>
+</table>
+<p style="font-size:11pt;"><b>项目背景与目标</b>：家庭及花店日常养护中，浇水时机与水量主要凭经验判断，外出时植株无人照管，缺水或浇水过量都会损伤植物。本项目旨在制作一套桌面级「智能花房养护站」，实现土壤干湿自动监测与按需浇水、环境数据云端记录，解决"何时浇、浇多少、出门没人管"的实际问题。项目为课程期末个人项目，最终交付物为实物 demo（现场演示自动浇水与手机查看）+ 实验报告 + 答辩汇报。</p>
+<p style="font-size:11pt;"><b>系统组成与工作原理</b>：系统按「感知 → 决策 → 执行 → 上云」四层设计——① 感知层：电容式土壤湿度传感器插入花盆实时监测干湿，温湿度传感器与光敏电阻采集环境温湿度、光照数据；② 决策层：自购 ESP32 主控对读数做阈值判断（如土壤湿度低于设定值即判定缺水）；③ 执行层：主控驱动继电器接通微型水泵自动浇水，双色 LED 同步指示状态（绿色 = 正常 / 红色 = 缺水报警）；④ 云端层：通过 WiFi 将数据上传免费物联网平台（巴法云），手机微信小程序可查看实时数据与历史曲线、并远程手动浇水。整体工作闭环：传感器发现土壤变干 → 主控判断 → 水泵自动补水 → 数据同步到手机。</p>
+<p style="font-size:11pt;"><b>关键技术细节</b>：土壤湿度采用电容式检测原理（土壤含水量改变介电常数，转化为电信号读数），相比裸露金属探针的电阻式方案，探针不带土内电流、不电解腐蚀，长期浸泡读数稳定，对植株无害。三路传感器分别通过 ADC（模数转换）与数字接口接入主控；OLED 显示屏走 I2C 总线，仅占用两个引脚；继电器实现控制电路（5V 弱电）与水泵回路（USB 供电）的物理隔离，浇水电通路与电子元件分置于外壳两侧，杜绝漏水导致短路的风险。软件层面采用多次采样取平均的滤波方法抑制读数抖动，并以"浇一段—停—复测"的间歇策略防止一次浇过头，浇水后延时复核确认湿度回升才结束本次浇水动作。</p>
+<p style="font-size:11pt;"><b>与课程学习的衔接及进度安排</b>：所选器件均为课程实验涉及的同类型模块——课堂上已完成双色 LED 模块点亮实验，该模块将直接用作本系统状态灯，体现课堂知识向项目落地；电路图使用课程推荐的 Fritzing 软件绘制，报告按课程统一模板撰写。系统采用 USB 5V 低电压供电，水路与电路物理隔离，符合实验室安全管理要求。进度安排：10 月中下旬完成自购件采购与各模块单独调试 → 10 月底系统集成，实现自动浇水闭环 → 11 月上旬完成云端接入与 3D 打印外壳 → 11 月中旬整机装配、连续运行测试与答辩彩排 → 11 月 16 日答辩现场演示。所借器件逐件用途如下：</p>
+<table>
+  <tr>
+    <th style="width:6%;">序号</th>
+    <th style="width:22%;">器件名称</th>
+    <th style="width:10%;">套件件号</th>
+    <th style="width:8%;">数量</th>
+    <th style="width:20%;">接口 / 规格</th>
+    <th style="width:34%;">在本项目中的具体用途</th>
+  </tr>
+  <tr><td>1</td><td>温湿度传感器</td><td>41</td><td>1 个</td><td>数字单总线输出（DHT11 类）</td><td>采集环境温度与空气湿度，判断是否需要调节养护环境</td></tr>
+  <tr><td>2</td><td>光敏电阻传感器</td><td>32</td><td>1 个</td><td>模拟 / 数字双输出</td><td>采集环境光照强度，为光照条件记录与补光判断提供数据</td></tr>
+  <tr><td>3</td><td>继电器模块</td><td>16</td><td>1 个</td><td>单路，高/低电平触发</td><td>作为水泵电源开关，接受主控指令实现自动浇水</td></tr>
+  <tr><td>4</td><td>OLED 显示屏</td><td>25</td><td>1 块</td><td>I2C 接口（4 针）</td><td>本地实时显示土壤湿度、温湿度等数据，支持答辩脱机演示</td></tr>
+  <tr><td>5</td><td>双色 LED 模块</td><td>13</td><td>1 个</td><td>3 针（红 / 绿 PWM 调色）</td><td>系统状态指示灯：绿色 = 状态正常，红色 = 缺水报警（课堂实验件复用）</td></tr>
+  <tr><td>6</td><td>面包板</td><td>8</td><td>1 块</td><td>标准无焊面包板</td><td>电路搭建与调试载体</td></tr>
+  <tr><td>7</td><td>杜邦线</td><td>9</td><td>1 束（40P）</td><td>公对公 / 公对母 / 母对母</td><td>主控与各传感器模块之间的连接</td></tr>
+  <tr><td>8</td><td>面包板专用跳线</td><td>10</td><td>1 盒</td><td>面包板孔径配套</td><td>面包板上的电路短接与走线</td></tr>
+  <tr><td>9</td><td>电烙铁（焊枪）+ 焊锡丝<br>（含烙铁架、海绵）</td><td>—</td><td>1 套</td><td>常规电子焊接用（60W 以内即可），焊锡丝建议 0.8–1.0mm 含铅或无铅均可</td><td>将排针焊接到自购的电容式土壤湿度传感器上（传感器出厂不带排针，需焊接后才能接入电路）；仅项目组装期一次性使用，用毕即还</td></tr>
+<tr><td>10</td><td>万用表（数字式）</td><td>—</td><td>1 台</td><td>直流电压 0–20V 量程、通断档、电阻档即可</td><td>焊接后排针通断检查；整机调试时测量各模块供电电压与电路阻值，排查接线故障；项目调试期使用，用毕即还</td></tr>
+</table>
+<p class="note">注 1：表中接口 / 规格为该类模块的通用规格，如与套件实物标称略有出入，以套件实物为准，请老师或实验室管理员核对后登记。</p>
+<p class="note">注 2：项目主控采用本人自购的 ESP32 开发板（实现 WiFi 上云所需），上述借用模块均为独立外设，与其兼容；自购部分（ESP32、电容式土壤湿度传感器、微型水泵及水管）已由本人自行解决，不在本次申请范围内。焊接过程将遵守实验室安全规范，在指定工位进行，使用完毕后清理焊渣并归还工具。</p>
+
+<h2>四、使用规范承诺</h2>
+<p>本人郑重承诺：</p>
+<p>1. <b>器件全程不带离实验室</b>：每次使用均固定在实验室工位进行，用毕清点归位、收纳还原，接受实验室登记领用 / 归还制度管理；</p>
+<p>2. 爱惜使用，遵守实验室安全规范（不穿拖鞋、规范用电、水路远离电子元件等），如因个人原因造成损坏或遗失，照价赔偿；</p>
+<p>3. 使用时间严格遵守实验室开放与预约管理制度，提前预约、按时到场、按时离场；</p>
+<p>4. 焊接作业在实验室指定工位进行，遵守用电与消防安全规范（烙铁不用时放回烙铁架、离位断电），用毕清理工位；</p>
+<p>5. 所有器件在 2026 年 12 月 14 日前全部归还，归还时保证成套、完好、清洁，并配合管理员当面验收。</p>
+
+<h2>五、审批意见</h2>
+<table>
+  <tr>
+    <td style="height:48pt; width:50%; vertical-align:top;">指导教师意见：<br><br><br>签字：＿＿＿＿＿＿＿＿　日期：＿＿＿＿＿＿＿＿</td>
+    <td style="vertical-align:top;">实验室管理员意见：<br><br><br>签字：＿＿＿＿＿＿＿＿　日期：＿＿＿＿＿＿＿＿</td>
+  </tr>
+</table>
+
+<p class="sign" style="text-align:right;">申请人签字：＿＿＿＿＿＿＿＿</p>
+
+</body>
+</html>

@@ -58,7 +58,7 @@ E 盘按**人类可读名**分桶，仓库按**工程结构**分目录，两套�
 |---|---|
 | `README.md` / `AGENTS.md` | 根目录同名 |
 | `docs/**` | `docs/**`（同名同构） |
-| `outputs/花房3D_*/` | `3D打印件/花房3D_*/` |
+| `outputs/3D打印件/花房3D_*/` | `3D打印件/花房3D_*/` |
 | `outputs/代码/花房代码/GreenHouse_v1/` | `代码/GreenHouse_v1/`（AR01 报告在 `代码/` 下） |
 | `outputs/项目模式迁移包.md` | `迁移指南/项目模式迁移包.md` |
 | `docs/private/*` | `docs/private/*`（同名同构） |
