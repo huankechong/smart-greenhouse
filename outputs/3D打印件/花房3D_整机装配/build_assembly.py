@@ -20,6 +20,7 @@ from trimesh.creation import box, cylinder, icosphere
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 OUT_PREVIEW = os.path.join(HERE, "preview")
+FAST = os.environ.get("GH_FAST") == "1"   # 快模式：跳过 AO 烘焙与预览渲染（几何迭代用，约 40 秒）
 os.makedirs(OUT_PREVIEW, exist_ok=True)
 
 
@@ -608,7 +609,7 @@ def get_ao():
     global AO_LIST
     if AO_LIST is None:
         meshes = [m for m, _, _ in items]
-        raw_ao = bake_ao(meshes)
+        raw_ao = ([np.ones(len(m.faces)) for m in meshes] if FAST else bake_ao(meshes))
         AO_LIST = []
         # 结构件（大而简单）：AO 压缩到 0.80~1.0，只留微弱层次。
         # 原因：布尔会把大平面切成大量碎片面，逐面 AO 会形成"皱纸"斑块；
@@ -702,6 +703,10 @@ def main():
     with open(glb, "wb") as f:
         f.write(trimesh.exchange.gltf.export_glb(scene))
     print("glb: %s  %.2f MB  几何体 %d 个" % (glb, os.path.getsize(glb) / 1024 / 1024, len(items)))
+
+    if FAST:
+        print("FAST 模式：跳过预览渲染（只出 glb）")
+        return
 
     import matplotlib
     matplotlib.use("Agg")

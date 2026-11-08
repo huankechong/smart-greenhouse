@@ -49,14 +49,15 @@ P = {
     "relay_h": 51.0,         # = 实测 50.0 + 1.0
     "relay_pos": (-45.0, -20.0),
     "pocket_clear": 0.6,
+    "fit_clear": 0.6,           # 小件嵌槽单边间隙×2（0.6 = 单边 0.3，等测试块结果再定）
     "pocket_depth": 3.5,        # 槽底仍 z=4.5
     # ---- 2026-11-08 小件嵌槽（领导定：完全嵌平 = 槽深取件底座高度）----
     # (x, y, 槽宽, 槽深, 槽深Z, 绕Z旋转°)
     # 直壁槽（零件本身是直壁）：尺寸 = 件外廓 + 0.5（单边 0.25）
     "fits": [
-        ("04 屏架", -45.0,  38.0, 36.5, 34.5, 3.0, 0.0),   # 底座裙墙 10 高，8mm 板只能沉 3
+        ("04 屏架", -45.0,  38.0, 36.0, 34.0, 3.0, 0.0),   # 底座裙墙 10 高，8mm 板只能沉 3
         ("08 扎线", -77.0,   8.0, 30.0, 16.0, 2.0, 0.0),   # 底板实为 30×16（此前误按 33×20 开槽）
-        ("LED 模块", -14.0, 12.5, 19.3, 14.0, 1.6, 0.0),   # 模块 1.6 厚，齐平（-16→-14：倒角不与 04 槽相交）
+        ("LED 模块", -14.0, 12.5, 18.8, 13.5, 1.6, 0.0),   # 模块 1.6 厚，齐平（-16→-14：倒角不与 04 槽相交）
     ],
     # 锥形槽（零件底座是倒四棱柱）：(名, x, y, 底宽, 顶宽, 高, 单边间隙)
     "fits_taper": [
@@ -169,13 +170,13 @@ def build_half(p, side):
 
     # --- 功能槽 ---
     if side < 0:
-        holes.append(C(p["pot_pos"][0], p["pot_pos"][1], pt - p["pot_depth"] / 2,
-                       p["pot_d"] / 2, p["pot_depth"] + 2, sections=96))
+        holes.append(C(p["pot_pos"][0], p["pot_pos"][1], pt + 1.0 - p["pot_depth"] / 2,
+                       p["pot_d"] / 2, p["pot_depth"] + 2, sections=96))   # 槽底 = pt-pot_depth（原少 +1，槽深多 1mm）
         for (w, h, pos) in ((p["bb_w"], p["bb_h"], p["bb_pos"]),
                             (p["relay_w"], p["relay_h"], p["relay_pos"])):
-            holes.append(B(pos[0], pos[1], pt - p["pocket_depth"] / 2,
+            holes.append(B(pos[0], pos[1], pt + 1.0 - p["pocket_depth"] / 2,
                            w + p["pocket_clear"], h + p["pocket_clear"],
-                           p["pocket_depth"] + 2))
+                           p["pocket_depth"] + 2))   # 槽底 = pt-pocket_depth
         # 电控区扎带槽（2026-11-08：去掉 (-70,0) 那个——08 底座嵌槽会把它穿通）
         for yy in (-85, 0):
             for xx in (-140, -70):
@@ -197,7 +198,7 @@ def build_half(p, side):
             holes.append(cutter)
         # 小件嵌槽（完全嵌平）
         for _nm, fx, fy, fw, fh, fd, fr in p["fits"]:
-            box_cut = box(extents=[fw + p["pocket_clear"], fh + p["pocket_clear"], fd + 2])
+            box_cut = box(extents=[fw + p["fit_clear"], fh + p["fit_clear"], fd + 2])
             if fr:
                 box_cut.apply_transform(trimesh.transformations.rotation_matrix(
                     np.deg2rad(fr), [0, 0, 1]))
@@ -206,7 +207,7 @@ def build_half(p, side):
             # 槽口 0.6×45° 导入倒角（07/11 锥形槽自带导入；08 两侧只剩 1.4 墙，不加）
             if True:
                 # 槽口 0.6×45° 导入倒角（07/11 锥形槽自带导入；08 槽变小后两侧墙足够，恢复倒角）
-                h0 = (fw + p["pocket_clear"]) / 2.0
+                h0 = (fw + p["fit_clear"]) / 2.0
                 hh = 1.6
                 v = np.array([[-h0, -h0, pt-0.6], [h0, -h0, pt-0.6], [h0, h0, pt-0.6], [-h0, h0, pt-0.6],
                               [-(h0+hh), -(h0+hh), pt-0.6+hh], [(h0+hh), -(h0+hh), pt-0.6+hh],
@@ -221,8 +222,8 @@ def build_half(p, side):
                 holes.append(ch)
     else:
         # 圆槽：竖壁圆柱切 5 深（1L 桶落座），见参数注释
-        holes.append(C(p["tank_pos"][0], p["tank_pos"][1], pt - p["tank_depth"] / 2,
-                       p["tank_d"] / 2, p["tank_depth"] + 2, sections=96))
+        holes.append(C(p["tank_pos"][0], p["tank_pos"][1], pt + 1.0 - p["tank_depth"] / 2,
+                       p["tank_d"] / 2, p["tank_depth"] + 2, sections=96))   # 槽底 = pt-tank_depth
         # 槽底排水孔（通板，漏水直落桌面）——位置在槽内，桶底下也照排渗水
         holes.append(C(p["drain_pos"][0], p["drain_pos"][1], pt / 2,
                        p["drain_d"] / 2, pt + 4, sections=32))

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>D+2 现场任务卡 · 2026-11-09 周一 · C311</title>
+<style>
+  @page { size: A4; margin: 10mm 10mm 8mm 10mm; }
+  * { box-sizing: border-box; }
+  body { font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif; font-size: 10.2pt; line-height: 1.42; color: #111; margin: 0; padding: 6mm 2mm; background: #fff; }
+  h1 { font-size: 17pt; margin: 0 0 2mm 0; letter-spacing: .5px; }
+  .sub { font-size: 9.2pt; color: #444; margin-bottom: 3mm; }
+  h2 { font-size: 11.6pt; margin: 4.5mm 0 1.6mm 0; padding-left: 2.4mm; border-left: 3.2px solid #111; }
+  h3 { font-size: 10.4pt; margin: 2.6mm 0 1mm 0; }
+  table { width: 100%; border-collapse: collapse; margin: 1.2mm 0 2mm 0; font-size: 9.6pt; }
+  th, td { border: 1px solid #999; padding: 1.3mm 1.6mm; text-align: left; vertical-align: top; }
+  th { background: #eee; font-weight: 600; }
+  .tight td, .tight th { padding: 1.1mm 1.4mm; }
+  ul { margin: 1mm 0 1.6mm 0; padding-left: 5mm; }
+  li { margin: .5mm 0; }
+  .box { border: 1px solid #999; padding: 2mm 2.6mm; margin: 1.6mm 0; }
+  .warn { border: 2px solid #b00; padding: 2mm 2.6mm; margin: 2mm 0; }
+  .warn b { color: #b00; }
+  .flow { display: flex; gap: 1.2mm; font-size: 8.6pt; margin: 1.5mm 0 2mm 0; }
+  .flow div { flex: 1; border: 1px solid #999; padding: 1.2mm; text-align: center; }
+  .flow div b { display: block; font-size: 9.4pt; }
+  .ck { font-family: "Segoe UI Symbol", Arial, sans-serif; }
+  .cols { display: flex; gap: 4mm; }
+  .cols > div { flex: 1; }
+  .muted { color: #555; font-size: 9pt; }
+  hr { border: none; border-top: 1px solid #bbb; margin: 3mm 0; }
+  .nowrap { white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<h1>D+2 现场任务卡 · 2026-11-09（周一）· C311</h1>
+<div class="sub">19:00–20:50（1h50m）｜ 4 件打印 + 继电器 + 量水（+浮球）｜ 本卡只做这几件，其它一律不碰</div>
+
+<div class="flow">
+  <div><b>19:00</b>交件开打</div>
+  <div><b>19:20</b>烧测试固件</div>
+  <div><b>19:25</b>8.1 继电器</div>
+  <div><b>19:55</b>8.2 量水</div>
+  <div><b>20:30</b>收尾烧回</div>
+  <div><b>20:35</b>取件</div>
+  <div><b>20:50</b>撤</div>
+</div>
+
+<h2>0 · 携带清单（出门前逐项打勾）</h2>
+<ul class="ck">
+  <li><b>PH1 小十字螺丝刀</b>（今天没有螺丝刀 = 8.1/8.2 全废，最重要的一件）</li>
+  <li>ESP32 + USB <b>数据线</b>｜ 继电器 JQC-3FF ｜ 水泵 + 硅胶管 ｜ 电容土壤传感器 ｜ P52 浮球</li>
+  <li>剪好的 USB <b>延长线</b>（红/黑已剥出，白绿包胶带）+ WAGO 221 ｜ <b>量筒</b> ｜ <b>充电宝</b>（5V/1A 以上）｜ 1L 桶</li>
+  <li>U 盘（gcode）｜ 杜邦线 + 面包板 ｜ 纸巾抹布 ｜ 手机（拍照）｜ 纸笔</li>
+  <li>万用表（借得到就带，浮球用；借不到走 ESP32 法）</li>
+</ul>
+
+<h2>1 · 交打印（19:00–19:15）</h2>
+<p class="muted" style="margin:0 0 1mm 0">只交这 4 件：合计 <b>1h18m / 21.2 g</b>，19:15 开打 → <b>20:35 打完，当天取走</b>。</p>
+<table class="tight">
+  <tr><th style="width:9%">件号</th><th>名称</th><th style="width:14%">切片时长</th><th style="width:12%">克重</th><th style="width:14%">brim</th><th style="width:12%">交件</th></tr>
+  <tr><td>06c</td><td>拼缝连接块 ×2（首件，验 M3 咬合）</td><td>6m32s</td><td>2.9 g</td><td>3 mm</td><td class="ck">□</td></tr>
+  <tr><td>03</td><td>水管末端固定夹（土插窄版）</td><td>17m13s</td><td>3.3 g</td><td>3 mm</td><td class="ck">□</td></tr>
+  <tr><td>11</td><td>光敏电阻小柱</td><td>18m31s</td><td>4.9 g</td><td>3 mm</td><td class="ck">□</td></tr>
+  <tr><td>01b</td><td>土壤传感器土插支架</td><td>35m25s</td><td>10.1 g</td><td>5 mm</td><td class="ck">□</td></tr>
+</table>
+<ul class="ck">
+  <li>□ 核对机器：<b>拓竹 X2D</b>、<b>0.4 mm 喷嘴</b>、PLA（不一致就停，别硬打）</li>
+  <li>□ 核对底板：底盘两片的大平面 brim 8mm 规则今天用不上，但这 4 件 brim 见上表</li>
+  <li>□ <b>问清两件事</b>：① 周六 C311 开不开（决定底盘 5h 连打还是分两晚）② 20:30 后取件流程</li>
+  <li>□ 手机拍：上机状态 + 首层（R4 素材）</li>
+</ul>
+<div class="box"><b>不进今天批次：</b>04 OLED 支架（29m49s）、07 DHT11 小座（34m35s）、10 水箱盖（1h2m）、06a/06b 底盘（各 2.5h）—— 周二/周三/周六另约。</div>
+
+<h2>2 · 烧固件（19:15–19:20）</h2>
+<ul>
+  <li>板上现在是<b>传感器版</b>（EN_DHT=1 + EN_OLED=1），第一件事烧 <b>RelayPumpTest</b>：<br>
+  <span class="nowrap" style="font-family:Consolas,monospace;font-size:9pt">arduino-cli upload -p COM6 --fqbn esp32:esp32:esp32 outputs/代码/花房代码/RelayPumpTest</span></li>
+  <li>串口 115200 打开，发 <span style="font-family:Consolas,monospace">h</span> 看到帮助 = 固件在跑</li>
+</ul>
+
+<h2>3 · 8.1 继电器（19:20–19:50，30 min）</h2>
+<table class="tight">
+  <tr><th style="width:34%">从 ESP32</th><th style="width:30%">到继电器模块</th><th>要点</th></tr>
+  <tr><td>GPIO26</td><td>IN</td><td>3.3V 逻辑，别接 5V</td></tr>
+  <tr><td><b>5V / VIN</b></td><td><b>VCC（DC+）</b></td><td>JQC-3FF 线圈 5V，接 3V3 吸不动</td></tr>
+  <tr><td>GND</td><td>GND（DC−）</td><td>—</td></tr>
+</table>
+<ul>
+  <li>测试序列：<span style="font-family:Consolas,monospace">on</span>（听"咔"+灯亮）→ <span style="font-family:Consolas,monospace">t</span>（显示吸合）→ <span style="font-family:Consolas,monospace">off</span> → <span style="font-family:Consolas,monospace">w 3</span>（3 秒自动断）</li>
+</ul>
+<table class="tight">
+  <tr><th style="width:46%">验收（四条全过才算）</th><th>打勾</th></tr>
+  <tr><td>on/off 有清晰"咔哒"</td><td class="ck">□</td></tr>
+  <tr><td>模块指示灯同步亮灭</td><td class="ck">□</td></tr>
+  <tr><td>t 状态与累计时长正确</td><td class="ck">□</td></tr>
+  <tr><td>吸合瞬间照片（连拍 3 张）</td><td class="ck">□</td></tr>
+</table>
+<div class="box"><b>排障两条：</b>① 串口打"吸合"但没咔哒、灯不亮 → VCC 没接 5V/VIN；② on 完全没反应但串口正常 → 触发极性反，改 <span style="font-family:Consolas,monospace">RELAY_ACTIVE_HIGH 0</span> 重烧（找小马改）。</div>
+
+<h2>4 · 8.2 水泵量水（19:55–20:30，35 min）</h2>
+<div class="warn"><b>水路远离电路：</b>桌面垫纸巾，桶放桌沿外侧，泵线不跨过板子。</div>
+<ul>
+  <li><b>接法（只串正极）：</b>充电宝正极（红）→ 继电器 <b>COM</b>；继电器 <b>NO</b> → 水泵<b>红线</b>；水泵<b>黑线</b> → 充电宝负极，<b>直连不过继电器</b>（WAGO 对接）</li>
+  <li><b>延长线白/绿为数据线，不接</b>，各自用绝缘胶带包住</li>
+  <li>电源用<b>充电宝</b>，不用电脑 USB 口（泵启动电流会触发过流保护）</li>
+  <li>泵进水口浸入半桶水，出水管对准量筒口；<b>首次发 <span style="font-family:Consolas,monospace">w 5</span></b>（防超 250 ml 量程），液面<b>静置 2 秒</b>再读</li>
+</ul>
+<table class="tight">
+  <tr><th style="width:12%">次数</th><th style="width:18%">吸合时长</th><th style="width:22%">出水量 (ml)</th><th style="width:20%">折算 ml/s</th><th>备注</th></tr>
+  <tr><td>1</td><td>5 s</td><td></td><td></td><td>首测防溢</td></tr>
+  <tr><td>2</td><td>5 s</td><td></td><td></td><td>重复验</td></tr>
+  <tr><td>3</td><td>10 s</td><td></td><td></td><td>量程够才做</td></tr>
+  <tr><td colspan="5"><b>ml/s 平均 = ______ ml/s</b>（两次 5s 也能算；测完拍照发群）</td></tr>
+</table>
+<table class="tight">
+  <tr><th style="width:46%">验收</th><th>打勾</th></tr>
+  <tr><td>泵起停正常、无异响</td><td class="ck">□</td></tr>
+  <tr><td>出水是流不是滴</td><td class="ck">□</td></tr>
+  <tr><td>停泵后管路不滴漏</td><td class="ck">□</td></tr>
+  <tr><td>出水视频 ≥10 秒</td><td class="ck">□</td></tr>
+</table>
+
+<h2>5 · 浮球极性（20:30 后有余力才做，10 min）</h2>
+<ul>
+  <li>万用表<b>蜂鸣档</b>（两笔先碰一下确认响）→ 接浮球两根线</li>
+  <li><b>杆尖朝下</b>（模拟没水）：响 / 不响 → <b>倒过来杆尖朝上</b>（有水）：响 / 不响</li>
+  <li>浮子要推到<b>端点</b>才动作，不响就用手指硬推到顶端再试</li>
+</ul>
+<table class="tight">
+  <tr><th style="width:30%">朝下（没水）</th><th style="width:30%">朝上（有水）</th><th>结论</th></tr>
+  <tr><td>不响</td><td>响</td><td>常开型 → 默认配置，不用改</td></tr>
+  <tr><td>响</td><td>不响</td><td>常闭型 → 改 <span style="font-family:Consolas,monospace">LEVEL_WET_CLOSED false</span></td></tr>
+  <tr><td colspan="2">实测：朝下 ______ / 朝上 ______</td><td>都响或都不响 = 开关坏，换备用</td></tr>
+</table>
+
+<h2>6 · 收尾（20:30–20:50）</h2>
+<ul class="ck">
+  <li>□ <b>烧回主固件 v1.6</b>，串口确认打的是 <span style="font-family:Consolas,monospace">v1.6 启动</span> + <span style="font-family:Consolas,monospace">dry=3200 wet=1300</span>（不是 RelayPumpTest）</li>
+  <li>□ 取件（4 件），当场看：翘边 / 首层 / 06c 的 M3 孔咬合 —— 有偏差当场记</li>
+  <li>□ 水路擦干、地面查滴水 ｜ 器材清点归袋（借的不是送的）</li>
+  <li>□ 数据回传：ml/s = ______ ｜ 浮球 = ______ ｜ 打印偏差 = ______</li>
+</ul>
+
+<div class="warn">
+  <b>今天不做（别被带跑）：</b>上云 / 小程序 / 局域网网页 / 土壤标定 / 底盘打印。<br>
+  <b>红线：</b>土壤标定没做之前 <span style="font-family:Consolas,monospace">EN_WATER = 0</span>，今天只验"元件能动"，<b>不跑自动浇水</b>；不许手改 STL；测试固件不留板。
+</div>
+
+<hr>
+<div class="muted">数据口径：件时长/克重取 <span style="font-family:Consolas,monospace">outputs/3D打印件/切片_2026-10-24/切片报告.md</span>（X2D 0.4mm 实切）；接线以 <span style="font-family:Consolas,monospace">docs/花房接线规划表.md</span> 与接线图 v2 为准。</div>
+
+</body>
+</html>
