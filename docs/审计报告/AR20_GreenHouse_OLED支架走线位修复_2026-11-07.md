@@ -98,9 +98,9 @@
 - `outputs/3D打印件/花房3D_P1P2/p1p2_models.py`：新增 9 个参数（leg_h/leg_w/lift/wire_*/base_slot_*/ic_*），`build_oled_stand` 重写
 - `outputs/3D打印件/花房3D_P1P2/交付说明_P1P2五件v1.md`：04 外形 36×34×27 → **39.5**、估重 21.1 → **27.4 g**、设计说明重写
 - `README.md` §三：04 行外形/耗材/时间；合计 325.3 → **330.9 g**、8h02m → **8h15m**
-- `outputs/3D打印件/切片_2026-10-24/切片报告.md`：加 11-07 复切说明 + 04 行与合计
+- `outputs/3D打印件/_打印参考/切片报告.md`：加 11-07 复切说明 + 04 行与合计
 - `outputs/3D打印件/花房3D_整机装配/audit.py`：04 估重期望 21.1 → 27.4
-- `outputs/3D打印件/切片_2026-10-24/04_oled_stand/`：3mf + gcode + result.json 已刷新
+- `outputs/3D打印件/（已删，切片由领导现场做）/04_oled_stand/`：3mf + gcode + result.json 已刷新
 
 ---
 
