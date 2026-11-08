@@ -52,12 +52,16 @@ P = {
     "pocket_depth": 3.5,        # 槽底仍 z=4.5
     # ---- 2026-11-08 小件嵌槽（领导定：完全嵌平 = 槽深取件底座高度）----
     # (x, y, 槽宽, 槽深, 槽深Z, 绕Z旋转°)
+    # 直壁槽（零件本身是直壁）：尺寸 = 件外廓 + 0.5（单边 0.25）
     "fits": [
-        ("04 屏架", -45.0,  38.0, 36.4, 34.4, 3.0, 0.0),   # 底座裙墙 10 高，8mm 板只能沉 3
-        ("07 DHT",  -45.0, -67.0, 34.6, 34.6, 4.5, 0.0),   # 台锥 28→34，全沉
-        ("11 光敏", -110.0, -5.0, 30.6, 30.6, 4.0, 0.0),   # 台锥 24→30，全沉
-        ("08 扎线", -75.0,   8.0, 33.4, 20.4, 2.0, 8.0),   # 底板 2 厚，与板面齐平
-        ("LED 模块", -16.0, 12.5, 19.2, 13.9, 1.6, 0.0),   # 模块 1.6 厚，齐平（离 04 槽留 0.6）
+        ("04 屏架", -45.0,  38.0, 36.5, 34.5, 3.0, 0.0),   # 底座裙墙 10 高，8mm 板只能沉 3
+        ("08 扎线", -77.0,   8.0, 33.5, 20.5, 2.0, 0.0),   # 底板 2 厚，齐平（转 8°→0°，两边才够宽）
+        ("LED 模块", -14.0, 12.5, 19.3, 14.0, 1.6, 0.0),   # 模块 1.6 厚，齐平（-16→-14：倒角不与 04 槽相交）
+    ],
+    # 锥形槽（零件底座是倒四棱柱）：(名, x, y, 底宽, 顶宽, 高, 单边间隙)
+    "fits_taper": [
+        ("07 DHT",  -45.0, -67.0, 28.0, 34.0, 4.5, 0.15),  # 33.7°
+        ("11 光敏", -110.0, -5.0, 24.0, 30.0, 4.0, 0.15),  # 36.9°
     ],
 
     # 右片区 (x>0): 水箱 —— 2026-10-20 改 1L 圆桶 (AR08)
@@ -178,6 +182,19 @@ def build_half(p, side):
                 if (xx, yy) == (-70, 0):
                     continue
                 holes.append(B(xx, yy, pt / 2, p["slot_l"], p["slot_w"], pt + 4))
+        # 锥形槽（07/11：与零件同角度的倒四棱柱）
+        for _nm, fx, fy, wb, wt, hh, cl in p["fits_taper"]:
+            v = np.array([
+                [fx-(wb/2+cl), fy-(wb/2+cl), pt-hh], [fx+(wb/2+cl), fy-(wb/2+cl), pt-hh],
+                [fx+(wb/2+cl), fy+(wb/2+cl), pt-hh], [fx-(wb/2+cl), fy+(wb/2+cl), pt-hh],
+                [fx-(wt/2+cl), fy-(wt/2+cl), pt], [fx+(wt/2+cl), fy-(wt/2+cl), pt],
+                [fx+(wt/2+cl), fy+(wt/2+cl), pt], [fx-(wt/2+cl), fy+(wt/2+cl), pt],
+            ])
+            f = np.array([[0,3,2],[0,2,1],[4,5,6],[4,6,7],[0,1,5],[0,5,4],
+                          [1,2,6],[1,6,5],[2,3,7],[2,7,6],[3,0,4],[3,4,7]])
+            cutter = trimesh.Trimesh(vertices=v, faces=f, process=True)
+            cutter.fix_normals()
+            holes.append(cutter)
         # 小件嵌槽（完全嵌平）
         for _nm, fx, fy, fw, fh, fd, fr in p["fits"]:
             box_cut = box(extents=[fw + p["pocket_clear"], fh + p["pocket_clear"], fd + 2])
@@ -186,6 +203,22 @@ def build_half(p, side):
                     np.deg2rad(fr), [0, 0, 1]))
             box_cut.apply_translation([fx, fy, pt + 1.0 - fd / 2])   # 底面正好落在 pt-fd
             holes.append(box_cut)
+            # 槽口 0.6×45° 导入倒角（07/11 锥形槽自带导入；08 两侧只剩 1.4 墙，不加）
+            if "08" not in _nm:
+                # 槽口 0.6×45° 导入倒角（07/11 锥形槽自带导入；08 两侧墙只剩 1.4，不加）
+                h0 = (fw + p["pocket_clear"]) / 2.0
+                hh = 1.6
+                v = np.array([[-h0, -h0, pt-0.6], [h0, -h0, pt-0.6], [h0, h0, pt-0.6], [-h0, h0, pt-0.6],
+                              [-(h0+hh), -(h0+hh), pt-0.6+hh], [(h0+hh), -(h0+hh), pt-0.6+hh],
+                              [(h0+hh), (h0+hh), pt-0.6+hh], [-(h0+hh), (h0+hh), pt-0.6+hh]])
+                f = np.array([[0,3,2],[0,2,1],[4,5,6],[4,6,7],[0,1,5],[0,5,4],
+                              [1,2,6],[1,6,5],[2,3,7],[2,7,6],[3,0,4],[3,4,7]])
+                ch = trimesh.Trimesh(vertices=v, faces=f, process=True)
+                ch.fix_normals()
+                if fr:
+                    ch.apply_transform(trimesh.transformations.rotation_matrix(np.deg2rad(fr), [0, 0, 1]))
+                ch.apply_translation([fx, fy, 0])
+                holes.append(ch)
     else:
         # 圆槽：竖壁圆柱切 5 深（1L 桶落座），见参数注释
         holes.append(C(p["tank_pos"][0], p["tank_pos"][1], pt - p["tank_depth"] / 2,

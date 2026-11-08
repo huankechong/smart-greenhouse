@@ -338,7 +338,7 @@ scr.apply_translation([OLED[0], 36.80, 32.94])
 add(scr, "screen", "OLED 屏")
 
 # ---------- 10. 双色 LED（裸灯珠，灯罩已取消：无半透明耗材）----------
-LED = (-16.0, 12.5)   # 2026-11-08：挪位 + 嵌槽（槽深 1.6，与板面齐平）
+LED = (-14.0, 12.5)   # 2026-11-08：挪位 + 嵌槽（槽深 1.6，与板面齐平）
 # [实测 2026-11-08] 实物是 18.8×13.5 三针模块（板载 5mm LED），不是裸灯珠 → 平放板面
 add(place(box([18.8, 13.5, 1.6]), LED[0], LED[1], PT - 1.6 + 0.8), "pcb_green", "LED 模块")
 add(place(cylinder(radius=2.5, height=8.6, sections=32), LED[0], LED[1] + 0.5, PT + 0.0 + 4.3), "led", "LED 灯珠")
@@ -369,7 +369,7 @@ _ldr_mod.apply_translation([LDR[0], LDR[1] + 0.21, PT + 26.21 - 4.0])
 add(_ldr_mod, "pcb_green", "光敏模块")
 
 # ---------- 13. P2: 扎线固定座 ----------
-add(place(M_P1.build_cable_clip(M_P1.PARAMS["clip3"]), -75.0, 8.0, PT - 2.0, rz=8), "white", "扎线座")   # 嵌槽 2.0
+add(place(M_P1.build_cable_clip(M_P1.PARAMS["clip3"]), -77.0, 8.0, PT - 2.0, rz=0), "white", "扎线座")   # 嵌槽 2.0（不转角：避开继电器槽与 11 槽）
 
 
 # ============================================================

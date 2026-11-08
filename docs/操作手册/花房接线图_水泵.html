@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>花房 8.1+8.2 继电器水泵接线图 v3（2026-11-09 周一 C311 用）</title>
+<style>
+  body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;margin:0;background:#fff;color:#2C2C2A;}
+  .wrap{max-width:780px;margin:0 auto;padding:28px 20px 40px;}
+  h1{font-size:20px;font-weight:600;margin:0 0 6px;}
+  h2{font-size:16px;font-weight:600;margin:20px 0 8px;}
+  .meta{font-size:13px;color:#5F5E5A;margin:0 0 12px;}
+  .warn{font-size:13px;color:#A32D2D;font-weight:600;margin:0 0 14px;}
+  figure{margin:0 0 20px;}
+  figcaption{font-size:12px;color:#888780;margin-top:6px;}
+  table{border-collapse:collapse;width:100%;font-size:13px;margin:0 0 16px;}
+  th,td{border:1px solid #D3D1C7;padding:7px 10px;text-align:left;vertical-align:top;line-height:1.5;}
+  th{background:#F1EFE8;font-weight:600;}
+  .sw{display:inline-block;width:12px;height:12px;border-radius:3px;border:1px solid #999;vertical-align:-1px;margin-right:6px;}
+  ol{font-size:13px;line-height:1.7;padding-left:22px;margin:0 0 16px;}
+  .foot{font-size:12px;color:#888780;border-top:1px solid #D3D1C7;padding-top:10px;}
+  code{background:#F1EFE8;border-radius:3px;padding:1px 5px;font-size:12px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>8.1 继电器 + 8.2 水泵 · 接线图 v3</h1>
+  <p class="meta">花房项目 · <b>2026-11-09（周一）19:00 C311</b> 用 · 按 11/08 实验室实测修正：继电器 <b>JQC-3FF-S-Z</b>，输入端 = <b>DC+ / DC− / IN</b>（<b>全部是螺丝端子</b>），强电侧 = NC / COM / NO，带 High/Low 触发跳线帽</p>
+  <p class="warn">v3 三处变更：① 继电器输入端 VCC/GND 改为丝印 DC+/DC−；② 全部端子要拧螺丝 → 必带小十字螺丝刀，杜邦线继电器侧剥 8mm 裸线头；③ 排障先拨 High/Low 跳帽，再改 RELAY_ACTIVE_HIGH</p>
+
+  <figure>
+  <svg viewBox="0 0 680 720" width="100%" role="img" xmlns="http://www.w3.org/2000/svg" style="font-family:inherit">
+  <title>8.1+8.2 继电器水泵接线图 v3</title>
+  <desc>继电器输入端DC+/DC-/IN全螺丝端子，强电侧NC/COM/NO中NC不接；正极经COM/NO，负极经万可直通；白绿数据线不接。</desc>
+  <defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+  <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+  </defs>
+  <text x="40" y="30" font-size="15" font-weight="500" fill="#2C2C2A">11/09 继电器·水泵联调 · 接线图 v3（按 11/08 实测继电器）</text>
+  <text x="40" y="50" font-size="12" fill="#A32D2D">端子全部是螺丝：控制侧剥 8mm 裸线头拧入；必带小十字螺丝刀</text>
+  <line x1="40" y1="66" x2="70" y2="66" stroke="#D0342C" stroke-width="2.5" stroke-linecap="round"/>
+  <text x="78" y="70" font-size="12" fill="#444441">红 · 泵 5V 正极（经继电器 COM/NO）</text>
+  <line x1="320" y1="66" x2="350" y2="66" stroke="#2C2C2A" stroke-width="2.5" stroke-linecap="round"/>
+  <text x="358" y="70" font-size="12" fill="#444441">黑 · 泵负极（经万可直通）</text>
+  <line x1="40" y1="87" x2="70" y2="87" stroke="#B4B2A9" stroke-width="2"/>
+  <line x1="40" y1="92" x2="70" y2="92" stroke="#639922" stroke-width="2"/>
+  <text x="78" y="94" font-size="12" fill="#444441">白/绿 · USB 数据线，不接、胶带包</text>
+  <line x1="300" y1="87" x2="314" y2="87" stroke="#EF9F27" stroke-width="2.5"/>
+  <line x1="300" y1="92" x2="314" y2="92" stroke="#1D9E75" stroke-width="2.5"/>
+  <line x1="300" y1="97" x2="314" y2="97" stroke="#378ADD" stroke-width="2.5"/>
+  <text x="322" y="96" font-size="12" fill="#444441">杜邦 · 信号/5V/GND（继电器侧剥头进端子）</text>
+  <rect x="40" y="130" width="140" height="80" rx="10" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
+  <text x="110" y="158" text-anchor="middle" font-size="13" font-weight="500" fill="#0C447C">USB 5V 电源</text>
+  <text x="110" y="180" text-anchor="middle" font-size="11" fill="#5F5E5A">充电宝 1A 以上</text>
+  <rect x="250" y="110" width="210" height="165" rx="10" fill="#FAEEDA" stroke="#854F0B" stroke-width="0.5"/>
+  <text x="355" y="130" text-anchor="middle" font-size="13" font-weight="500" fill="#633806">继电器 JQC-3FF（5VDC）</text>
+  <text x="280" y="152" font-size="11" fill="#444441">NC</text>
+  <text x="340" y="152" font-size="11" fill="#444441">COM</text>
+  <text x="412" y="152" text-anchor="end" font-size="11" fill="#444441">NO</text>
+  <text x="448" y="163" text-anchor="end" font-size="11" font-weight="500" fill="#A32D2D">High/Low 跳帽</text>
+  <rect x="430" y="168" width="13" height="10" rx="2" fill="#D85A30" stroke="#712B13" stroke-width="0.5"/>
+  <text x="355" y="185" text-anchor="middle" font-size="11" fill="#A32D2D">强电侧螺丝端子 · NC 不接</text>
+  <text x="280" y="240" text-anchor="middle" font-size="11" font-weight="500" fill="#444441">DC+</text>
+  <text x="345" y="240" text-anchor="middle" font-size="11" font-weight="500" fill="#444441">DC−</text>
+  <text x="415" y="240" text-anchor="middle" font-size="11" font-weight="500" fill="#444441">IN</text>
+  <text x="355" y="258" text-anchor="middle" font-size="11" fill="#A32D2D">输入侧螺丝端子（拧线，非排针）</text>
+  <rect x="500" y="130" width="140" height="120" rx="10" fill="#EAF3DE" stroke="#3B6D11" stroke-width="0.5"/>
+  <text x="570" y="160" text-anchor="middle" font-size="13" font-weight="500" fill="#27500A">水泵 3W</text>
+  <text x="570" y="182" text-anchor="middle" font-size="11" fill="#5F5E5A">USB 公头插 A 母侧</text>
+  <text x="570" y="202" text-anchor="middle" font-size="11" fill="#5F5E5A">吸盘吸桶底 · 浸入水中</text>
+  <text x="514" y="145" font-size="11" fill="#444441">红·正极</text>
+  <text x="620" y="246" text-anchor="middle" font-size="11" fill="#444441">黑·负极</text>
+  <rect x="250" y="410" width="210" height="120" rx="10" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+  <text x="295" y="430" text-anchor="middle" font-size="11" font-weight="500" fill="#A32D2D">5V/VIN</text>
+  <text x="355" y="430" text-anchor="middle" font-size="11" font-weight="500" fill="#444441">GND</text>
+  <text x="415" y="430" text-anchor="middle" font-size="11" font-weight="500" fill="#A32D2D">GPIO26</text>
+  <text x="355" y="458" text-anchor="middle" font-size="13" font-weight="500" fill="#3C3489">ESP32</text>
+  <text x="355" y="482" text-anchor="middle" font-size="11" fill="#5F5E5A">① 先烧 RelayPumpTest（板上=传感器版）</text>
+  <text x="355" y="500" text-anchor="middle" font-size="11" fill="#5F5E5A">串口 115200 · on / off / w 5</text>
+  <rect x="112" y="432" width="28" height="8" rx="4" fill="#FAC775" stroke="#854F0B" stroke-width="0.5"/>
+  <rect x="180" y="432" width="28" height="8" rx="4" fill="#FAC775" stroke="#854F0B" stroke-width="0.5"/>
+  <rect x="100" y="440" width="120" height="60" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
+  <text x="160" y="465" text-anchor="middle" font-size="12" font-weight="500" fill="#085041">万可 WAGO 221</text>
+  <text x="160" y="485" text-anchor="middle" font-size="11" fill="#5F5E5A">B1 ↔ B2 直通</text>
+  <path d="M180 150 L268 150" stroke="#D0342C" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M420 150 L500 150" stroke="#D0342C" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M180 170 L228 170 L228 470 L220 470" stroke="#2C2C2A" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M100 470 L80 470 L80 570 L620 570 L620 250" stroke="#2C2C2A" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#arrow)"/>
+  <path d="M295 410 L295 250" stroke="#1D9E75" stroke-width="2" fill="none" stroke-linecap="round" marker-end="url(#arrow)"/>
+  <path d="M355 410 L355 250" stroke="#378ADD" stroke-width="2" fill="none" stroke-linecap="round" marker-end="url(#arrow)"/>
+  <path d="M415 410 L415 250" stroke="#EF9F27" stroke-width="2" fill="none" stroke-linecap="round" marker-end="url(#arrow)"/>
+  <path d="M180 157 L200 157" stroke="#B4B2A9" stroke-width="2" stroke-linecap="round"/>
+  <rect x="200" y="151" width="14" height="12" rx="2" fill="#444441"/>
+  <text x="220" y="161" font-size="11" fill="#888780">白绿</text>
+  <text x="225" y="142" text-anchor="middle" font-size="11" fill="#444441">R1</text>
+  <text x="460" y="142" text-anchor="middle" font-size="11" fill="#444441">R2</text>
+  <text x="233" y="330" text-anchor="end" font-size="11" fill="#444441">B1</text>
+  <text x="410" y="565" text-anchor="middle" font-size="11" fill="#444441">B2（泵黑线直连负极）</text>
+  <circle cx="180" cy="150" r="3.5" fill="#D0342C" stroke="#2C2C2A" stroke-width="0.75"/>
+  <circle cx="268" cy="150" r="3.5" fill="#D0342C" stroke="#2C2C2A" stroke-width="0.75"/>
+  <circle cx="420" cy="150" r="3.5" fill="#D0342C" stroke="#2C2C2A" stroke-width="0.75"/>
+  <circle cx="500" cy="150" r="3.5" fill="#D0342C" stroke="#2C2C2A" stroke-width="0.75"/>
+  <circle cx="180" cy="170" r="3.5" fill="#2C2C2A" stroke="#2C2C2A" stroke-width="0.75"/>
+  <circle cx="620" cy="250" r="3.5" fill="#2C2C2A" stroke="#2C2C2A" stroke-width="0.75"/>
+  <circle cx="220" cy="470" r="4" fill="#2C2C2A" stroke="#2C2C2A" stroke-width="0.75"/>
+  <circle cx="100" cy="470" r="4" fill="#2C2C2A" stroke="#2C2C2A" stroke-width="0.75"/>
+  <circle cx="295" cy="410" r="3.5" fill="#1D9E75" stroke="#2C2C2A" stroke-width="0.75"/>
+  <circle cx="295" cy="250" r="3.5" fill="#1D9E75" stroke="#2C2C2A" stroke-width="0.75"/>
+  <circle cx="355" cy="410" r="3.5" fill="#378ADD" stroke="#2C2C2A" stroke-width="0.75"/>
+  <circle cx="355" cy="250" r="3.5" fill="#378ADD" stroke="#2C2C2A" stroke-width="0.75"/>
+  <circle cx="415" cy="410" r="3.5" fill="#EF9F27" stroke="#2C2C2A" stroke-width="0.75"/>
+  <circle cx="415" cy="250" r="3.5" fill="#EF9F27" stroke="#2C2C2A" stroke-width="0.75"/>
+  <line x1="40" y1="592" x2="640" y2="592" stroke="#B4B2A9" stroke-width="0.5"/>
+  <text x="40" y="610" font-size="12" fill="#444441">• 端子全是螺丝：DC+←5V/VIN、DC−←GND、IN←GPIO26（杜邦剥 8mm 裸线拧入）；红线 R1→COM、R2→NO，NC 不接</text>
+  <text x="40" y="630" font-size="12" fill="#444441">• 发 on 没咔哒 → 先拨 High/Low 跳帽换档试；仍不行 → RELAY_ACTIVE_HIGH 改 0 重烧（低电平触发）</text>
+  <text x="40" y="650" font-size="12" fill="#444441">• 泵黑线经万可直通负极不过继电器；白/绿数据线胶带包防短路；量水首测 w 5 防溢（量筒 25–250ml）</text>
+  <text x="40" y="670" font-size="12" fill="#444441">• 泵电源插充电宝不插电脑；控制侧与触点侧光耦隔离，泵回路不用共地；测完烧回主固件 v1.6</text>
+  </svg>
+  <figcaption>浏览器 Ctrl+P 可直接打印本页带去实验室（白底适配打印）；接线规划表《docs/操作手册/花房接线规划表.md》为器件总表，本图专用于 8.1+8.2 现场。</figcaption>
+  </figure>
+
+  <h2>四色线速查（v3 实测口径）</h2>
+  <table>
+    <tr><th style="width:140px;">线</th><th>走向</th></tr>
+    <tr><td><span class="sw" style="background:#D0342C;"></span>红 · 泵正极</td><td>充电宝 5V → 剪断处 <b>R1</b> → 继电器 <b>COM</b>；<b>NO</b> → <b>R2</b> → 泵红线（<b>NC 不接</b>；裸线头直接压进螺丝端子）</td></tr>
+    <tr><td><span class="sw" style="background:#2C2C2A;"></span>黑 · 泵负极</td><td>剪断处 B1 → <b>万可 WAGO 221</b> → B2 → 泵黑线（<b>直通，不过继电器</b>）</td></tr>
+    <tr><td><span class="sw" style="background:#B4B2A9;"></span><span class="sw" style="background:#639922;"></span>白/绿 · 数据</td><td><b>都不接</b>——两侧剪开后各自绝缘胶带包好，防碰到红黑短路</td></tr>
+    <tr><td><span class="sw" style="background:#EF9F27;"></span><span class="sw" style="background:#1D9E75;"></span><span class="sw" style="background:#378ADD;"></span>杜邦 ×3（控制）</td><td><b>GPIO26→IN</b>（橙）、<b>5V/VIN→DC+</b>、<b>GND→DC−</b>——继电器这头<b>剥 8mm 裸线头拧进螺丝端子</b>（不是排针！）；ESP32 那头照常插排针</td></tr>
+  </table>
+
+  <h2>现场顺序（11/09 周一 19:00 C311）</h2>
+  <ol>
+    <li><b>带齐</b>：小十字螺丝刀（最关键）+ 量筒 + 充电宝 + 已剪好的 USB 延长线 + 手机 + U 盘。</li>
+    <li>插板 → <b>烧 RelayPumpTest</b>（板上现在是传感器版固件，非主固件！），串口 115200。</li>
+    <li><b>8.1</b>：按图接继电器（螺丝端子拧线）→ 发 <code>on</code> 听咔哒、看模块灯 → <code>off</code> 断开。<b>没咔哒</b>：先拨 High/Low 跳帽换一档再试；仍不行 → <code>RELAY_ACTIVE_HIGH</code> 改 0 重烧。拍照（素材 8.1）。</li>
+    <li><b>8.2</b>：泵浸 1L 桶半桶水，量筒接水 → 发 <code>w 5</code>（首测 5 秒防溢）记 ml；再测 10s / 5s / 3s 填记录表 → 算 ml/s 平均值。拍出水视频（素材 8.2）。</li>
+    <li><b>浮球极性</b>：万用表蜂鸣档，杆尖朝下（没水）/朝上（有水）各测一次 → 定 <code>LEVEL_WET_CLOSED</code>。</li>
+    <li>交打印并行：7 件（06c + 五小件 + 水箱盖）3h25m，20:30 前开打、打到完为止（约 22:20）。</li>
+    <li>收尾：<b>烧回主固件 v1.6</b>，桌面擦干，器材清点。</li>
+  </ol>
+
+  <p class="foot">花房项目 · Smart GreenHouse · v3（2026-11-08 按实验室实测修订，取代 v2）· 配套《docs/操作手册/10月26日实验室操作清单.md》第 2/3 件 +《docs/操作手册/花房接线规划表.md》</p>
+</div>
+</body>
+</html>
