@@ -11,8 +11,8 @@ from trimesh.boolean import difference, union
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "STL")
 os.makedirs(OUT, exist_ok=True)
 
-pw, ph, pt = 33.0, 20.0, 2.0          # 08 底板
-plate_x, plate_y, plate_t = 105.0, 30.0, 5.0
+pw, ph, pt = 30.0, 16.0, 2.0          # 08 底板（实测 30×16×2）
+plate_x, plate_y, plate_t = 96.0, 26.0, 5.0
 gaps = (0.10, 0.20, 0.30)
 
 body = box(extents=[plate_x, plate_y, plate_t])
@@ -20,7 +20,7 @@ body.apply_translation([0, 0, plate_t / 2])
 
 cuts = []
 for i, g in enumerate(gaps):
-    x = -35.0 + i * 35.0
+    x = -32.0 + i * 32.0
     w, h = pw + 2 * g, ph + 2 * g
     cuts.append(box(extents=[w, h, pt + 2]).apply_translation([x, 0, plate_t - pt / 2]))
     # 槽口 0.6×45° 倒角
