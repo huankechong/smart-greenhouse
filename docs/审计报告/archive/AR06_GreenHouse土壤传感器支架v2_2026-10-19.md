@@ -2,7 +2,7 @@
 
 > 项目：智能花房养护站（IPW Final Project）
 > 日期：2026-10-19 · 执行：小马 · 触发：领导「按照最新的建模示意图，更新土壤传感器的建模」
-> 产物：`outputs/花房3D_P0/STL/01b_sensor_rim_hook_v2.stl`（13.6 g）· 脚本 `p0b_sensor_hook.py`（重写）
+> 产物：`outputs/3D打印件/花房3D_P0/STL/01b_sensor_rim_hook_v2.stl`（13.6 g）· 脚本 `p0b_sensor_hook.py`（重写）
 
 ---
 

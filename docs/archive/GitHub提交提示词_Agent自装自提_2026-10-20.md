@@ -27,7 +27,7 @@
 | 2 查身份    | **全局 user.name/email 为空**，只有当前仓库有 local 配置。在 `/tmp` 空仓库 `git commit` 直接报 `Author identity unknown` —— 这是最常见的"AI 提交失败"真因 |
 | 3 查凭据    | GCM 已授权账号 `huankechong`，`ls-remote` 与 `push --dry-run` 均通过。**token 已在 Windows 凭据管理器里，不需要也不该再贴一次**                       |
 | 4 先看状态   | 本仓库当前就有 4 个已改文件 + 3 个未跟踪文件，盲 `git add .` 容易把不该入库的混进去                                                                    |
-| 5 明确 add | `.gitignore` 已排除 `docs/private/`、`output/`、`.workbuddy/`、`outputs/截图备份_*/`（含个人信息），靠 ignore 兜底但不等于安全                     |
+| 5 明确 add | `.gitignore` 已排除 `docs/private/`、`output/`、`.workbuddy/`、`outputs/素材/_敏感_不入库/截图备份_*/`（含个人信息），靠 ignore 兜底但不等于安全                     |
 | 6 自检     | `git push` 成功≠你要的文件都上去了，必须读回 `git log` 核对 sha 和说明                                                                       |
 
 ---
@@ -81,7 +81,7 @@ ssh 密钥       无（当前走 HTTPS，不需要）
 
 1. **提交身份已全局配好，不要重复 `git config`**——尤其不要用 `git config --local` 覆盖，写成 local 反而会让新仓库继承不到。
 2. **仓库根目录 = `D:/Documents/workbuddydocument/2026-10-17-08-59-13`**，一切路径以它为基准（`docs/…` / `outputs/…`），不要写 `../`。
-3. **`.gitignore` 已排除**：`docs/private/`、`output/`、`.workbuddy/`、`outputs/截图备份_*/`、`outputs/截图整理_*/`（含个人信息的目录）。`git add` 时仍要显式列文件，不要 `git add .`。
+3. **`.gitignore` 已排除**：`docs/private/`、`output/`、`.workbuddy/`、`outputs/素材/_敏感_不入库/截图备份_*/`、`outputs/素材/_敏感_不入库/截图整理_*/`（含个人信息的目录）。`git add` 时仍要显式列文件，不要 `git add .`。
 4. **不要用 `gh`**：本机认证由 GCM 接管，`gh` 未安装；`git push` 即可。
 5. **不要重装 Git**：已装两份，版本 2.55.0。
 6. **提交前必看 `git status`**：当前工作区常有别人/自己未提交的改动，盲提交会带进不该入库的文件。

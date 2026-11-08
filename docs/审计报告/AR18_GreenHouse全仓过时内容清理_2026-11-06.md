@@ -25,8 +25,8 @@
 |---|---|---|---|---|
 | 1 | `README.md` §一 | 状态表停在 2026-10-20："等快递(10/21)""打印未开打、底盘各约 6h"，缺 11/06 器材借到/D0 信息 | 10/20 后只在 AGENTS/交接文档 changelog 更新，README 门户未刷 | §一整节重写为 2026-11-06 现状（含 D0/D+2 相对排期） |
 | 2 | `README.md` L5 | 开头"10 个结构件"与 §三"9 个打印件（02 作废）"自相矛盾 | 10/24 02 作废时只改了 §三 | L5 改 9 个，与 §三一致 |
-| 3 | `outputs/花房代码/GreenHouse_v1/README.md` | 头部/编译表停在 v1.5.1（2026-10-20），实际固件 v1.6 且 10/24 已实机验证 | v1.6 升级时 AR16/AR17 只写了报告，入口 README 漏更 | 头部+编译表按 AR17 实测数字重写（269,417 B / 902,077 B），补 v1.6 三项修复说明与实机验证记录 |
-| 4 | `package.json` | 依赖写 `puppeteer`，但 `verify_html.js` 实际 `require('playwright')`；且 script 从根目录跑时路径解析必失败（脚本按"装配目录内执行"设计） | AR16 建档时按印象写了依赖，未对照脚本 import | 依赖改 `playwright`；script 改 `cd outputs/花房3D_整机装配 && node verify_html.js` |
+| 3 | `outputs/代码/花房代码/GreenHouse_v1/README.md` | 头部/编译表停在 v1.5.1（2026-10-20），实际固件 v1.6 且 10/24 已实机验证 | v1.6 升级时 AR16/AR17 只写了报告，入口 README 漏更 | 头部+编译表按 AR17 实测数字重写（269,417 B / 902,077 B），补 v1.6 三项修复说明与实机验证记录 |
+| 4 | `package.json` | 依赖写 `puppeteer`，但 `verify_html.js` 实际 `require('playwright')`；且 script 从根目录跑时路径解析必失败（脚本按"装配目录内执行"设计） | AR16 建档时按印象写了依赖，未对照脚本 import | 依赖改 `playwright`；script 改 `cd outputs/3D打印件/花房3D_整机装配 && node verify_html.js` |
 | 5 | 根目录 `result.json` | Bambu Studio 在仓库根目录的残留切片输出（layer_height=0.0 空数据），随 `b8f1ddb` 误入库 | 切片当天在根目录开过 Bambu CLI | `git rm --cached` + `.gitignore` 加 `/result.json`（本地文件保留） |
 
 ### 🟡 中危（口径不一致/数字过时，9 项）
@@ -39,7 +39,7 @@
 | 9 | `docs/花房借用与自购清单.md` | "⏳ 10/26 可借到""待翻找"等日期口径失效；11/06 全部借到未回填 | 头部加 2026-11-06 收口注（借到清单明细 + 历史口径声明） |
 | 10 | `docs/花房3D建模入门路线_SolidWorks.md` L10 | "10 个打印件已出 STL" | 改"9 个 + 按实物实测定稿（02 作废）" |
 | 11 | `outputs/项目模式迁移包.md` | 整份停在 10-20：全局指令含"答辩 11-16""固件 v1.5.1""10 个打印件""等硬件到货""AR13/AR14" | 头部加时效警示（以 AGENTS.md 现行版为准）；指令模板内 5 处旧值改现行值；上传清单 10 件→9 件、AR02-11→AR02-17 |
-| 12 | `README.md` L109 + `outputs/花房3D_整机装配/交付说明_整机示意模型.md` | HTML"1.87MB / 34,734 面"（AR09 版），实际 1.91MB / 35,220 面（AR15 重出后） | 按 ls 实测与 AR15 记录回填，交付说明补版本演进注 |
+| 12 | `README.md` L109 + `outputs/3D打印件/花房3D_整机装配/交付说明_整机示意模型.md` | HTML"1.87MB / 34,734 面"（AR09 版），实际 1.91MB / 35,220 面（AR15 重出后） | 按 ls 实测与 AR15 记录回填，交付说明补版本演进注 |
 | 13 | `docs/index.md` §二/§一 | P0 行写"01b 盆沿挂钩"（现行土插支架）且 02 未标作废；采购行未体现 11/06 借到 | P0 行改名+02 标"作废勿打印"；采购行加"11/06 已全部借到" |
 | — | `requirements.txt` | shapely 注释称"audit、截面校验用"但全仓脚本 grep 无一处 import | 注释改"传递依赖（trimesh 2D 后端）"；补 scipy/networkx/rtree（AGENTS §4 所列，注明无直接引用，为环境一致性保留） |
 
