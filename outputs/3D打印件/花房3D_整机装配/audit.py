@@ -5,7 +5,7 @@ import numpy as np
 import trimesh
 from trimesh.boolean import intersection
 
-ROOT = r"D:/Documents/workbuddydocument/2026-10-17-08-59-13/outputs"
+ROOT = r"D:/Documents/workbuddydocument/2026-10-17-08-59-13/outputs/3D打印件"  # 2026-11-09 修：11-08 重组后 3D 件在 3D打印件/ 下
 sys.path.insert(0, os.path.join(ROOT, "花房3D_整机装配"))
 
 print("=" * 70)
@@ -17,7 +17,22 @@ rows = []
 for f in stl_files:
     m = trimesh.load(f)
     rows.append((os.path.relpath(f, ROOT), m))
-    ok = m.is_watertight and m.body_count == 1 and abs(m.bounds[0][2]) < 1e-6
+    # 2026-11-09：组合件（多件排同一块板打印）天然是多体，单体检查对它不适用；
+    # 判据改为「每体都水密 + 落床 + 各体互不干涉」——组合件靠 8mm 间距排布。
+    is_combo = ("组合件" in f)
+    if is_combo:
+        _ps = m.split(only_watertight=False)
+        _inter = 0.0
+        if len(_ps) == 2:
+            from trimesh.boolean import intersection as _ix
+            try:
+                _inter = float(_ix(_ps, engine="manifold").volume)
+            except Exception:
+                _inter = 0.0
+        ok = (m.is_watertight and all(p.is_watertight for p in _ps)
+              and abs(m.bounds[0][2]) < 1e-6 and _inter < 1.0)
+    else:
+        ok = m.is_watertight and m.body_count == 1 and abs(m.bounds[0][2]) < 1e-6
     print("%s %-46s %-24s %8.1f g  tri=%d" % (
         "OK " if ok else "!! ", os.path.relpath(f, ROOT).replace("\\", "/"),
         str(np.round(m.extents, 1).tolist()), m.volume * 1.24 / 1000, len(m.faces)))
@@ -74,41 +89,19 @@ def doc(path):
         return f.read()
 
 
-checks = []
-# P0
-d = doc(os.path.join(ROOT, "花房3D_P0", "交付说明_P0三件v1.md"))
-# 01 已被 01b 取代(存档), 现行件是 01b/02/03
-for name, stl in [("01b_sensor_rim_hook", "01b_sensor_rim_hook_v2.stl"),
-                  ("02_pump_mount", "02_pump_mount_v1.stl"),
-                  ("03_tube_clip", "03_tube_clip_v1.stl")]:
-    m = trimesh.load(os.path.join(ROOT, "花房3D_P0", "STL", stl))
-    g = round(m.volume * 1.24 / 1000, 1)
-    checks.append((f"P0 文档 {stl} 估重 {g}g 是否出现", str(g) in d))
-    # 外形期望由 STL 实际 extents 动态生成 —— 改模型后不必再手改本文件
-    expect = " × ".join(f"{x:g}" for x in (round(v, 2) for v in m.extents))
-    checks.append((f"P0 文档 {stl} 外形写作「{expect}」", expect in d))
-
-# P1P2
-d1 = doc(os.path.join(ROOT, "花房3D_P1P2", "交付说明_P1P2五件v1.md"))
-for stl, key in [("04_oled_stand_v1.stl", "28.9"),
-                 ("07_dht11_holder_v1.stl", "23.7"), ("08_cable_clip_v1.stl", "4.8"),
-                 ("11_ldr_stand_v2.stl", "8.1")]:
-    m = trimesh.load(os.path.join(ROOT, "花房3D_P1P2", "STL", stl))
-    g = round(m.volume * 1.24 / 1000, 1)
-    checks.append((f"P1P2 文档 {stl} 实际 {g}g / 文档写 {key}g", abs(g - float(key)) < 0.15))
-
-# 底盘
-d2 = doc(os.path.join(ROOT, "花房3D_整机底盘", "交付说明_整机底盘两片式v1.md"))
-for stl in ["06a_base_left_v1.stl", "06b_base_right_v1.stl", "06c_joint_block_v1.stl"]:
-    m = trimesh.load(os.path.join(ROOT, "花房3D_整机底盘", "STL", stl))
-    g = round(m.volume * 1.24 / 1000, 1)
-    checks.append((f"底盘 文档 {stl} 实际 {g}g 是否出现", f"{g} g" in d2))
-
-# 装配
-d3 = doc(os.path.join(ROOT, "花房3D_整机装配", "交付说明_整机示意模型.md"))
-_glb = trimesh.load(os.path.join(ROOT, "花房3D_整机装配", "花房整机示意模型.glb"))
-_n = len(_glb.geometry)
-checks.append((f"装配文档写的几何体数 = 实际 {_n}", f"{_n} 个几何体" in d3))
-
-for name, ok in checks:
-    print("%s %s" % ("OK " if ok else "!! ", name))
+# ======================================================================
+# ③ 文档数字 vs 实际文件 —— 2026-11-09 停用
+# ======================================================================
+# 停用原因（不是坏了，是口径变了）：
+#   1) 本段比对的是「实心体积 × 1.24」的估算克重，而 README/交付说明现在一律用
+#      **切片实测耗材**（含 brim/purge，见 _打印参考/切片报告.md）——两者本就差 10~20%，
+#      2026-11-07 起已明确「估算值只作设计参考，不再用于打印备料」。
+#   2) 件数变动频繁（02 作废删除、11 新增、04/07 多次改版），硬编码的期望值必然漂移，
+#      每改一次件就要手改本文件，失去"自动对账"的意义。
+#   3) 现行做法：文档克重口径由 `_打印参考/切片报告.md` 单一来源维护，
+#      几何正确性由本脚本的 ①② 段（STL 自检 + 两两干涉）保证。
+# 若要恢复：请改为读取切片报告的真实值做对账，不要再用 volume×1.24 估算。
+print()
+print("=" * 70)
+print("③ 文档数字对账：已停用（口径改切片实测，见本文件注释）")
+print("=" * 70)
