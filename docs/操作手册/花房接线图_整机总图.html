@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>花房整机接线总图（端口级 + 面包板孔位）</title>
+<style>
+  body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;margin:0;background:#fff;color:#2C2C2A;}
+  .wrap{max-width:900px;margin:0 auto;padding:28px 20px 40px;}
+  h1{font-size:20px;font-weight:600;margin:0 0 6px;}
+  h2{font-size:16px;font-weight:600;margin:22px 0 8px;}
+  .meta{font-size:13px;color:#5F5E5A;margin:0 0 12px;}
+  .warn{font-size:13px;color:#A32D2D;font-weight:600;margin:0 0 14px;}
+  figure{margin:0 0 20px;}
+  figcaption{font-size:12px;color:#888780;margin-top:6px;}
+  table{border-collapse:collapse;width:100%;font-size:13px;margin:0 0 16px;}
+  th,td{border:1px solid #D3D1C7;padding:6px 9px;text-align:left;vertical-align:top;line-height:1.5;}
+  th{background:#F1EFE8;font-weight:600;}
+  tr:target td{background:#FAEEDA;}
+  .sw{display:inline-block;width:12px;height:12px;border-radius:3px;border:1px solid #999;vertical-align:-1px;margin-right:6px;}
+  code{background:#F1EFE8;border-radius:3px;padding:1px 5px;font-size:12px;}
+  ol{font-size:13px;line-height:1.7;padding-left:22px;margin:0 0 16px;}
+  .foot{font-size:12px;color:#888780;border-top:1px solid #D3D1C7;padding-top:10px;}
+  @media print{ body{-webkit-print-color-adjust:exact;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>花房整机接线总图 · 端口级 + 面包板孔位</h1>
+  <p class="meta">花房项目 Smart GreenHouse · 引脚与固件 <code>GreenHouse_v1.ino</code> 第 55–61 行逐一核对 · 器件丝印按 11/06–11/08 实拍 OCR · 与《docs/操作手册/花房接线规划表.md》同口径（冲突以此图 + 固件为准）</p>
+  <p class="warn">两条铁律：① 模拟线只在 GPIO32–39（ADC1）——土壤 34 / 光敏 35；② 全系统共地只有一处——蓝轨单点回 ESP32 GND</p>
+
+  <h2>一、面包板总图（两块 400 孔板并排，ESP32 骑中缝）</h2>
+  <figure>
+  <svg viewBox="0 0 900 760" width="100%" role="img" xmlns="http://www.w3.org/2000/svg" style="font-family:inherit">
+  <title>花房整机接线总图：面包板孔位级</title>
+  <desc>左板红轨3V3蓝轨GND，ESP32骑两板中缝，左区模拟传感器右区数字输出，浮球分立元件区，继电器经杜邦线连接，水泵回路全部走板外。</desc>
+  <defs>
+  <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+  <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+  </defs>
+  <text x="30" y="28" font-size="15" font-weight="500" fill="#2C2C2A">面包板俯视（上=顶部/靠 ESP32，行号 1→30 向下）· 不是比例图，孔位是真实行号</text>
+  <rect x="30" y="44" width="380" height="560" rx="8" fill="#F8F7F2" stroke="#B4B2A9" stroke-width="1"/>
+  <rect x="490" y="44" width="380" height="560" rx="8" fill="#F8F7F2" stroke="#B4B2A9" stroke-width="1"/>
+  <text x="220" y="38" text-anchor="middle" font-size="12" font-weight="500" fill="#5F5E5A">左板（模拟区）· Soil / Light / DHT / 浮球 RC</text>
+  <text x="680" y="38" text-anchor="middle" font-size="12" font-weight="500" fill="#5F5E5A">右板（数字输出区）· OLED / LED / 继电器控制</text>
+  <rect x="38" y="52" width="364" height="14" fill="#F7C1C1" stroke="#A32D2D" stroke-width="0.5"/>
+  <text x="46" y="63" font-size="11" fill="#791F1F">红轨 + 3V3（整条贯通）</text>
+  <rect x="38" y="66" width="364" height="14" fill="#B5D4F4" stroke="#185FA5" stroke-width="0.5"/>
+  <text x="46" y="77" font-size="11" fill="#0C447C">蓝轨 GND（整条贯通）</text>
+  <rect x="498" y="52" width="364" height="14" fill="#F7C1C1" stroke="#A32D2D" stroke-width="0.5"/>
+  <text x="506" y="63" font-size="11" fill="#791F1F">红轨 3V3（与左板红轨用跳线桥接）</text>
+  <rect x="498" y="66" width="364" height="14" fill="#B5D4F4" stroke="#185FA5" stroke-width="0.5"/>
+  <text x="506" y="77" font-size="11" fill="#0C447C">蓝轨 GND（与左板蓝轨用跳线桥接）</text>
+  <rect x="38" y="578" width="364" height="14" fill="#FAC775" stroke="#854F0B" stroke-width="0.5" opacity="0.6"/>
+  <text x="46" y="589" font-size="11" fill="#633806">底部红轨（部分板型上下各一条，未用时忽略）</text>
+  <text x="88" y="100" font-size="11" font-weight="500" fill="#444441">行1</text>
+  <text x="88" y="216" font-size="11" font-weight="500" fill="#444441">行5</text>
+  <text x="88" y="377" font-size="11" font-weight="500" fill="#444441">行11</text>
+  <text x="88" y="494" font-size="11" font-weight="500" fill="#444441">行16</text>
+  <text x="610" y="100" font-size="11" font-weight="500" fill="#444441">行1</text>
+  <text x="610" y="216" font-size="11" font-weight="500" fill="#444441">行5</text>
+  <text x="610" y="377" font-size="11" font-weight="500" fill="#444441">行11</text>
+  <text x="610" y="494" font-size="11" font-weight="500" fill="#444441">行16</text>
+  <rect x="408" y="196" width="84" height="330" rx="6" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.2"/>
+  <text x="450" y="212" text-anchor="middle" font-size="12" font-weight="500" fill="#3C3489">ESP32</text>
+  <text x="450" y="228" text-anchor="middle" font-size="11" fill="#5F5E5A">30P DevKitC</text>
+  <text x="450" y="244" text-anchor="middle" font-size="11" fill="#5F5E5A">USB 朝外</text>
+  <text x="416" y="268" font-size="10.5" fill="#534AB7">左列(顶部→)</text>
+  <text x="418" y="284" font-size="10.5" fill="#444441">EN</text>
+  <text x="418" y="300" font-size="10.5" fill="#444441">VP36</text>
+  <text x="418" y="316" font-size="10.5" fill="#444441">VN39</text>
+  <text x="418" y="332" font-size="10.5" font-weight="500" fill="#A32D2D">D34 ←土壤OUT</text>
+  <text x="418" y="348" font-size="10.5" font-weight="500" fill="#A32D2D">D35 ←光敏AO</text>
+  <text x="418" y="364" font-size="10.5" font-weight="500" fill="#27500A">D32 ←浮球</text>
+  <text x="418" y="380" font-size="10.5" font-weight="500" fill="#72243E">D33 ←DHT DATA</text>
+  <text x="418" y="396" font-size="10.5" fill="#444441">D25</text>
+  <text x="418" y="412" font-size="10.5" fill="#444441">D26</text>
+  <text x="418" y="428" font-size="10.5" fill="#444441">D27</text>
+  <text x="418" y="444" font-size="10.5" font-weight="500" fill="#0C447C">D14</text>
+  <text x="418" y="460" font-size="10.5" font-weight="500" fill="#0C447C">D12</text>
+  <text x="418" y="476" font-size="10.5" font-weight="500" fill="#0C447C">D13</text>
+  <text x="418" y="492" font-size="10.5" fill="#444441">GND</text>
+  <text x="418" y="508" font-size="10.5" font-weight="500" fill="#791F1F">VIN ←继电器DC+</text>
+  <text x="482" y="268" font-size="10.5" fill="#534AB7">→(顶部)右列</text>
+  <text x="484" y="284" font-size="10.5" font-weight="500" fill="#791F1F">3V3 →红轨</text>
+  <text x="484" y="300" font-size="10.5" fill="#444441">GND</text>
+  <text x="484" y="316" font-size="10.5" fill="#444441">D15</text>
+  <text x="484" y="332" font-size="10.5" fill="#444441">D2</text>
+  <text x="484" y="348" font-size="10.5" fill="#444441">D4</text>
+  <text x="484" y="364" font-size="10.5" font-weight="500" fill="#72243E">RX2(D16)</text>
+  <text x="484" y="380" font-size="10.5" font-weight="500" fill="#72243E">TX2(D17)</text>
+  <text x="484" y="396" font-size="10.5" font-weight="500" fill="#0C447C">D5</text>
+  <text x="484" y="412" font-size="10.5" font-weight="500" fill="#0C447C">D18</text>
+  <text x="484" y="428" font-size="10.5" font-weight="500" fill="#0C447C">D19</text>
+  <text x="484" y="444" font-size="10.5" font-weight="500" fill="#A32D2D">D21 ↑SDA</text>
+  <text x="484" y="460" font-size="10.5" font-weight="500" fill="#A32D2D">RX0</text>
+  <text x="484" y="476" font-size="10.5" font-weight="500" fill="#A32D2D">TX0</text>
+  <text x="484" y="492" font-size="10.5" font-weight="500" fill="#A32D2D">D22 ↑SCL</text>
+  <text x="484" y="508" font-size="10.5" font-weight="500" fill="#0C447C">D23</text>
+  <text x="450" y="540" text-anchor="middle" font-size="10.5" fill="#5F5E5A">（列名按 30P 常见丝印；</text>
+  <text x="450" y="556" text-anchor="middle" font-size="10.5" fill="#5F5E5A">丝印以实物为准）</text>
+  <rect x="52" y="300" width="120" height="46" rx="6" fill="#EAF3DE" stroke="#3B6D11" stroke-width="1"/>
+  <text x="112" y="318" text-anchor="middle" font-size="11.5" font-weight="500" fill="#27500A">土壤传感器</text>
+  <text x="112" y="334" text-anchor="middle" font-size="10.5" fill="#5F5E5A">GND/5V/OUT 排针</text>
+  <rect x="52" y="366" width="120" height="46" rx="6" fill="#EAF3DE" stroke="#3B6D11" stroke-width="1"/>
+  <text x="112" y="384" text-anchor="middle" font-size="11.5" font-weight="500" fill="#27500A">光敏模块</text>
+  <text x="112" y="400" text-anchor="middle" font-size="10.5" fill="#5F5E5A">DO/GND/VCC/AO</text>
+  <rect x="52" y="432" width="120" height="46" rx="6" fill="#EAF3DE" stroke="#3B6D11" stroke-width="1"/>
+  <text x="112" y="450" text-anchor="middle" font-size="11.5" font-weight="500" fill="#27500A">DHT11 模块</text>
+  <text x="112" y="466" text-anchor="middle" font-size="10.5" fill="#5F5E5A">VCC/DATA/NC/GND</text>
+  <rect x="196" y="470" width="150" height="118" rx="6" fill="#FAEEDA" stroke="#854F0B" stroke-width="1"/>
+  <text x="271" y="488" text-anchor="middle" font-size="11.5" font-weight="500" fill="#633806">浮球 RC 区（行18–23）</text>
+  <text x="204" y="504" font-size="10.5" fill="#444441">R1 · 1kΩ（色环棕黑红）</text>
+  <text x="204" y="519" font-size="10.5" fill="#444441">　a18↔a21（3V3侧→节点）</text>
+  <text x="204" y="534" font-size="10.5" fill="#444441">C1 · 100nF</text>
+  <text x="204" y="549" font-size="10.5" fill="#444441">　j21(+)↔蓝轨(−)</text>
+  <text x="204" y="564" font-size="10.5" fill="#444441">浮球线1 → j20</text>
+  <text x="204" y="579" font-size="10.5" fill="#444441">浮球线2 → 蓝轨任意孔</text>
+  <rect x="516" y="130" width="150" height="52" rx="6" fill="#EAF3DE" stroke="#3B6D11" stroke-width="1"/>
+  <text x="591" y="150" text-anchor="middle" font-size="11.5" font-weight="500" fill="#27500A">OLED 0.96 I2C</text>
+  <text x="591" y="167" text-anchor="middle" font-size="10.5" fill="#5F5E5A">按丝印插·0x3C</text>
+  <rect x="516" y="210" width="150" height="52" rx="6" fill="#EAF3DE" stroke="#3B6D11" stroke-width="1"/>
+  <text x="591" y="230" text-anchor="middle" font-size="11.5" font-weight="500" fill="#27500A">双色 LED 模块</text>
+  <text x="591" y="247" text-anchor="middle" font-size="10.5" fill="#5F5E5A">−/R/G·板上带限流电阻</text>
+  <rect x="516" y="440" width="180" height="150" rx="6" fill="#FAEEDA" stroke="#854F0B" stroke-width="1"/>
+  <text x="606" y="458" text-anchor="middle" font-size="11.5" font-weight="500" fill="#633806">继电器（板旁悬放或占据右板</text>
+  <text x="606" y="474" text-anchor="middle" font-size="11.5" font-weight="500" fill="#633806">右缘无电气意义的空位）</text>
+  <text x="524" y="492" font-size="10.5" fill="#444441">输入侧 3 螺丝端子：</text>
+  <text x="524" y="508" font-size="10.5" font-weight="500" fill="#A32D2D">DC+ ← VIN 杜邦(剥头)</text>
+  <text x="524" y="523" font-size="10.5" font-weight="500" fill="#0C447C">DC− ← 蓝轨 杜邦(剥头)</text>
+  <text x="524" y="538" font-size="10.5" font-weight="500" fill="#EF9F27">IN ← GPIO26 杜邦(剥头)</text>
+  <text x="524" y="556" font-size="10.5" fill="#444441">强电侧 3 螺丝端子：</text>
+  <text x="524" y="572" font-size="10.5" fill="#888780">NC 不接</text>
+  <text x="524" y="588" font-size="10.5" font-weight="500" fill="#D0342C">COM ← 泵电源红 R1（板外）</text>
+  <text x="524" y="604" font-size="10.5" font-weight="500" fill="#D0342C">NO → 泵红 R2（板外）</text>
+  <path d="M172 323 L408 332" stroke="#A32D2D" stroke-width="2" fill="none" stroke-dasharray="5 3" marker-end="url(#arr)"/>
+  <path d="M172 389 L408 348" stroke="#A32D2D" stroke-width="2" fill="none" stroke-dasharray="5 3" marker-end="url(#arr)"/>
+  <path d="M172 455 L408 380" stroke="#72243E" stroke-width="2" fill="none" stroke-dasharray="5 3" marker-end="url(#arr)"/>
+  <path d="M346 500 L408 364" stroke="#27500A" stroke-width="2" fill="none" stroke-dasharray="5 3" marker-end="url(#arr)"/>
+  <path d="M666 156 L592 300 L560 300 L560 284" stroke="#A32D2D" stroke-width="1.8" fill="none" stroke-dasharray="5 3"/>
+  <path d="M666 236 L520 236 L497 444" stroke="#A32D2D" stroke-width="1.8" fill="none" stroke-dasharray="5 3" marker-end="url(#arr)"/>
+  <path d="M666 156 L520 156 L497 492" stroke="#A32D2D" stroke-width="1.8" fill="none" stroke-dasharray="5 3" marker-end="url(#arr)"/>
+  <path d="M516 543 L435 543 L428 428" stroke="#EF9F27" stroke-width="2" fill="none" stroke-dasharray="5 3" marker-end="url(#arr)"/>
+  <path d="M516 508 L435 508 L433 492" stroke="#185FA5" stroke-width="2" fill="none" stroke-dasharray="5 3" marker-end="url(#arr)"/>
+  <path d="M516 492 L435 492 L433 508" stroke="#791F1F" stroke-width="2" fill="none" stroke-dasharray="5 3" marker-end="url(#arr)"/>
+  <path d="M402 59 L498 59" stroke="#A32D2D" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M402 73 L498 73" stroke="#185FA5" stroke-width="2.5" stroke-linecap="round"/>
+  <text x="450" y="52" text-anchor="middle" font-size="10.5" fill="#444441">轨桥×2（B型跳线）</text>
+  <rect x="640" y="640" width="230" height="104" rx="8" fill="#FCEBEB" stroke="#A32D2D" stroke-width="1"/>
+  <text x="755" y="660" text-anchor="middle" font-size="12" font-weight="500" fill="#791F1F">板外：水泵强电回路（虚线框外）</text>
+  <text x="648" y="678" font-size="10.5" fill="#444441">充电宝5V →(USB延长线剪断)→ R1红</text>
+  <text x="648" y="694" font-size="10.5" fill="#444441">R1 → 继电器COM；NO → R2 → 泵红</text>
+  <text x="648" y="710" font-size="10.5" fill="#444441">泵黑 → 万可221 → B1/B2 → 电源黑</text>
+  <text x="648" y="726" font-size="10.5" fill="#444441">白绿数据线胶带包·1N4007 反并泵端</text>
+  <line x1="630" y1="590" x2="700" y2="640" stroke="#888780" stroke-width="1" stroke-dasharray="3 3"/>
+  <rect x="30" y="640" width="560" height="104" rx="8" fill="#E6F1FB" stroke="#185FA5" stroke-width="1"/>
+  <text x="310" y="660" text-anchor="middle" font-size="12" font-weight="500" fill="#0C447C">电源轨引出（全系统共 2 根母线 + 2 根轨桥）</text>
+  <text x="40" y="678" font-size="11" fill="#444441">① 3V3 → 左板红轨任意孔（建议 a1，B型红线）——全板 3V3 母线</text>
+  <text x="40" y="694" font-size="11" fill="#444441">② GND → 左板蓝轨任意孔（建议 b1，B型黑线）——全板 GND 母线（单点共地！）</text>
+  <text x="40" y="710" font-size="11" fill="#444441">③ 左板红轨 → 右板红轨（a列跨板桥接，B型红线）④ 左板蓝轨 → 右板蓝轨（同，黑线）</text>
+  <text x="40" y="726" font-size="11" fill="#791F1F">VIN 只出 1 根（→继电器 DC+）；3V3 不给继电器；泵回路完全不上面包板</text>
+  </svg>
+  <figcaption>ESP32 骑两板中缝：左列进左板 a–e 区，右列进右板 f–j 区。虚线=杜邦线（母对母，两端插孔位见图注）。继电器是螺丝端子不上板，悬放在板旁用杜邦剥头拧入。</figcaption>
+  </figure>
+
+  <h2>二、逐线清单（22 根 + 2 轨桥，行号即孔位）</h2>
+  <table>
+    <tr><th style="width:36px;">#</th><th style="width:120px;">从</th><th style="width:150px;">到</th><th style="width:70px;">线型/色</th><th>面包板端孔位 / 说明</th></tr>
+    <tr><td>1</td><td>ESP32 3V3</td><td>左板红轨</td><td>B · 红</td><td>插 <b>a1</b>（红轨第 1 行）——全板 3V3 母线起点</td></tr>
+    <tr><td>2</td><td>ESP32 GND</td><td>左板蓝轨</td><td>B · 黑</td><td>插 <b>b1</b>——全板 GND 母线，<b>单点共地</b></td></tr>
+    <tr><td>3</td><td>左板红轨</td><td>右板红轨</td><td>B · 红</td><td>a列跨板桥（两板红轨第 1 行间）</td></tr>
+    <tr><td>4</td><td>左板蓝轨</td><td>右板蓝轨</td><td>B · 黑</td><td>同上，蓝轨桥接</td></tr>
+    <tr><td>5</td><td>土壤 5V</td><td>红轨</td><td>A · 红</td><td>模块就近插行 4–6 区，本端 <b>b4</b> 附近（丝印 5V 实接 3V3 ✓ 11/08 已验）</td></tr>
+    <tr><td>6</td><td>土壤 GND</td><td>蓝轨</td><td>A · 黑</td><td><b>b5</b></td></tr>
+    <tr><td>7</td><td>土壤 OUT</td><td>ESP32 <b>D34</b></td><td>A · 黄</td><td>模块端 a6，ESP32 端插 <b>D34</b> 排针（ADC1 只读）</td></tr>
+    <tr><td>8</td><td>光敏 VCC</td><td>红轨</td><td>A · 红</td><td><b>a10</b> 附近</td></tr>
+    <tr><td>9</td><td>光敏 GND</td><td>蓝轨</td><td>A · 黑</td><td><b>a11</b></td></tr>
+    <tr><td>10</td><td>光敏 AO</td><td>ESP32 <b>D35</b></td><td>A · 紫</td><td>模块端 a12；DO <b>悬空不接</b>（raw=1421 已验）</td></tr>
+    <tr><td>11</td><td>DHT11 VCC</td><td>红轨</td><td>A · 红</td><td><b>a15</b> 附近</td></tr>
+    <tr><td>12</td><td>DHT11 GND</td><td>蓝轨</td><td>A · 黑</td><td><b>a16</b></td></tr>
+    <tr><td>13</td><td>DHT11 DATA</td><td>ESP32 <b>D33</b></td><td>A · 白</td><td>模块端 a17（29.2℃/68% 已验）</td></tr>
+    <tr><td>14</td><td>R1 · 1kΩ</td><td>（浮球上拉）</td><td>元件</td><td>左板 <b>a18 ↔ a21</b>：a18 端借红轨（行18 上方最近红轨孔用短跳线引到 a18），a21 = 上拉节点</td></tr>
+    <tr><td>15</td><td>C1 · 100nF</td><td>（浮球滤抖）</td><td>元件</td><td><b>j21(+) ↔ 蓝轨(−)</b>；无极性可倒插</td></tr>
+    <tr><td>16</td><td>浮球线 1</td><td>上拉节点</td><td>C备/杜邦</td><td>插 <b>j20</b>（=D32 节点列）</td></tr>
+    <tr><td>17</td><td>浮球线 2</td><td>蓝轨</td><td>C备/杜邦</td><td>蓝轨任意孔（两线可互换）</td></tr>
+    <tr><td>18</td><td>ESP32 <b>D32</b></td><td>上拉节点</td><td>B · 绿</td><td>短跳线：D32 排针 → <b>e21</b>（与 a21 同列贯通）</td></tr>
+    <tr><td>19</td><td>ESP32 D21</td><td>OLED SDA</td><td>A · 绿</td><td>两端直插（I2C 数据；0x3C 已验）</td></tr>
+    <tr><td>20</td><td>ESP32 D22</td><td>OLED SCL</td><td>A · 白</td><td>两端直插（I2C 时钟）</td></tr>
+    <tr><td>21</td><td>ESP32 D25</td><td>LED 模块 R</td><td>A · 红</td><td>两端直插</td></tr>
+    <tr><td>22</td><td>ESP32 D27</td><td>LED 模块 G</td><td>A · 绿</td><td>两端直插</td></tr>
+    <tr><td>23</td><td>LED 模块 −</td><td>蓝轨</td><td>A · 黑</td><td>右板蓝轨（GND 已由 #4 桥通）</td></tr>
+    <tr><td>24</td><td>ESP32 <b>VIN</b></td><td>继电器 <b>DC+</b></td><td>A · 红（剥头8mm）</td><td>ESP32 端插 VIN 排针；继电器端拧螺丝</td></tr>
+    <tr><td>25</td><td>ESP32 GND</td><td>继电器 <b>DC−</b></td><td>A · 黑（剥头8mm）</td><td>可直接插 ESP32 右列 GND 排针（勿占用 b1 那根）</td></tr>
+    <tr><td>26</td><td>ESP32 <b>D26</b></td><td>继电器 <b>IN</b></td><td>A · 橙（剥头8mm）</td><td>信号线</td></tr>
+    <tr><td>27–29</td><td>继电器 COM/NO</td><td>泵回路</td><td>裸线/端子</td><td><b>板外</b>：COM←充电宝红R1；NO→泵红R2；NC 不接（详见下方强电区）</td></tr>
+    <tr><td>轨桥</td><td colspan="4">OLED/LED 的 VCC ← 右板红轨（a列就近），GND ← 右板蓝轨——已含在 #3/#4 桥接里，不单独列线</td></tr>
+  </table>
+  <p class="meta">杜邦合计：A型 14 根（#5–13、#19–23 中 9 根信号 + 5 根 VCC/GND）+ A型剥头 3 根（#24–26）+ B型跳线 5 根（#1–4、#18）+ 浮球元件区 2 线（#16–17）≈ 22 根。数字与规划表「18 根」的差异：本表含右板供电 5 根与浮球线，实物以够用为准。</p>
+
+  <h2>三、ESP32 端口占用总表（= 固件 55–61 行 + I2C 默认）</h2>
+  <table>
+    <tr><th>GPIO</th><th>丝印</th><th>接谁</th><th>方向</th><th>为什么是这个脚</th></tr>
+    <tr><td><b>34</b></td><td>D34</td><td>土壤 OUT</td><td>ADC1 只进</td><td>ADC1 组，WiFi 开启不受影响；只读脚不能接输出设备</td></tr>
+    <tr><td><b>35</b></td><td>D35</td><td>光敏 AO</td><td>ADC1 只进</td><td>同上；DO 弃用</td></tr>
+    <tr><td><b>33</b></td><td>D33</td><td>DHT11 DATA</td><td>数字双向</td><td>单总线，模块自带上拉</td></tr>
+    <tr><td><b>32</b></td><td>D32</td><td>浮球干接点</td><td>数字输入</td><td>外接 1kΩ 上拉（湿电流 3.3mA 防触点氧化）+ 100nF 滤抖；fail-safe</td></tr>
+    <tr><td><b>26</b></td><td>D26</td><td>继电器 IN</td><td>数字输出</td><td>普通 IO，无启动毛刺历史问题（v1.3 已锁）</td></tr>
+    <tr><td><b>25</b> / <b>27</b></td><td>D25 / D27</td><td>LED 红 / 绿</td><td>数字输出</td><td>模块带限流电阻，直驱</td></tr>
+    <tr><td><b>21</b> / <b>22</b></td><td>D21 / D22</td><td>OLED SDA / SCL</td><td>I2C</td><td>硬件 I2C 默认脚（HW_I2C，地址 0x3C 实扫确认）</td></tr>
+    <tr><td><b>VIN</b></td><td>VIN/5V</td><td>继电器 DC+</td><td>电源 5V</td><td>线圈 5VDC；USB 供电时此脚 ≈4.7V 可用；绝不用 3V3</td></tr>
+    <tr><td>3V3</td><td>3V3</td><td>红轨母线</td><td>电源 3.3V</td><td>喂 4 个传感器 + 浮球上拉（土壤丝印 5V 实接 3V3，已验）</td></tr>
+    <tr><td>⚠️ 禁用</td><td>GPIO 4/12/13/14 等</td><td>—</td><td>—</td><td>ADC2 组 + 启动脚：WiFi 一开读数全废 / 接错导致刷不进固件，本机未用</td></tr>
+  </table>
+
+  <h2>四、强电区（泵回路，全部板外）</h2>
+  <figure>
+  <svg viewBox="0 0 900 240" width="100%" role="img" xmlns="http://www.w3.org/2000/svg" style="font-family:inherit">
+  <title>水泵强电回路</title>
+  <desc>充电宝经剪断的USB延长线，红线串继电器COM/NO到泵正极，黑线经万可直通泵负极，1N4007反并联泵端，白绿数据线不接。</desc>
+  <defs>
+  <marker id="arr2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+  <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+  </defs>
+  <rect x="30" y="40" width="130" height="70" rx="10" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.8"/>
+  <text x="95" y="70" text-anchor="middle" font-size="13" font-weight="500" fill="#0C447C">USB 5V 电源</text>
+  <text x="95" y="90" text-anchor="middle" font-size="11" fill="#5F5E5A">充电宝 ≥1A（不插电脑）</text>
+  <rect x="220" y="30" width="150" height="120" rx="10" fill="#FAEEDA" stroke="#854F0B" stroke-width="0.8"/>
+  <text x="295" y="50" text-anchor="middle" font-size="12.5" font-weight="500" fill="#633806">继电器强电侧</text>
+  <text x="295" y="68" text-anchor="middle" font-size="11" fill="#A32D2D">JQC-3FF · 螺丝端子</text>
+  <text x="245" y="92" font-size="11" fill="#888780" text-decoration="line-through">NC</text>
+  <text x="295" y="92" text-anchor="middle" font-size="11" font-weight="500" fill="#D0342C">COM</text>
+  <text x="345" y="92" text-anchor="end" font-size="11" font-weight="500" fill="#D0342C">NO</text>
+  <text x="295" y="112" text-anchor="middle" font-size="10.5" fill="#5F5E5A">High/Low 跳帽在此侧</text>
+  <text x="295" y="130" text-anchor="middle" font-size="10.5" fill="#5F5E5A">（控制侧 DC+/DC−/IN 见总图）</text>
+  <rect x="450" y="30" width="110" height="60" rx="10" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.8"/>
+  <text x="505" y="55" text-anchor="middle" font-size="12" font-weight="500" fill="#085041">万可 WAGO 221</text>
+  <text x="505" y="73" text-anchor="middle" font-size="10.5" fill="#5F5E5A">B1↔B2 黑线直通</text>
+  <rect x="700" y="30" width="160" height="90" rx="10" fill="#EAF3DE" stroke="#3B6D11" stroke-width="0.8"/>
+  <text x="780" y="58" text-anchor="middle" font-size="13" font-weight="500" fill="#27500A">水泵 3W（USB头）</text>
+  <text x="780" y="78" text-anchor="middle" font-size="10.5" fill="#5F5E5A">插延长线 A 母侧</text>
+  <text x="780" y="96" text-anchor="middle" font-size="10.5" fill="#5F5E5A">吸桶底 · 浸水</text>
+  <path d="M160 75 L220 75" stroke="#D0342C" stroke-width="2.5" fill="none" marker-end="url(#arr2)"/>
+  <path d="M370 75 L700 75" stroke="#D0342C" stroke-width="2.5" fill="none" marker-end="url(#arr2)"/>
+  <path d="M160 130 L240 130 L240 190 L430 190 L430 60 L450 60" stroke="#2C2C2A" stroke-width="2.5" fill="none" stroke-linejoin="round" marker-end="url(#arr2)"/>
+  <path d="M560 60 L620 60 L620 100 L700 100" stroke="#2C2C2A" stroke-width="2.5" fill="none" marker-end="url(#arr2)"/>
+  <rect x="272" y="82" width="10" height="8" fill="#D0342C"/><rect x="320" y="82" width="10" height="8" fill="#D0342C"/>
+  <text x="196" y="66" font-size="10.5" fill="#444441" text-anchor="middle">R1红</text>
+  <text x="530" y="66" font-size="10.5" fill="#444441" text-anchor="middle">R2红→泵红</text>
+  <text x="240" y="205" font-size="10.5" fill="#444441" text-anchor="middle">B1（延长线电源侧黑）</text>
+  <text x="620" y="115" font-size="10.5" fill="#444441" text-anchor="middle">B2→泵黑</text>
+  <rect x="620" y="140" width="150" height="46" rx="6" fill="#FFF7E6" stroke="#BA7517" stroke-width="0.8"/>
+  <text x="695" y="158" text-anchor="middle" font-size="10.5" font-weight="500" fill="#854F0B">1N4007 反并泵两端</text>
+  <text x="695" y="174" text-anchor="middle" font-size="10.5" fill="#854F0B">色环端(阴极)→泵红(+)侧</text>
+  <text x="30" y="222" font-size="11" fill="#791F1F">⚠ 全回路不过面包板；白/绿数据线（剪口两侧）都不接、胶带包；通电前万用表验二极管 0.5–0.7V（反向 OL）</text>
+  </svg>
+  <figcaption>与《docs/操作手册/花房接线图_水泵.html》（8.1+8.2 现场单图）同一口径；本节是它在整机图里的定位。</figcaption>
+  </figure>
+
+  <h2>五、通电前 60 秒核对（打勾才上电）</h2>
+  <ol>
+    <li><b>共地单点</b>：蓝轨 → ESP32 GND 只有 #2 一根线；#4 只是两板蓝轨互桥，不是第二个接地点</li>
+    <li><b>模拟双线</b>：土壤 OUT→D34、光敏 AO→D35，没插到 ADC2 组</li>
+    <li><b>继电器供电</b>：DC+ 接的是 <b>VIN</b> 不是 3V3；线圈 5VDC</li>
+    <li><b>触点侧</b>：接 COM+NO，NC 空着（接 NC = 一上电就抽水）</li>
+    <li><b>浮球 RC</b>：1kΩ 在 3V3↔D32 之间、100nF 在 D32↔GND 之间、极性无所谓</li>
+    <li><b>二极管</b>：断电态红笔泵−黑笔泵+ 读 0.5–0.7V；读 0/双向通 = 击穿，立刻拆</li>
+    <li><b>固件先决</b>：联调烧 <code>RelayPumpTest</code>，测完烧回 <code>GreenHouse_v1</code> v1.6</li>
+  </ol>
+
+  <p class="foot">花房项目 · Smart GreenHouse · 整机接线总图 v1（2026-11-09）· 引脚对照 GreenHouse_v1.ino L55–61 · 器件丝印对照 11/06–11/08 实拍 OCR · 配套《花房接线规划表.md》（文字版总表）与《花房接线图_水泵.html》（泵回路现场单图）</p>
+</div>
+</body>
+</html>
