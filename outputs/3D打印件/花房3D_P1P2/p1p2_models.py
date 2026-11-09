@@ -206,6 +206,10 @@ def build_oled_stand(p):
     plinth = cut(outer, [inner])
     plinth = add(plinth, [B(sx * fin_x, 0, h / 2 + 0.3, skirt_t,
                             by - 2 * skirt_t, h + 0.6) for sx in (-1, 1)])
+    # 2026-11-09：再加两道内筋（x=±6.8，内壁 5.3 让开 10.2 宽的杜邦头）
+    # 把中央 14mm 的桥切成 10.6mm —— 原 14mm 桥就是"浮空区域"报警点
+    plinth = add(plinth, [B(sx * 6.8, 0, h / 2 + 0.3, skirt_t,
+                            by - 2 * skirt_t, h + 0.6) for sx in (-1, 1)])
     # 背面过线口（13 宽 × 7 高），与底座竖槽同宽
     wire_gate = B(0, -by / 2 + skirt_t / 2, 3.5, p["wire_w"], skirt_t + 2, 7.0)
     plinth = cut(plinth, [wire_gate])
@@ -244,13 +248,8 @@ def build_oled_stand(p):
     body = cut(body, [frame_part(strip, ang, slope_mid)])
 
     # ---- 5) 防脱卡爪（外移让开中间过线口；上坡端两只 1.2mm 弹性爪）----
-    claw_h, claw_w, claw_over = 1.2, 4.0, 1.5
-    claws = []
-    for sx in (-1, 1):
-        c = B(sx * p["claw_x"], upslope_edge + claw_over / 2, -claw_h / 2 + 0.2,
-              claw_w, claw_over + 1.2, claw_h)
-        claws.append(frame_part(c, ang, slope_mid))
-    body = add(body, claws)
+    # 2026-11-09：两只 1.2mm 弹性爪是"浮空面"元凶（150mm² 悬在槽底上方 1mm，打印时必起球）
+    # 已删除；屏幕靠 0.10 配合 + 重力定位，若要防脱另加胶带
     return body
 
 
@@ -302,9 +301,10 @@ def build_dht_holder(p):
                p["mod_w"] + p["pocket_clear"], p["mod_h"] + p["pocket_clear"],
                p["pocket_depth"] + 1.0)
     body = cut(body, [pocket])
-    # 背面过线口（切穿背壁，杜邦头能退出）
-    body = cut(body, [B(0, -hd / 2 + p["wire_d"] / 2, H - p["wire_h"] / 2 - 0.2,
-                        p["wire_w"], p["wire_d"], p["wire_h"] + 1.0)])
+    # 过线口（2026-11-09 领导要求：从背面挪到**侧边**）
+    # 3 根线从模块排针端沿 +X 侧壁出去，绕到柱子背面
+    body = cut(body, [B(hw / 2 - p["wire_d"] / 2, 0, H - p["wire_h"] / 2 - 0.2,
+                        p["wire_d"] + 0.4, p["wire_w"], p["wire_h"] + 1.0)])
     return body
 
 
@@ -342,9 +342,9 @@ def build_ldr_stand(p):
                p["pocket_depth"] + 1.0)
     body = cut(body, [frame_part(pocket, ang, head_c)])
 
-    # 上缘排针过线槽（4P 塑壳 2.5 + 杜邦头 2.5 从托盘背面穿出，落在托盘后上方空中）
-    slot = B(0, -(p["mod_d"] / 2 - p["pin_slot_l"] / 2 + 1.0), 0,
-             p["pin_slot_w"], p["pin_slot_l"], ht + 2.0)
+    # 排针过线槽：2026-11-09 领导要求从**上缘**改到**左侧**（−X 侧壁），与 07 保持一致
+    slot = B(-(hw / 2 - 2.0), 0, 0,
+             p["pin_slot_l"], p["pin_slot_w"], ht + 2.0)
     body = cut(body, [frame_part(slot, ang, head_c)])
     return body
 

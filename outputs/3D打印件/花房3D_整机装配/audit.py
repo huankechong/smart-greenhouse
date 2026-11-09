@@ -90,7 +90,7 @@ for name, stl in [("01b_sensor_rim_hook", "01b_sensor_rim_hook_v2.stl"),
 
 # P1P2
 d1 = doc(os.path.join(ROOT, "花房3D_P1P2", "交付说明_P1P2五件v1.md"))
-for stl, key in [("04_oled_stand_v1.stl", "27.7"),
+for stl, key in [("04_oled_stand_v1.stl", "28.9"),
                  ("07_dht11_holder_v1.stl", "23.7"), ("08_cable_clip_v1.stl", "4.8"),
                  ("11_ldr_stand_v2.stl", "8.1")]:
     m = trimesh.load(os.path.join(ROOT, "花房3D_P1P2", "STL", stl))

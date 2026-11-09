@@ -73,7 +73,7 @@ P10 = {
     "bucket_h": 127.0,          # 桶身高 [实测 127] —— 只影响浮球杆尖高度与装配图, 不影响盖子本体几何
 
     # 替换盖
-    "skirt_clear": 0.8,         # 裙边内径向隙 (FDM)
+    "skirt_clear": 1.6,         # 裙边内径向隙 (FDM)［2026-11-09：0.8→1.6，实打偏小］
     "skirt_h": 7.0,             # 裙边总高 = 上段5 + 凸出环2（套满两级）
     "skirt_wall": 2.8,          # 裙边壁厚 -> 盖外径 = 132 + 0.8 + 5.6 = 138.4
     "plate_t": 3.5,             # 盖板厚 [2026-10-24: 4->3.5 减重；螺纹咬合 3.5+0.8=4.3mm 够]
@@ -84,7 +84,8 @@ P10 = {
 
     "tube_hole_d": 12.0,        # 水管孔 (管外径 10 + 2) [2026-10-23 实测管径]
     "tube_off": 22.0,           # 水管孔心距盖心, 泵侧 (-Y) [泵在桶心 -Y 12, 折弯可达]
-    "wire_hole_d": 8.0,         # 过线孔 (USB 线 φ4 + 余量)
+    "wire_hole_d": 9.0,         # 过线孔槽宽（2026-11-09：USB-A 插头最宽 14.5 → 用 18×9 腰形槽）
+    "wire_slot_len": 18.0,      # 过线槽长度（X 向），14.5 宽的插头可斜着穿
     "wire_off": -45.0,          # 过线孔心距盖心 (−Y，与水管同侧，电缆不再横跨盖顶)
 
     "notch_d": 26.0,            # 指位缺口直径 (抠手)
@@ -120,15 +121,37 @@ def build_lid(p):
         C(0, 0, (z_up0 + z_up1) / 2, upper_id / 2, z_up1 - z_up0, p["sections"]),
         C(0, 0, (z_lo0 + z_lo1) / 2, skirt_id / 2, z_lo1 - z_lo0, p["sections"]),
     ], engine="manifold")
+    # 裙口 45° 导入倒角（2026-11-09）：口部单边放宽 1.4，套桶时不用精对
+    def _frustum(r0, r1, z0, h, sections=96):
+        a = np.linspace(0, 2*np.pi, sections, endpoint=False)
+        v0 = np.stack([r0*np.cos(a), r0*np.sin(a), np.full(sections, z0)], 1)
+        v1 = np.stack([r1*np.cos(a), r1*np.sin(a), np.full(sections, z0+h)], 1)
+        v = np.vstack([v0, v1, [[0,0,z0],[0,0,z0+h]]])
+        f = []
+        for i in range(sections):
+            j = (i+1) % sections
+            f += [[i, j, sections+j], [i, sections+j, sections+i],
+                  [2*sections, j, i], [2*sections+1, sections+i, sections+j]]
+        return trimesh.Trimesh(vertices=v, faces=f, process=True)
+    cham = _frustum(skirt_id/2, skirt_id/2 + 1.4, pt + hu + hl - 1.4, 1.4 + 0.5)
+    chal_cut = cham     # 在下面 difference 里一起切
+
     cuts = [
         C(0, 0, pt / 2, p["float_hole_d"] / 2, pt + 2 * p["boss_h"] + 4, 64),  # 中心浮球孔(贯穿凸台)
         C(0, -p["tube_off"], pt / 2, p["tube_hole_d"] / 2, pt + 4, 64),        # 水管孔
-        C(0, p["wire_off"], pt / 2, p["wire_hole_d"] / 2, pt + 4, 64),         # 过线孔
+        # 过线孔：腰形槽（两圆 + 中间方块），18 × 9
+        C(-(p["wire_slot_len"] - p["wire_hole_d"]) / 2, p["wire_off"], pt / 2,
+          p["wire_hole_d"] / 2, pt + 4, 48),
+        C(+(p["wire_slot_len"] - p["wire_hole_d"]) / 2, p["wire_off"], pt / 2,
+          p["wire_hole_d"] / 2, pt + 4, 48),
+        trimesh.creation.box(extents=[p["wire_slot_len"] - p["wire_hole_d"],
+                                      p["wire_hole_d"], pt + 4]).apply_translation(
+            [0, p["wire_off"], (pt + 4) / 2]),
     ]
     for sx in (-1, 1):                                                          # 指位缺口
         cuts.append(C(sx * flange_d / 2, 0, (pt + p["skirt_h"]) / 2,
                       p["notch_d"] / 2, pt + p["skirt_h"] + 4, 64))
-    return difference([body] + cuts, engine="manifold")
+    return difference([body, chal_cut] + cuts, engine="manifold")
 
 
 def check_geometry(p, mesh):
