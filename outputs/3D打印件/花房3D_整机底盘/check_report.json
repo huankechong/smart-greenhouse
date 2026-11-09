@@ -3,7 +3,7 @@
   "name": "06a_base_left | 整机底盘·左片",
   "watertight": true,
   "bodies": 1,
-  "volume_mm3": 222243.4,
+  "volume_mm3": 222441.4,
   "triangles": 1620,
   "bbox_mm": [
    160.0,
@@ -11,8 +11,8 @@
    8.0
   ],
   "z_min": 0.0,
-  "solid_g_PLA": 275.6,
-  "real_g_at_20pct": 90.9,
+  "solid_g_PLA": 275.8,
+  "real_g_at_20pct": 91.0,
   "stl": "D:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\3D打印件\\花房3D_整机底盘\\STL\\06a_base_left_v1.stl"
  },
  {
