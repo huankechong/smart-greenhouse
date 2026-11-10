@@ -70,7 +70,7 @@
 const int SOIL_RAW_DRY = 3200;        // 探针全干的 raw 读数 → W1-4.1 实测后自动回写
 const int SOIL_RAW_WET = 1300;        // 探针全湿的 raw 读数 → W1-4.1 实测后自动回写
 const int SOIL_THRESHOLD_PCT  = 35;   // 土壤湿度% 低于此值 → 判定缺水（标定后再按实际土壤调）
-const unsigned long WATER_MS  = 3000;    // 每轮浇水 3 秒
+const unsigned long WATER_MS  = 2000;    // 每轮浇水 2 秒 ≈ 64ml（2026-11-10 实测 32.1ml/s × 2s，三轮 250ml/7.80s 平均，波动<0.5%）
 const unsigned long SETTLE_MS = 30000;   // 浇完等 30 秒复测（防反复触发）
 const unsigned long MANUAL_WATER_MS = 5000; // 远程手动浇水 5 秒
 const int RELAY_ACTIVE_HIGH = 1;  // 继电器触发极性：吸合=高电平填1；实测相反就改0
