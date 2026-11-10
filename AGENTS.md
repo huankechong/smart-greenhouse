@@ -77,6 +77,10 @@ gh pr create --base main --head <branch> --title "<标题>" --body "<要点>"
 
 - **不要再 `git push origin main`**。2026-11-10 那次直推被 admin bypass 放行（回显 `Bypassed rule violations`），虽成功但**不留 PR / review 记录**，与规则意图不符——这是最后一次例外。
 - 分支用完即删：`git push origin --delete <branch>`，仓库长期只留 `main`。
+- **分支与 PR 标题的命名规则（2026-11-10 补，起因 #7–#12 四个 PR 漏前缀被领导点名）**：
+  分支名 = `r{角色}-{模块}-{MMDD}`（如 `r2-cloud-1021`）；PR 标题 = `<类型>: [R{角色}] <说明>`。
+  留痕目的是答辩「这块谁做的」秒答——AI 建分支时必须按角色代入（领导操作 = R1）。
+  已合并 PR 的标题可事后补前缀：`gh api -X PATCH repos/…/pulls/{n} -f title="…"`（分支名无法改，只约束新建）。
 
 ## 5. 凭据与隐私
 
