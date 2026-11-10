@@ -62,7 +62,7 @@ P = {
     # ---------- 夹板柱（板槽所在）----------
     "col_x": 27.0,           # 柱宽（板槽23.6 + 两侧壁1.7）—— 30→27，过盈挤压方向不靠它
     "col_y": -2.0,           # 柱中心 Y
-    "col_d": 6.0,            # 柱深（板槽1.4 + 两侧壁2.3）—— 10→6，过盈张力要留够壁
+    "col_d": 9.0,            # 柱深（2026-11-10：6→9。接线端实测 3.1 厚，上段槽要 3.4，两侧壁各 2.8）
     "col_h": 36.0,           # 柱高 = 土面到板顶（板顶与柱顶齐平即到位）
     # ---------- 水管 C 形卡箍（2026-10-23 从 03 件合并进来，03 作废）----------
     "ring_on": False,        # 管孔φ10.6 需 Y深≥14.6，30×10 的柱放不下 → 改由 03 窄版管夹承担         # 是否带管环
@@ -80,7 +80,11 @@ P = {
     # ---------- 板槽 ----------
     "tilt": 0.0,             # 板倾角 [AR28 2026-11-09: 8°→0°。柱深仅 6mm，8° 在 ±35mm 高度横移 ±4.9mm，槽会穿出侧壁]
     "groove_w": 23.6,        # 槽宽 X = 板宽 23 + 0.6
-    "groove_gap": 1.8,       # 槽厚 [AR28: 1.4→1.8。板 1.5~1.6，单边 0.1 间隙是 FDM 可打印下限；原 1.4 打成死缝]
+    "groove_gap": 1.8,
+    "term_t": 3.1,           # [实测 2026-11-10] 接线端最厚 3.1
+    "term_len": 21.0,        # 接线端长度（板 87 − 感湿区 66.3 ≈ 20.7，取 21）
+    "term_clear": 0.3,       # 接线端单边间隙
+    "open_window": False,    # 感湿窗/接线端开口（2026-11-10 领导看过效果图后要求删掉，恢复封闭槽）       # 槽厚 [AR28: 1.4→1.8。板 1.5~1.6，单边 0.1 间隙是 FDM 可打印下限；原 1.4 打成死缝]
     "slot_len": 81.0,        # 槽长 [AR28: 46→81 = 柱总高 71 + 上下各 5，贯通用]
     # ---------- 板（仅用于装配示意，不打印；尺寸 2026-10-19 领导手绘图实测）----------
     "board_w": 23.0,         # [实测] 头部宽 23
@@ -109,6 +113,23 @@ def prism_yz(pts_yz, x0, x1):
     m = trimesh.Trimesh(vertices=v, faces=np.asarray(f), process=True)
     m.fix_normals()
     return m
+
+def prism_xz(pts_xz, y0, y1):
+    """凸多边形 (x,z) 沿 Y 拉伸"""
+    p = np.asarray(pts_xz, float)
+    n = len(p)
+    v = np.vstack([np.column_stack([p[:, 0], [y0] * n, p[:, 1]]),
+                   np.column_stack([p[:, 0], [y1] * n, p[:, 1]])])
+    f = []
+    for i in range(1, n - 1):
+        f.append([0, i + 1, i]); f.append([n, n + i, n + i + 1])
+    for i in range(n):
+        j = (i + 1) % n
+        f.append([i, j, n + j]); f.append([i, n + j, n + i])
+    m = trimesh.Trimesh(vertices=v, faces=np.asarray(f), process=True)
+    m.fix_normals()
+    return m
+
 
 
 def B(cx, cy, cz, sx, sy, sz):
@@ -175,6 +196,18 @@ def build(p=P):
         slot = B(ring_cx, p["col_y"] - 2.5, rz, p["ring_slot_w"], 7.0, bh2 + 6)
         body = cut(body, [slot])
 
+    # ---- 3.5) 感湿窗 + 接线端开口（2026-11-10：领导指出感应区被塑料包住 / 接线端没出线空间）----
+    # ① 感湿窗：把板槽两侧 3.6 的 PLA 在土面以下开掉（中间 17 宽），板面直接接触土壤。
+    #    窗顶做成尖顶（≈45°）→ 免支撑，不会形成桥。
+    # ② 接线端开口：把 +Y 侧壁在接线端那 16mm 开掉，杜邦头/线可以朝盆外弯出。
+    if p.get("open_window", True):
+        wx, peak = p.get("win_w", 17.0) / 2, p.get("win_peak", 5.0)
+        win = prism_xz([(-wx, -33.0), (wx, -33.0), (wx, peak - wx), (0.0, peak), (-wx, peak - wx)],
+                       -p["col_d"] / 2, p["col_d"] / 2)
+        body = cut(body, [win])
+        body = cut(body, [B(0, p["col_y"] + p["col_d"] / 4 + 0.2, 26.0,
+                            p.get("win_w", 17.0), p["col_d"] / 2 + 1.0, 16.0)])
+
     # ---- 4) 板槽：沿竖直轴贯穿整根柱子（AR28 起 tilt=0，两侧各留 3.2 壁）----
     ang_r = np.deg2rad(p["tilt"])
     axis = np.array([-np.sin(ang_r), -np.cos(ang_r)])
@@ -186,6 +219,16 @@ def build(p=P):
           gc - nj * p["groove_gap"] / 2 - axis * half,
           gc + nj * p["groove_gap"] / 2 - axis * half]
     body = difference([body, prism_yz(gp, -p["groove_w"] / 2, p["groove_w"] / 2)],
+                      engine="manifold")
+
+    # ---- 阶梯槽：上段（接线端）加宽到 3.1 + 0.3 单边 ----
+    # 板顶 = 柱顶；接线端占板顶往下 term_len → 该段槽宽 = term_t + 2*term_clear
+    gw2 = (p["term_t"] + 2 * p["term_clear"]) / 2
+    t_top = -half                      # 柱顶（axis 指向下，故顶部为 -half）
+    t_bot = -half + p["term_len"]      # 接线端下沿
+    wide = [gc + nj * gw2 + axis * t_top, gc - nj * gw2 + axis * t_top,
+            gc - nj * gw2 + axis * t_bot, gc + nj * gw2 + axis * t_bot]
+    body = difference([body, prism_yz(wide, -p["groove_w"] / 2, p["groove_w"] / 2)],
                       engine="manifold")
 
     zmin = float(body.bounds[0][2])

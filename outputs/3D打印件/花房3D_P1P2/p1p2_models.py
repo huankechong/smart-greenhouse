@@ -39,6 +39,7 @@ PARAMS = {
         "tilt": 45.0,            # 屏面倾角 [设计决策: 隔桌可读]
         "base_x": 36.0,          # 底盘宽（保持 36：与 06a 的 36.2 嵌槽匹配）
         "wedge_x": 31.0,         # 楔块宽（2026-11-09 领导要求缩窄：36→31）
+        "lighten": False,        # 背面三角减重腔（2026-11-10 试过，领导看过后改回实心）
         "base_y": 34.0,          # 底盘深
         "base_t": 3.0,           # 底盘厚
         "slope_y": 26.5,         # 斜面投影深度（24→26.5：加长斜面给下沿留挡边）
@@ -247,6 +248,22 @@ def build_oled_stand(p):
               1.0 - (1.0 + p["wire_depth"]) / 2,
               p["wire_w"], p["wire_len"], 1.0 + p["wire_depth"])
     body = cut(body, [frame_part(strip, ang, slope_mid)])
+
+    # ---- 4.5) 背面减重腔（2026-11-10 领导要求：镂空提速）----
+    # 从背面（-Y）掏一个三角腔，斜面侧留 4mm、底面留 4mm、两侧各留 4mm。
+    # 关键：腔的"天花"与 45° 斜面平行 → 仍是 45° 自支撑面，不新增悬空。
+    if p.get("lighten", True):
+        t = p.get("lighten_t", 3.0)              # 壁厚（到底面/侧面）
+        yb = -by / 2 - 1.0                        # 直接切穿背面 → 看得见的三角镂空
+        zb = z0 + bt + t                          # 腔底
+        # 斜面平行线向下偏移 t：z = 26 - y - t*sqrt(2)
+        # 到斜面要同时让开"板槽深度"（槽深是沿法线量的，垂直方向要乘 √2）
+        k = (t + p["pocket_depth"]) * np.sqrt(2)
+        y_slope = (z0 + bt + (by / 2 - lip) - k - zb)   # 腔底与斜面线的交点（解 z=zb）
+        tri = [(yb, zb), (y_slope, zb),
+               (yb, (z0 + bt + (by / 2 - lip) - k) - yb)]
+        w = (p.get("wedge_x", bx) / 2) - t        # 两侧各留 t（3mm）
+        body = cut(body, [prism_yz(tri, -w, w)])
 
     # ---- 5) 防脱卡爪（外移让开中间过线口；上坡端两只 1.2mm 弹性爪）----
     # 2026-11-09：两只 1.2mm 弹性爪是"浮空面"元凶（150mm² 悬在槽底上方 1mm，打印时必起球）
