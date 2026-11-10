@@ -56,10 +56,27 @@ NODE="C:/Users/junbo/.workbuddy/binaries/node/versions/22.22.2-6/node.exe"
 - 认证走 **Git Credential Manager 2.9.0**（`D:/Appdata/WorkBuddy/resources/vendor/PortableGit/mingw64/bin/git-credential-manager.exe`），全局 `credential.helper` 指向它，已授权账号 `huankechong`；token 在 Windows 凭据管理器，**仓库里不落盘**。
 - 远程 `https://github.com/huankechong/smart-greenhouse.git`，分支 `main`。
 - 提交身份**已全局配好**（2026-10-20 补齐）：`user.name=huankechong`、`user.email=huankechong@users.noreply.github.com`。**不要再 `git config --local` 覆盖**，写 local 会让新仓库继承不到。
-- `gh` CLI 未装、SSH 密钥无 → **不需要**，`git push` 即可。
+- **`gh` CLI 已装并已认证**（v2.103.2，2026-11-10 核实；旧记录"未装"作废）：`gh auth status` → 账号 `huankechong`，scopes `gist/read:org/repo/workflow`。SSH 密钥仍无 → 走 https。
 - 提交前必看 `git status`；`git add` 显式列文件，**不要 `git add .`**（`.gitignore` 已排除 `docs/private/`、`output/`、`.workbuddy/`、截图备份等含个人信息目录）。
 - 提交信息写中文，格式 `<类型>: <一句话说明>`；push 后回读 `git log --oneline -3` + `git status`。
 - 组员提交操作 → `docs/GitHub与Agent提交代码_零基础手册_2026-10-20.md`（唯一版本）。
+
+#### 4.1.1 ⛔ 一律走 PR，不直推 main（2026-11-10 领导定，长期规则）
+
+`protect-main` ruleset（2026-11-07 建立，`gh api repos/…/rules/branches/main` 可查）要求：main 上**任何改动必须经 PR，且至少 1 个 approving review**；禁删除分支、禁强推；合并方式 squash / merge / rebase 均可。
+
+```bash
+git checkout -b <type>/<简述>-<MMDD>      # 例：fix/01b-slot-1110
+git add <显式文件>                         # 不用 git add .
+git commit -m "<类型>: <说明>"
+git push -u origin <branch>
+gh pr create --base main --head <branch> --title "<标题>" --body "<要点>"
+# 合并：① 优先让组员 approve（真 review 记录，答辩可当协作证据）
+#       ② 无人可审时用 owner bypass：gh pr merge <num> --squash --admin
+```
+
+- **不要再 `git push origin main`**。2026-11-10 那次直推被 admin bypass 放行（回显 `Bypassed rule violations`），虽成功但**不留 PR / review 记录**，与规则意图不符——这是最后一次例外。
+- 分支用完即删：`git push origin --delete <branch>`，仓库长期只留 `main`。
 
 ## 5. 凭据与隐私
 
