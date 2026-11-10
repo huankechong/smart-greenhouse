@@ -84,7 +84,10 @@ P = {
     "term_t": 3.1,           # [实测 2026-11-10] 接线端最厚 3.1
     "term_len": 21.0,        # 接线端长度（板 87 − 感湿区 66.3 ≈ 20.7，取 21）
     "term_clear": 0.3,       # 接线端单边间隙
-    "open_window": False,    # 感湿窗/接线端开口（2026-11-10 领导看过效果图后要求删掉，恢复封闭槽）       # 槽厚 [AR28: 1.4→1.8。板 1.5~1.6，单边 0.1 间隙是 FDM 可打印下限；原 1.4 打成死缝]
+    "open_window": True,
+    "term_open": True,       # 接线端出线口（2026-11-10 删过一版，19:56 领导要求回退到上一版）
+    "fins": True,            # 土里稳定鳍（2026-11-10 20:45 领导：只留没圈住的那一边）
+    "fin_sides": (-1,),      # -1 = −Y 侧（2026-11-10 20:46 领导说加反了，翻到另一边）     # 感湿窗 + 接线端开口（2026-11-10 领导定：要裸露版，板面直接接触土壤）       # 槽厚 [AR28: 1.4→1.8。板 1.5~1.6，单边 0.1 间隙是 FDM 可打印下限；原 1.4 打成死缝]
     "slot_len": 81.0,        # 槽长 [AR28: 46→81 = 柱总高 71 + 上下各 5，贯通用]
     # ---------- 板（仅用于装配示意，不打印；尺寸 2026-10-19 领导手绘图实测）----------
     "board_w": 23.0,         # [实测] 头部宽 23
@@ -174,12 +177,13 @@ def build(p=P):
              p["col_x"], p["col_d"], p["col_h"] + ld)
 
     # ---- 2) 土里两侧稳定鳍：只在土面以下展开，不占土面；避开中间板槽 ----
-    ft, fw, fh = p["leg_t"], p["leg_w"], p["fin_h"]
-    inner = p["col_d"] / 2 - p["fin_bury"]          # 内侧伸进柱子，保证 union 相连
-    for sy in (-1, 1):
-        fy = sy * (inner + ft / 2)
-        body = union([body, B(0, p["col_y"] + fy, -ld + fh / 2 + 2,
-                              fw, ft, fh)], engine="manifold")
+    if p.get("fins", True):
+        ft, fw, fh = p["leg_t"], p["leg_w"], p["fin_h"]
+        inner = p["col_d"] / 2 - p["fin_bury"]      # 内侧伸进柱子，保证 union 相连
+        for sy in p.get("fin_sides", (-1, 1)):     # 可按需只留一侧
+            fy = sy * (inner + ft / 2)
+            body = union([body, B(0, p["col_y"] + fy, -ld + fh / 2 + 2,
+                                  fw, ft, fh)], engine="manifold")
 
     # ---- 3) 水管 C 形卡箍凸台（+X 侧外伸，管子竖向穿过）----
     if p.get("ring_on", False):
@@ -205,8 +209,11 @@ def build(p=P):
         win = prism_xz([(-wx, -33.0), (wx, -33.0), (wx, peak - wx), (0.0, peak), (-wx, peak - wx)],
                        -p["col_d"] / 2, p["col_d"] / 2)
         body = cut(body, [win])
-        body = cut(body, [B(0, p["col_y"] + p["col_d"] / 4 + 0.2, 26.0,
-                            p.get("win_w", 17.0), p["col_d"] / 2 + 1.0, 16.0)])
+        if p.get("term_open", True):
+            # 2026-11-10 20:42 领导：顶部那条横条也删掉，顶面成"凹"字 → 全深度切穿
+            # 切口要从材料内部一直切到柱顶以上，顶面才真的敞口成"凹"
+            body = cut(body, [B(0, p["col_y"], 30.0,
+                                p.get("win_w", 17.0), p["col_d"] + 3.0, 16.0)])
 
     # ---- 4) 板槽：沿竖直轴贯穿整根柱子（AR28 起 tilt=0，两侧各留 3.2 壁）----
     ang_r = np.deg2rad(p["tilt"])

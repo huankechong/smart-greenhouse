@@ -83,10 +83,10 @@ PARAMS = {
         "tube_od": 10.0,         # [2026-10-23 实测] 硅胶管外径 10mm (内径 8.5)
         "ring_inner_d": 10.6,    # 管孔内径 = 管外径 10 + 0.6
         # 插土针：细长方条，插进土里把管环架高
-        "pin_t": 2.0,            # 针厚（X）—— 窄版
+        "pin_t": 4.0,            # 针厚（X）—— 窄版
         "pin_w": 6.0,            # 针宽（Y）
         "pin_depth": 25.0,       # 插土深度
-        "pin_x": 5.5,            # 针中心 X（±），紧贴管环两侧
+        "pin_x": 5.0,            # 针中心 X（±），紧贴管环两侧
         "pin_y": 0.0,            # 针的 Y 中心
         # 管环：立在土面上方，孔竖直贯穿
         "ring_rise": 16.0,       # 管孔中心离土面高度（管子出水口要在土面上方）
@@ -246,6 +246,15 @@ def build_tube_clip(p):
     pins = [B(sx * p["pin_x"], p["pin_y"], -pd / 2, pt_, pw, pd)
             for sx in (-1, 1)]
     body = union(pins, engine="manifold")
+
+    # ---- 1.5) 根部斜撑：2026-11-10 领导要求去掉（打印出来嫌多余）----
+    # 去掉后针又回到"3.2×6、25mm 悬臂"状态 → 取下时根部仍是最脆弱处。
+    # 如需再加强：把 pin_t 加到 4.0，或在根部加 R1.5 圆角（改动小、不影响外观）。
+    if p.get("brace", False):
+        bh = p.get("brace_h", 7.0)
+        bx = p["pin_x"] + 0.5
+        body = union([body, prism_xz([(-bx, 0.0), (bx, 0.0), (0.0, -bh)], -pw / 2, pw / 2)],
+                     engine="manifold")
 
     # ---- 2) 管环柱：底面坐在土面(z=0)，顶面 z=ch ----
     col = B(0, ry, ch / 2, p["col_x"], p["col_d"], ch)
