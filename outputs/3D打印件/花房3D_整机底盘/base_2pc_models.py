@@ -156,8 +156,10 @@ def build_half(p, side):
     # --- 连接块沉槽 (接缝两侧各半个) ---
     for jy in p["joint_y"]:
         hw = p["block_x"] / 2 + p["recess_clear"] / 2      # 半个沉槽宽
-        body = cut(body, [B(side * hw / 2, jy, pt - p["recess_d"] / 2,
-                           hw, p["block_y"] + p["recess_clear"], p["recess_d"] + 2)])
+        # 2026-11-11 修正：切槽盒高度 recess_d+2 原来是"上下各多 1"，导致槽深 = recess_d+1（实测 4.5，块沉 1mm）。
+        # 现在改成 recess_d+1 并把中心抬 0.5 → 槽底准确落在 pt-recess_d，块与板面齐平。
+        body = cut(body, [B(side * hw / 2, jy, pt - p["recess_d"] + (p["recess_d"] + 1) / 2,
+                           hw, p["block_y"] + p["recess_clear"], p["recess_d"] + 1)])
         # 自攻引导孔: 从槽底打到距板底 pilot_skin 处
         mat = pt - p["recess_d"]                      # 槽下实心厚度
         pz0 = p["pilot_skin"]
