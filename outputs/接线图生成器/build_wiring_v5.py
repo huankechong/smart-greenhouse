@@ -244,77 +244,86 @@ def build():
         ext = 12 if pn == '3V3' else 5   # GND 短伸入，避开右板蓝轨文字
     P.append(f'<path d="M{p2[0]:.1f} {p2[1]:.1f} L{gx:.1f} {p2[1]:.1f} L{gx:.1f} {rail} L{gx+ext:.1f} {rail}" stroke="{color}" stroke-width="1.8" fill="none" stroke-dasharray="5 3" stroke-linejoin="round"/>')
 
-    # ---------- 板外强电区（拟物）----------
+    # ---------- 板外强电区（拟物，v5.2 pigtail 免剪方案）----------
     px0, py0 = 40, by + BB['h'] + 30
-    P.append(f'<rect x="{px0-10}" y="{py0-6}" width="{SVG_W-px0}" height="150" rx="8" fill="#FCEBEB" stroke="#A32D2D" stroke-width="1"/>')
+    P.append(f'<rect x="{px0-10}" y="{py0-6}" width="{SVG_W-px0}" height="196" rx="8" fill="#FCEBEB" stroke="#A32D2D" stroke-width="1"/>')
     P.append(f'<text x="{px0}" y="{py0+8}" font-size="10.5" font-weight="600" fill="#791F1F">板外：水泵强电回路（不过面包板）</text>')
     cy = py0 + 52
-    # 充电宝
+    # 充电宝（开小电流模式，防轻载自动断电）
     P.append(f'<rect x="{px0}" y="{cy-24}" width="76" height="46" rx="6" fill="#DCE9F8" stroke="#185FA5" stroke-width="1.2"/>')
     P.append(f'<rect x="{px0+8}" y="{cy-16}" width="34" height="16" rx="2" fill="#8FBCE3"/>')
-    P.append(f'<text x="{px0+38}" y="{cy+18}" text-anchor="middle" font-size="8" fill="#0C447C">充电宝5V ≥1A</text>')
-    # USB-A 母座（剪口 A）
-    ux = px0+96
-    P.append(f'<rect x="{ux}" y="{cy-12}" width="34" height="24" rx="3" fill="#C9C6BB" stroke="#888170" stroke-width="1"/>')
-    P.append(f'<rect x="{ux+4}" y="{cy-7}" width="24" height="14" rx="2" fill="#FBFAF5" stroke="#888170"/>')
+    P.append(f'<text x="{px0+38}" y="{cy+16}" text-anchor="middle" font-size="8" fill="#0C447C" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">充电宝 5V ≥1A</text>')
+    P.append(f'<text x="{px0+38}" y="{cy+34}" text-anchor="middle" font-size="8" font-weight="600" fill="#A32D2D" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">⚠ 开小电流模式</text>')
+    # 公头线（USB-A 公头插充电宝，尾部出红黑两线）· SKU1
+    plugx = px0 + 96
+    P.append(f'<rect x="{plugx}" y="{cy-12}" width="34" height="24" rx="2" fill="#B8BCC4" stroke="#6B7280" stroke-width="1"/>')
+    P.append(f'<rect x="{plugx+6}" y="{cy-5}" width="22" height="10" rx="1" fill="#FBFAF5" stroke="#888170" stroke-width="0.7"/>')
     for i in range(4):
-        P.append(f'<rect x="{ux+6+i*5.4}" y="{cy-4}" width="2.6" height="8" fill="#B5B2A6"/>')
-    P.append(f'<text x="{ux+17}" y="{cy+24}" text-anchor="middle" font-size="7.5" fill="#5F5E5A">延长线A母</text>')
-    # 四线剪断示意
-    wire_colors = [('红','#D0342C'), ('黑','#2C2C2A'), ('白','#C9C6BB'), ('绿','#3B6D11')]
-    for i,(nm,c) in enumerate(wire_colors):
-        wy = cy - 14 + i*8
-        P.append(f'<path d="M{ux+34} {wy} L{ux+64} {wy}" stroke="{c}" stroke-width="2"/>')
-        P.append(f'<text x="{ux+78}" y="{wy+3}" font-size="7" fill="{c if nm!="黑" else "#444441"}" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">{nm}线</text>')
-    P.append(f'<text x="{ux+17}" y="{cy+38}" text-anchor="middle" font-size="7" fill="#888170">剪断处（白绿包胶带）</text>')
-    # 继电器强电侧三端子
-    jx = ux + 170
+        P.append(f'<rect x="{plugx+8+i*4.6}" y="{cy-3}" width="2.4" height="6" fill="#C9A227"/>')
+    P.append(f'<text x="{plugx+17}" y="{cy+30}" text-anchor="middle" font-size="7.5" font-weight="600" fill="#5F5E5A" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">公头线 30cm</text>')
+    P.append(f'<text x="{plugx+17}" y="{cy+44}" text-anchor="middle" font-size="7" fill="#888170" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">SKU1 插充电宝</text>')
+    # 继电器强电侧端子（NC/COM/NO）
+    jx = 300
+    P.append(f'<text x="{jx+60}" y="{cy+34}" text-anchor="middle" font-size="7.5" fill="#791F1F" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">COM→NO 常开 · 断电自动停泵</text>')
     P.append(f'<rect x="{jx}" y="{cy-22}" width="120" height="44" rx="6" fill="#2D6CB5" stroke="#1B4E8A" stroke-width="1.2"/>')
     for i,(lab,c) in enumerate([('NC','#A5B8CE'),('COM','#FFB3B3'),('NO','#FFB3B3')]):
         sx = jx + 18 + i*38
         P.append(f'<rect x="{sx-9}" y="{cy-14}" width="18" height="14" rx="2" fill="#3A7BC8" stroke="#1B4E8A"/>')
         P.append(f'<circle cx="{sx}" cy="{cy-7}" r="4.5" fill="#C9D6E8" stroke="#5B7EA6"/>')
         P.append(f'<text x="{sx}" y="{cy+14}" text-anchor="middle" font-size="8.5" font-weight="600" fill="{c}">{lab}</text>')
-    P.append(f'<text x="{jx+60}" y="{cy-40}" text-anchor="middle" font-size="8" fill="#791F1F">继电器强电侧（同上方实物）</text>')
-    # 红线路径：充电宝→A母红→COM；NO→R2→泵红
-    P.append(f'<path d="M{px0+76} {cy-8} L{ux} {cy-8}" stroke="#D0342C" stroke-width="2.5"/>')
-    P.append(f'<path d="M{ux+34} {cy-14} L{jx+16} {cy-14} L{jx+16} {cy-7}" stroke="#D0342C" stroke-width="2.5" fill="none"/>')
-    pump_x = jx + 200
-    P.append(f'<path d="M{jx+108} {cy-7} L{jx+130} {cy-7} L{jx+130} {cy-24} L{pump_x} {cy-24}" stroke="#D0342C" stroke-width="2.5" fill="none" stroke-linejoin="round"/>')
-    P.append(f'<text x="{(jx+130+pump_x)/2}" y="{cy-36}" text-anchor="middle" font-size="8" fill="#A32D2D" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">NO→R2→泵红</text>')
-    # 黑线：A母黑→B1→万可→B2→泵黑
-    wago_x = ux + 64; wago_y = cy + 40
-    P.append(f'<path d="M{ux+34} {cy-6} L{wago_x+30} {cy-6} L{wago_x+30} {wago_y}" stroke="#2C2C2A" stroke-width="2.5" fill="none" stroke-linejoin="round"/>')
-    P.append(f'<text x="{wago_x+56}" y="{wago_y-6}" font-size="8" fill="#444441" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">B1（电源黑）</text>')
-    P.append(f'<rect x="{wago_x+8}" y="{wago_y}" width="66" height="26" rx="4" fill="#F5C542" stroke="#B08A1E" stroke-width="1.2"/>')
-    for i in range(2):
-        P.append(f'<rect x="{wago_x+16+i*26}" y="{wago_y+4}" width="14" height="18" rx="2" fill="#E0A92E" stroke="#B08A1E"/>')
-        P.append(f'<circle cx="{wago_x+23+i*26}" cy="{wago_y+9}" r="2.4" fill="#8A6A10"/>')
-    P.append(f'<text x="{wago_x+41}" y="{wago_y+38}" text-anchor="middle" font-size="7.5" fill="#854F0B">万可 221 · 黑线直通</text>')
-    pump_y = cy - 6
-    P.append(f'<path d="M{wago_x+74} {wago_y+8} L{pump_x-30} {wago_y+8} L{pump_x-30} {pump_y+8} L{pump_x} {pump_y+8}" stroke="#2C2C2A" stroke-width="2.5" fill="none" stroke-linejoin="round"/>')
-    P.append(f'<text x="{(wago_x+74+pump_x)/2}" y="{wago_y+2}" text-anchor="middle" font-size="8" fill="#444441">B2→泵黑</text>')
-    # 水泵拟物
+    # 红1：公头线红 → COM
+    P.append(f'<path d="M{plugx+34} {cy-8} L{jx+48} {cy-8}" stroke="#D0342C" stroke-width="2.5"/>')
+    P.append(f'<text x="{(plugx+34+jx+48)/2}" y="{cy-16}" text-anchor="middle" font-size="8" font-weight="600" fill="#A32D2D" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">公头红 → COM</text>')
+    # 红2：NO → 母头线红（1N4007 色环端同孔并进）
+    P.append(f'<path d="M{jx+103} {cy-8} L500 {cy-8}" stroke="#D0342C" stroke-width="2.5"/>')
+    P.append(f'<circle cx="440" cy="{cy-8}" r="2.2" fill="#D0342C"/>')
+    P.append(f'<text x="458" y="{cy-16}" text-anchor="middle" font-size="8" font-weight="600" fill="#A32D2D" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">NO → 母头红</text>')
+    # 母头线母座（USB-A 母口，泵公头插入）· SKU2
+    P.append(f'<rect x="500" y="{cy-12}" width="34" height="24" rx="3" fill="#C9C6BB" stroke="#888170" stroke-width="1"/>')
+    P.append(f'<rect x="504" y="{cy-7}" width="26" height="14" rx="2" fill="#FBFAF5" stroke="#888170" stroke-width="0.7"/>')
+    for i in range(4):
+        P.append(f'<rect x="{506+i*5.8}" y="{cy-4}" width="2.6" height="8" fill="#B5B2A6"/>')
+    P.append(f'<text x="560" y="{cy+30}" text-anchor="middle" font-size="7.5" font-weight="600" fill="#5F5E5A" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">母头线 30cm</text>')
+    P.append(f'<text x="560" y="{cy+44}" text-anchor="middle" font-size="7" fill="#888170" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">SKU2 泵公头插入</text>')
+    # 万可 221-413（三孔汇流：公头黑 / 二极管无环端 / 母头黑）
+    wago_x, wago_y = 240, 792
+    P.append(f'<rect x="{wago_x}" y="{wago_y}" width="106" height="28" rx="4" fill="#F5C542" stroke="#B08A1E" stroke-width="1.2"/>')
+    for hx in (262, 293, 324):
+        P.append(f'<rect x="{hx-8}" y="{wago_y+4}" width="16" height="9" rx="2" fill="#E0A92E" stroke="#B08A1E" stroke-width="0.7"/>')
+        P.append(f'<circle cx="{hx}" cy="{wago_y+21}" r="4.2" fill="#8A6A10"/>')
+    # 母头黑：母座下缘 → 万可孔3
+    P.append(f'<path d="M508 {cy+12} L508 784 L324 784 L324 {wago_y+21}" stroke="#2C2C2A" stroke-width="2.5" fill="none" stroke-linejoin="round"/>')
+    P.append(f'<text x="470" y="780" text-anchor="middle" font-size="8" font-weight="600" fill="#444441" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">母头黑</text>')
+    # 黑线三路（互不交叉，线头落到孔位圆点）
+    P.append(f'<path d="M{plugx+34} {cy+8} L262 {cy+8} L262 {wago_y+21}" stroke="#2C2C2A" stroke-width="2.5" fill="none" stroke-linejoin="round"/>')
+    P.append(f'<text x="216" y="{cy+2}" text-anchor="middle" font-size="8" font-weight="600" fill="#444441" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">公头黑</text>')
+    P.append(f'<text x="232" y="{wago_y+10}" text-anchor="end" font-size="7.5" font-weight="600" fill="#854F0B">万可 221-413</text>')
+    P.append(f'<text x="293" y="{wago_y+40}" text-anchor="middle" font-size="7.5" fill="#854F0B">孔1 公头黑 · 孔2 二极管无环端 · 孔3 母头黑</text>')
+    # 1N4007：色环端(阴极)→并进 NO 螺丝同孔；无环端→万可孔2（跨泵续流）
+    P.append(f'<path d="M440 718 L440 720" stroke="#444441" stroke-width="1.8"/>')
+    P.append(f'<rect x="435" y="720" width="10" height="14" rx="2" fill="#2C2C2A"/>')
+    P.append(f'<rect x="435" y="720" width="10" height="4" fill="#C9C6BB"/>')
+    P.append(f'<path d="M440 734 L440 772 L293 772 L293 {wago_y+21}" stroke="#444441" stroke-width="1.8" fill="none"/>')
+    P.append(f'<text x="462" y="716" text-anchor="middle" font-size="7" font-weight="600" fill="#854F0B" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">1N4007</text>')
+    # 泵公头 → 插入母座；水泵拟物
+    P.append(f'<rect x="536" y="{cy-6}" width="34" height="12" rx="2" fill="#B8BCC4" stroke="#6B7280" stroke-width="0.9"/>')
+    P.append(f'<path d="M570 {cy} L600 {cy}" stroke="#6B7280" stroke-width="3"/>')
+    P.append(f'<text x="553" y="{cy-12}" text-anchor="middle" font-size="6.5" fill="#5F5E5A" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">泵公头</text>')
+    pump_x = 600
     P.append(f'<rect x="{pump_x}" y="{cy-30}" width="86" height="58" rx="8" fill="#DDEBD0" stroke="#3B6D11" stroke-width="1.2"/>')
     P.append(f'<circle cx="{pump_x+30}" cy="{cy}" r="17" fill="#C4D8B0" stroke="#3B6D11" stroke-width="1"/>')
+    import math
     for a in range(0, 360, 60):
-        import math
         x1 = pump_x+30 + 6*math.cos(math.radians(a)); y1 = cy + 6*math.sin(math.radians(a))
         x2 = pump_x+30 + 15*math.cos(math.radians(a+30)); y2 = cy + 15*math.sin(math.radians(a+30))
         P.append(f'<path d="M{x1:.1f} {y1:.1f} L{x2:.1f} {y2:.1f}" stroke="#7FA35F" stroke-width="2"/>')
-    P.append(f'<rect x="{pump_x+52}" y="{cy-10}" width="24" height="9" rx="2" fill="#E7D06B" stroke="#8A7A2E" stroke-width="0.7"/>')
-    P.append(f'<text x="{pump_x+64}" y="{cy-13}" text-anchor="middle" font-size="6.5" fill="#444441">红</text>')
-    P.append(f'<rect x="{pump_x+52}" y="{cy+2}" width="24" height="9" rx="2" fill="#2C2C2A"/>')
-    P.append(f'<text x="{pump_x+64}" y="{cy-1}" text-anchor="middle" font-size="6.5" fill="#F5F5F5">黑</text>')
-    P.append(f'<text x="{pump_x+43}" y="{cy+40}" text-anchor="middle" font-size="8" fill="#27500A">水泵3W 浸水</text>')
-    # 1N4007
-    dx = wago_x + 108; dy = wago_y + 8
-    P.append(f'<rect x="{dx}" y="{dy-5}" width="40" height="10" rx="4" fill="#2C2C2A"/>')
-    P.append(f'<rect x="{dx+22}" y="{dy-5}" width="8" height="10" fill="#C9C6BB"/>')
-    P.append(f'<path d="M{dx-8} {dy} L{dx} {dy} M{dx+40} {dy} L{dx+48} {dy}" stroke="#444441" stroke-width="2"/>')
-    P.append(f'<text x="{dx+20}" y="{dy+16}" text-anchor="middle" font-size="7.5" fill="#854F0B" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">1N4007 反并泵端 · 色环端→泵红</text>')
-    P.append(f'<path d="M{pump_x} {pump_y-24} L{dx+28} {pump_y-24} L{dx+28} {dy-10}" stroke="#854F0B" stroke-width="1.2" fill="none" stroke-dasharray="3 3"/>')
-    P.append(f'<path d="M{pump_x} {pump_y+8} L{dx+28} {pump_y+8} L{dx+28} {dy+10}" stroke="#854F0B" stroke-width="1.2" fill="none" stroke-dasharray="3 3" opacity="0.5"/>')
+    P.append(f'<text x="{pump_x+43}" y="{cy+42}" text-anchor="middle" font-size="8" fill="#27500A" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">水泵 3W 浸水</text>')
+    # 采购口径备注框
+    P.append(f'<rect x="730" y="672" width="250" height="76" rx="6" fill="#FAEEDA" stroke="#854F0B" stroke-width="1"/>')
+    P.append(f'<text x="742" y="688" font-size="9" font-weight="600" fill="#633806">采购口径（11/10 已下单）</text>')
+    P.append(f'<text x="742" y="703" font-size="8" fill="#633806">USB母转2P端子 · 0.3mm² 纯铜 · 充电款</text>')
+    P.append(f'<text x="742" y="716" font-size="8" fill="#633806">SKU1 公头线 30cm ×1 + SKU2 母头线 30cm ×1</text>')
+    P.append(f'<text x="742" y="729" font-size="8" fill="#633806">零剪线零焊接 · 万可压接 · 合计 ≤¥4</text>')
 
     return '\n'.join(P)
 
@@ -354,7 +363,7 @@ HEAD = f'''<!DOCTYPE html>
   <figure>
   <svg viewBox="0 0 {SVG_W} {SVG_H}" width="100%" role="img" xmlns="http://www.w3.org/2000/svg" style="font-family:inherit">
   <title>花房整机接线总图：拟物版</title>
-  <desc>两块400孔面包板画出真实孔阵，ESP32画板身与两排引脚并标注，五个模块画PCB与引脚丝印，继电器画蓝色本体与两排螺丝端子，板外强电区画充电宝/USB母座/万可/水泵/二极管。</desc>
+  <desc>两块400孔面包板画出真实孔阵，ESP32画板身与两排引脚并标注，五个模块画PCB与引脚丝印，继电器画蓝色本体与两排螺丝端子，板外强电区画充电宝/公头线/母头线/万可/水泵/二极管的免剪pigtail接法。</desc>
   <defs>
   <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
   <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -398,9 +407,9 @@ FOOT = '''  </svg>
     <tr><td>27</td><td>ESP32 <b>VIN</b>（左列第15针）</td><td>继电器 <b>DC+</b></td><td>杜邦·红（剥头8mm）</td><td>线圈 5VDC；绝不用 3V3</td></tr>
     <tr><td>28</td><td>右板蓝轨</td><td>继电器 <b>DC−</b></td><td>杜邦·黑（剥头8mm）</td><td>借蓝轨取 GND（#2/#4 已桥通）</td></tr>
     <tr><td>29</td><td>ESP32 <b>D26</b>（左列第9针）</td><td>继电器 <b>IN</b></td><td>杜邦·橙（剥头8mm）</td><td>信号线</td></tr>
-    <tr><td>30–32</td><td>继电器 COM / NO / 泵黑</td><td>泵回路</td><td>板外</td><td>COM←充电宝红R1；NO→泵红R2；泵黑→万可→B2；NC 不接（见第一节强电区）</td></tr>
+    <tr><td>30–32</td><td>继电器 COM / NO / 万可</td><td>泵回路</td><td>板外</td><td><b>pigtail 免剪</b>：公头线红→COM；NO→母头线红（1N4007 色环端同孔并进）；公头黑+母头黑+二极管无环端 → 万可 221-413 三孔；泵公头插母座；NC 不接（见第一节强电区）</td></tr>
   </table>
-  <p class="meta">合计：杜邦母对母 21 根（#5–13、#17–18、#20–26、#27–29，其中 3 根剥头拧螺丝）+ 面包板跳线 6 根（#1–4、#14、#19）+ 元件 2 个（R1/C1）+ 强电板外 3 根。</p>
+  <p class="meta">合计：杜邦母对母 21 根（#5–13、#17–18、#20–26、#27–29，其中 3 根剥头拧螺丝）+ 面包板跳线 6 根（#1–4、#14、#19）+ 元件 2 个（R1/C1）+ 强电板外 = <b>pigtail 两根（公头线 30cm + 母头线 30cm，已下单）</b> + 万可 221-413 ×1 + 1N4007 ×1，全程零剪线零焊接。</p>
 
   <h2>三、ESP32 端口占用总表（= 固件 55–61 行 + I2C 默认）</h2>
   <table>
@@ -429,7 +438,7 @@ FOOT = '''  </svg>
     <li><b>固件先决</b>：联调烧 <code>RelayPumpTest</code>，测完烧回 <code>GreenHouse_v1</code> v1.6</li>
   </ol>
 
-  <p class="foot">花房项目 · Smart GreenHouse · 整机接线总图 v5 拟物版（2026-11-09，由 outputs/接线图生成器/build_wiring_v5.py 参数化生成）· 引脚对照 GreenHouse_v1.ino L55–61 · 器件丝印对照 11/06–11/08 实拍 OCR · 配套《花房接线规划表.md》《花房接线图_水泵.html》</p>
+  <p class="foot">花房项目 · Smart GreenHouse · 整机接线总图 v5.2 拟物版（2026-11-11，强电区改 pigtail 免剪方案：公头线+母头线+万可 221-413+1N4007；供电=充电宝小电流模式；由 outputs/接线图生成器/build_wiring_v5.py 参数化生成）· 引脚对照 GreenHouse_v1.ino L55–61 · 器件丝印对照 11/06–11/08 实拍 OCR · 配套《花房接线规划表.md》《花房接线图_水泵.html》</p>
 </div>
 </body>
 </html>

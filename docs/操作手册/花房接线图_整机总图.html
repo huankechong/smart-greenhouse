@@ -32,7 +32,7 @@
   <figure>
   <svg viewBox="0 0 1300 960" width="100%" role="img" xmlns="http://www.w3.org/2000/svg" style="font-family:inherit">
   <title>花房整机接线总图：拟物版</title>
-  <desc>两块400孔面包板画出真实孔阵，ESP32画板身与两排引脚并标注，五个模块画PCB与引脚丝印，继电器画蓝色本体与两排螺丝端子，板外强电区画充电宝/USB母座/万可/水泵/二极管。</desc>
+  <desc>两块400孔面包板画出真实孔阵，ESP32画板身与两排引脚并标注，五个模块画PCB与引脚丝印，继电器画蓝色本体与两排螺丝端子，板外强电区画充电宝/公头线/母头线/万可/水泵/二极管的免剪pigtail接法。</desc>
   <defs>
   <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
   <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -883,71 +883,79 @@
 <path d="M258.0 307.0 L242.0 307.0 L242.0 296.6 L636.0 296.6" stroke="#27500A" stroke-width="1.8" fill="none" stroke-dasharray="5 3" stroke-linejoin="round" marker-end="url(#arr)"/>
 <text x="238.0" y="301.8" font-size="8.5" font-weight="600" fill="#27500A" text-anchor="end" stroke="#FBFAF5" stroke-width="3" paint-order="stroke">行21→D32</text>
 <path d="M714.0 233.7 L726.0 233.7 L726.0 147 L731.0 147" stroke="#185FA5" stroke-width="1.8" fill="none" stroke-dasharray="5 3" stroke-linejoin="round"/>
-<rect x="30" y="644" width="1260" height="150" rx="8" fill="#FCEBEB" stroke="#A32D2D" stroke-width="1"/>
+<rect x="30" y="644" width="1260" height="196" rx="8" fill="#FCEBEB" stroke="#A32D2D" stroke-width="1"/>
 <text x="40" y="658" font-size="10.5" font-weight="600" fill="#791F1F">板外：水泵强电回路（不过面包板）</text>
 <rect x="40" y="678" width="76" height="46" rx="6" fill="#DCE9F8" stroke="#185FA5" stroke-width="1.2"/>
 <rect x="48" y="686" width="34" height="16" rx="2" fill="#8FBCE3"/>
-<text x="78" y="720" text-anchor="middle" font-size="8" fill="#0C447C">充电宝5V ≥1A</text>
-<rect x="136" y="690" width="34" height="24" rx="3" fill="#C9C6BB" stroke="#888170" stroke-width="1"/>
-<rect x="140" y="695" width="24" height="14" rx="2" fill="#FBFAF5" stroke="#888170"/>
-<rect x="142.0" y="698" width="2.6" height="8" fill="#B5B2A6"/>
-<rect x="147.4" y="698" width="2.6" height="8" fill="#B5B2A6"/>
-<rect x="152.8" y="698" width="2.6" height="8" fill="#B5B2A6"/>
-<rect x="158.2" y="698" width="2.6" height="8" fill="#B5B2A6"/>
-<text x="153" y="726" text-anchor="middle" font-size="7.5" fill="#5F5E5A">延长线A母</text>
-<path d="M170 688 L200 688" stroke="#D0342C" stroke-width="2"/>
-<text x="214" y="691" font-size="7" fill="#D0342C" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">红线</text>
-<path d="M170 696 L200 696" stroke="#2C2C2A" stroke-width="2"/>
-<text x="214" y="699" font-size="7" fill="#444441" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">黑线</text>
-<path d="M170 704 L200 704" stroke="#C9C6BB" stroke-width="2"/>
-<text x="214" y="707" font-size="7" fill="#C9C6BB" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">白线</text>
-<path d="M170 712 L200 712" stroke="#3B6D11" stroke-width="2"/>
-<text x="214" y="715" font-size="7" fill="#3B6D11" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">绿线</text>
-<text x="153" y="740" text-anchor="middle" font-size="7" fill="#888170">剪断处（白绿包胶带）</text>
-<rect x="306" y="680" width="120" height="44" rx="6" fill="#2D6CB5" stroke="#1B4E8A" stroke-width="1.2"/>
-<rect x="315" y="688" width="18" height="14" rx="2" fill="#3A7BC8" stroke="#1B4E8A"/>
-<circle cx="324" cy="695" r="4.5" fill="#C9D6E8" stroke="#5B7EA6"/>
-<text x="324" y="716" text-anchor="middle" font-size="8.5" font-weight="600" fill="#A5B8CE">NC</text>
-<rect x="353" y="688" width="18" height="14" rx="2" fill="#3A7BC8" stroke="#1B4E8A"/>
-<circle cx="362" cy="695" r="4.5" fill="#C9D6E8" stroke="#5B7EA6"/>
-<text x="362" y="716" text-anchor="middle" font-size="8.5" font-weight="600" fill="#FFB3B3">COM</text>
-<rect x="391" y="688" width="18" height="14" rx="2" fill="#3A7BC8" stroke="#1B4E8A"/>
-<circle cx="400" cy="695" r="4.5" fill="#C9D6E8" stroke="#5B7EA6"/>
-<text x="400" y="716" text-anchor="middle" font-size="8.5" font-weight="600" fill="#FFB3B3">NO</text>
-<text x="366" y="662" text-anchor="middle" font-size="8" fill="#791F1F">继电器强电侧（同上方实物）</text>
-<path d="M116 694 L136 694" stroke="#D0342C" stroke-width="2.5"/>
-<path d="M170 688 L322 688 L322 695" stroke="#D0342C" stroke-width="2.5" fill="none"/>
-<path d="M414 695 L436 695 L436 678 L506 678" stroke="#D0342C" stroke-width="2.5" fill="none" stroke-linejoin="round"/>
-<text x="471.0" y="666" text-anchor="middle" font-size="8" fill="#A32D2D" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">NO→R2→泵红</text>
-<path d="M170 696 L230 696 L230 742" stroke="#2C2C2A" stroke-width="2.5" fill="none" stroke-linejoin="round"/>
-<text x="256" y="736" font-size="8" fill="#444441" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">B1（电源黑）</text>
-<rect x="208" y="742" width="66" height="26" rx="4" fill="#F5C542" stroke="#B08A1E" stroke-width="1.2"/>
-<rect x="216" y="746" width="14" height="18" rx="2" fill="#E0A92E" stroke="#B08A1E"/>
-<circle cx="223" cy="751" r="2.4" fill="#8A6A10"/>
-<rect x="242" y="746" width="14" height="18" rx="2" fill="#E0A92E" stroke="#B08A1E"/>
-<circle cx="249" cy="751" r="2.4" fill="#8A6A10"/>
-<text x="241" y="780" text-anchor="middle" font-size="7.5" fill="#854F0B">万可 221 · 黑线直通</text>
-<path d="M274 750 L476 750 L476 704 L506 704" stroke="#2C2C2A" stroke-width="2.5" fill="none" stroke-linejoin="round"/>
-<text x="390.0" y="744" text-anchor="middle" font-size="8" fill="#444441">B2→泵黑</text>
-<rect x="506" y="672" width="86" height="58" rx="8" fill="#DDEBD0" stroke="#3B6D11" stroke-width="1.2"/>
-<circle cx="536" cy="702" r="17" fill="#C4D8B0" stroke="#3B6D11" stroke-width="1"/>
-<path d="M542.0 702.0 L549.0 709.5" stroke="#7FA35F" stroke-width="2"/>
-<path d="M539.0 707.2 L536.0 717.0" stroke="#7FA35F" stroke-width="2"/>
-<path d="M533.0 707.2 L523.0 709.5" stroke="#7FA35F" stroke-width="2"/>
-<path d="M530.0 702.0 L523.0 694.5" stroke="#7FA35F" stroke-width="2"/>
-<path d="M533.0 696.8 L536.0 687.0" stroke="#7FA35F" stroke-width="2"/>
-<path d="M539.0 696.8 L549.0 694.5" stroke="#7FA35F" stroke-width="2"/>
-<rect x="558" y="692" width="24" height="9" rx="2" fill="#E7D06B" stroke="#8A7A2E" stroke-width="0.7"/>
-<text x="570" y="689" text-anchor="middle" font-size="6.5" fill="#444441">红</text>
-<rect x="558" y="704" width="24" height="9" rx="2" fill="#2C2C2A"/>
-<text x="570" y="701" text-anchor="middle" font-size="6.5" fill="#F5F5F5">黑</text>
-<text x="549" y="742" text-anchor="middle" font-size="8" fill="#27500A">水泵3W 浸水</text>
-<rect x="308" y="745" width="40" height="10" rx="4" fill="#2C2C2A"/>
-<rect x="330" y="745" width="8" height="10" fill="#C9C6BB"/>
-<path d="M300 750 L308 750 M348 750 L356 750" stroke="#444441" stroke-width="2"/>
-<text x="328" y="766" text-anchor="middle" font-size="7.5" fill="#854F0B" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">1N4007 反并泵端 · 色环端→泵红</text>
-<path d="M506 672 L336 672 L336 740" stroke="#854F0B" stroke-width="1.2" fill="none" stroke-dasharray="3 3"/>
-<path d="M506 704 L336 704 L336 760" stroke="#854F0B" stroke-width="1.2" fill="none" stroke-dasharray="3 3" opacity="0.5"/>  </svg>
+<text x="78" y="718" text-anchor="middle" font-size="8" fill="#0C447C" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">充电宝 5V ≥1A</text>
+<text x="78" y="736" text-anchor="middle" font-size="8" font-weight="600" fill="#A32D2D" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">⚠ 开小电流模式</text>
+<rect x="136" y="690" width="34" height="24" rx="2" fill="#B8BCC4" stroke="#6B7280" stroke-width="1"/>
+<rect x="142" y="697" width="22" height="10" rx="1" fill="#FBFAF5" stroke="#888170" stroke-width="0.7"/>
+<rect x="144.0" y="699" width="2.4" height="6" fill="#C9A227"/>
+<rect x="148.6" y="699" width="2.4" height="6" fill="#C9A227"/>
+<rect x="153.2" y="699" width="2.4" height="6" fill="#C9A227"/>
+<rect x="157.8" y="699" width="2.4" height="6" fill="#C9A227"/>
+<text x="153" y="732" text-anchor="middle" font-size="7.5" font-weight="600" fill="#5F5E5A" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">公头线 30cm</text>
+<text x="153" y="746" text-anchor="middle" font-size="7" fill="#888170" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">SKU1 插充电宝</text>
+<text x="360" y="736" text-anchor="middle" font-size="7.5" fill="#791F1F" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">COM→NO 常开 · 断电自动停泵</text>
+<rect x="300" y="680" width="120" height="44" rx="6" fill="#2D6CB5" stroke="#1B4E8A" stroke-width="1.2"/>
+<rect x="309" y="688" width="18" height="14" rx="2" fill="#3A7BC8" stroke="#1B4E8A"/>
+<circle cx="318" cy="695" r="4.5" fill="#C9D6E8" stroke="#5B7EA6"/>
+<text x="318" y="716" text-anchor="middle" font-size="8.5" font-weight="600" fill="#A5B8CE">NC</text>
+<rect x="347" y="688" width="18" height="14" rx="2" fill="#3A7BC8" stroke="#1B4E8A"/>
+<circle cx="356" cy="695" r="4.5" fill="#C9D6E8" stroke="#5B7EA6"/>
+<text x="356" y="716" text-anchor="middle" font-size="8.5" font-weight="600" fill="#FFB3B3">COM</text>
+<rect x="385" y="688" width="18" height="14" rx="2" fill="#3A7BC8" stroke="#1B4E8A"/>
+<circle cx="394" cy="695" r="4.5" fill="#C9D6E8" stroke="#5B7EA6"/>
+<text x="394" y="716" text-anchor="middle" font-size="8.5" font-weight="600" fill="#FFB3B3">NO</text>
+<path d="M170 694 L348 694" stroke="#D0342C" stroke-width="2.5"/>
+<text x="259.0" y="686" text-anchor="middle" font-size="8" font-weight="600" fill="#A32D2D" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">公头红 → COM</text>
+<path d="M403 694 L500 694" stroke="#D0342C" stroke-width="2.5"/>
+<circle cx="440" cy="694" r="2.2" fill="#D0342C"/>
+<text x="458" y="686" text-anchor="middle" font-size="8" font-weight="600" fill="#A32D2D" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">NO → 母头红</text>
+<rect x="500" y="690" width="34" height="24" rx="3" fill="#C9C6BB" stroke="#888170" stroke-width="1"/>
+<rect x="504" y="695" width="26" height="14" rx="2" fill="#FBFAF5" stroke="#888170" stroke-width="0.7"/>
+<rect x="506.0" y="698" width="2.6" height="8" fill="#B5B2A6"/>
+<rect x="511.8" y="698" width="2.6" height="8" fill="#B5B2A6"/>
+<rect x="517.6" y="698" width="2.6" height="8" fill="#B5B2A6"/>
+<rect x="523.4" y="698" width="2.6" height="8" fill="#B5B2A6"/>
+<text x="560" y="732" text-anchor="middle" font-size="7.5" font-weight="600" fill="#5F5E5A" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">母头线 30cm</text>
+<text x="560" y="746" text-anchor="middle" font-size="7" fill="#888170" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">SKU2 泵公头插入</text>
+<rect x="240" y="792" width="106" height="28" rx="4" fill="#F5C542" stroke="#B08A1E" stroke-width="1.2"/>
+<rect x="254" y="796" width="16" height="9" rx="2" fill="#E0A92E" stroke="#B08A1E" stroke-width="0.7"/>
+<circle cx="262" cy="813" r="4.2" fill="#8A6A10"/>
+<rect x="285" y="796" width="16" height="9" rx="2" fill="#E0A92E" stroke="#B08A1E" stroke-width="0.7"/>
+<circle cx="293" cy="813" r="4.2" fill="#8A6A10"/>
+<rect x="316" y="796" width="16" height="9" rx="2" fill="#E0A92E" stroke="#B08A1E" stroke-width="0.7"/>
+<circle cx="324" cy="813" r="4.2" fill="#8A6A10"/>
+<path d="M508 714 L508 784 L324 784 L324 813" stroke="#2C2C2A" stroke-width="2.5" fill="none" stroke-linejoin="round"/>
+<text x="470" y="780" text-anchor="middle" font-size="8" font-weight="600" fill="#444441" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">母头黑</text>
+<path d="M170 710 L262 710 L262 813" stroke="#2C2C2A" stroke-width="2.5" fill="none" stroke-linejoin="round"/>
+<text x="216" y="704" text-anchor="middle" font-size="8" font-weight="600" fill="#444441" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">公头黑</text>
+<text x="232" y="802" text-anchor="end" font-size="7.5" font-weight="600" fill="#854F0B">万可 221-413</text>
+<text x="293" y="832" text-anchor="middle" font-size="7.5" fill="#854F0B">孔1 公头黑 · 孔2 二极管无环端 · 孔3 母头黑</text>
+<path d="M440 718 L440 720" stroke="#444441" stroke-width="1.8"/>
+<rect x="435" y="720" width="10" height="14" rx="2" fill="#2C2C2A"/>
+<rect x="435" y="720" width="10" height="4" fill="#C9C6BB"/>
+<path d="M440 734 L440 772 L293 772 L293 813" stroke="#444441" stroke-width="1.8" fill="none"/>
+<text x="462" y="716" text-anchor="middle" font-size="7" font-weight="600" fill="#854F0B" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">1N4007</text>
+<rect x="536" y="696" width="34" height="12" rx="2" fill="#B8BCC4" stroke="#6B7280" stroke-width="0.9"/>
+<path d="M570 702 L600 702" stroke="#6B7280" stroke-width="3"/>
+<text x="553" y="690" text-anchor="middle" font-size="6.5" fill="#5F5E5A" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">泵公头</text>
+<rect x="600" y="672" width="86" height="58" rx="8" fill="#DDEBD0" stroke="#3B6D11" stroke-width="1.2"/>
+<circle cx="630" cy="702" r="17" fill="#C4D8B0" stroke="#3B6D11" stroke-width="1"/>
+<path d="M636.0 702.0 L643.0 709.5" stroke="#7FA35F" stroke-width="2"/>
+<path d="M633.0 707.2 L630.0 717.0" stroke="#7FA35F" stroke-width="2"/>
+<path d="M627.0 707.2 L617.0 709.5" stroke="#7FA35F" stroke-width="2"/>
+<path d="M624.0 702.0 L617.0 694.5" stroke="#7FA35F" stroke-width="2"/>
+<path d="M627.0 696.8 L630.0 687.0" stroke="#7FA35F" stroke-width="2"/>
+<path d="M633.0 696.8 L643.0 694.5" stroke="#7FA35F" stroke-width="2"/>
+<text x="643" y="744" text-anchor="middle" font-size="8" fill="#27500A" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">水泵 3W 浸水</text>
+<rect x="730" y="672" width="250" height="76" rx="6" fill="#FAEEDA" stroke="#854F0B" stroke-width="1"/>
+<text x="742" y="688" font-size="9" font-weight="600" fill="#633806">采购口径（11/10 已下单）</text>
+<text x="742" y="703" font-size="8" fill="#633806">USB母转2P端子 · 0.3mm² 纯铜 · 充电款</text>
+<text x="742" y="716" font-size="8" fill="#633806">SKU1 公头线 30cm ×1 + SKU2 母头线 30cm ×1</text>
+<text x="742" y="729" font-size="8" fill="#633806">零剪线零焊接 · 万可压接 · 合计 ≤¥4</text>  </svg>
   <figcaption>拟物图：孔阵/引脚/端子按实物布局绘制（非严格比例）。只画 4 条信号线 + 2 根轨桥；OLED/LED/继电器接线见盒内标注与第二节清单；模块针序以实物丝印为准，行号窗口（a4–a6 / a10–a13 / a15–a18 / g2–g5 / g7–g9）不变。</figcaption>
   </figure>
 
@@ -983,9 +991,9 @@
     <tr><td>27</td><td>ESP32 <b>VIN</b>（左列第15针）</td><td>继电器 <b>DC+</b></td><td>杜邦·红（剥头8mm）</td><td>线圈 5VDC；绝不用 3V3</td></tr>
     <tr><td>28</td><td>右板蓝轨</td><td>继电器 <b>DC−</b></td><td>杜邦·黑（剥头8mm）</td><td>借蓝轨取 GND（#2/#4 已桥通）</td></tr>
     <tr><td>29</td><td>ESP32 <b>D26</b>（左列第9针）</td><td>继电器 <b>IN</b></td><td>杜邦·橙（剥头8mm）</td><td>信号线</td></tr>
-    <tr><td>30–32</td><td>继电器 COM / NO / 泵黑</td><td>泵回路</td><td>板外</td><td>COM←充电宝红R1；NO→泵红R2；泵黑→万可→B2；NC 不接（见第一节强电区）</td></tr>
+    <tr><td>30–32</td><td>继电器 COM / NO / 万可</td><td>泵回路</td><td>板外</td><td><b>pigtail 免剪</b>：公头线红→COM；NO→母头线红（1N4007 色环端同孔并进）；公头黑+母头黑+二极管无环端 → 万可 221-413 三孔；泵公头插母座；NC 不接（见第一节强电区）</td></tr>
   </table>
-  <p class="meta">合计：杜邦母对母 21 根（#5–13、#17–18、#20–26、#27–29，其中 3 根剥头拧螺丝）+ 面包板跳线 6 根（#1–4、#14、#19）+ 元件 2 个（R1/C1）+ 强电板外 3 根。</p>
+  <p class="meta">合计：杜邦母对母 21 根（#5–13、#17–18、#20–26、#27–29，其中 3 根剥头拧螺丝）+ 面包板跳线 6 根（#1–4、#14、#19）+ 元件 2 个（R1/C1）+ 强电板外 = <b>pigtail 两根（公头线 30cm + 母头线 30cm，已下单）</b> + 万可 221-413 ×1 + 1N4007 ×1，全程零剪线零焊接。</p>
 
   <h2>三、ESP32 端口占用总表（= 固件 55–61 行 + I2C 默认）</h2>
   <table>
@@ -1014,7 +1022,7 @@
     <li><b>固件先决</b>：联调烧 <code>RelayPumpTest</code>，测完烧回 <code>GreenHouse_v1</code> v1.6</li>
   </ol>
 
-  <p class="foot">花房项目 · Smart GreenHouse · 整机接线总图 v5 拟物版（2026-11-09，由 outputs/接线图生成器/build_wiring_v5.py 参数化生成）· 引脚对照 GreenHouse_v1.ino L55–61 · 器件丝印对照 11/06–11/08 实拍 OCR · 配套《花房接线规划表.md》《花房接线图_水泵.html》</p>
+  <p class="foot">花房项目 · Smart GreenHouse · 整机接线总图 v5.2 拟物版（2026-11-11，强电区改 pigtail 免剪方案：公头线+母头线+万可 221-413+1N4007；供电=充电宝小电流模式；由 outputs/接线图生成器/build_wiring_v5.py 参数化生成）· 引脚对照 GreenHouse_v1.ino L55–61 · 器件丝印对照 11/06–11/08 实拍 OCR · 配套《花房接线规划表.md》《花房接线图_水泵.html》</p>
 </div>
 </body>
 </html>
