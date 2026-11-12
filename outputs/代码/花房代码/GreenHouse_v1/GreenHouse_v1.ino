@@ -45,11 +45,11 @@
 // ==================== 功能开关（按周开启） ====================
 #define EN_DHT  0   // W1-D5：接好温湿度(41号)后改 1 → 需装 DHT sensor library
 #define EN_OLED  0   // W1-D5：接好 OLED(25号)后改 1  → 需装 U8g2
-#define EN_WATER  0   // W2-D8：接好继电器(16号)+水泵后改 1（注意：会真实出水！）
+#define EN_WATER  1   // [2026-11-12 解锁] 标定 2372/1050 定稿 + 水位保护实测通过（常开型）→ 全自动闭环启用（会真实出水）
 #define EN_WIFI  0   // W3-D11：上云时改 1 → 需装 PubSubClient
 #define EN_MQTT  0   // 依赖 EN_WIFI=1：数据上报 + 远程浇水
 #define EN_WEB  0   // 依赖 EN_WIFI=1：局域网保底网页（断外网手机也能看）
-#define EN_LEVEL  0   // v1.4：接好浮球开关（第 10 件替换盖 + P52 浮球）后改 1 → 低水位停泵
+#define EN_LEVEL  1   // 2026-11-12 临时开启测浮球极性（测完视结论定稿）
 
 // ==================== 引脚定义（对照《花房接线规划表.md》） ====================
 #define PIN_SOIL    34   // 土壤湿度 AO → ADC1（只读脚，不能接输出设备）
@@ -67,8 +67,8 @@
 //      估高了：湿态算成 ~90% → 永远不判缺水 → 花一直渴着（静默失效，很难发现）
 //      估低了：干态算成 ~20% → 一直判缺水 → 反复浇水 → 水箱空、盆泡烂（危险）
 //    标定脚本会把实测中位数自动回写到下面这两行（--write 参数）。
-const int SOIL_RAW_DRY = 3200;        // 探针全干的 raw 读数 → W1-4.1 实测后自动回写
-const int SOIL_RAW_WET = 1300;        // 探针全湿的 raw 读数 → W1-4.1 实测后自动回写
+const int SOIL_RAW_DRY = 2372;        // [2026-11-12 定稿] 11-08 实测晾干值；网上典型干~600(10bit)×4 换算吻合
+const int SOIL_RAW_WET = 1050;        // [2026-11-12 定稿] 11-08 实测蘸水值；网上典型湿~270(10bit)×4 换算吻合
 const int SOIL_THRESHOLD_PCT  = 35;   // 土壤湿度% 低于此值 → 判定缺水（标定后再按实际土壤调）
 const unsigned long WATER_MS  = 2000;    // 每轮浇水 2 秒 ≈ 64ml（2026-11-10 实测 32.1ml/s × 2s，三轮 250ml/7.80s 平均，波动<0.5%）
 const unsigned long SETTLE_MS = 30000;   // 浇完等 30 秒复测（防反复触发）
@@ -80,7 +80,7 @@ const int           MAX_ROUNDS_PER_CYCLE = 6;        // 一次处理最多连浇
 const unsigned long COOLDOWN_MS  = 600000;           // 触发上限后冷却 10 分钟再恢复自动
 
 // ---------- v1.4 水位检测（浮球开关，干接点） ----------
-const bool          LEVEL_WET_CLOSED = true;         // [实测确认] true=有水时触点闭合（常开型）
+const bool          LEVEL_WET_CLOSED = true;         // [2026-11-12 实测二次定稿] true=有水时触点闭合（常开型）。装桶姿态=杆尖朝下：浮子坠向杆尖(没水)=断开=低；浮子托向盖端(有水)=闭合=正常
                                                      //   万用表蜂鸣档：浮子推上端应"响"，拉下端"不响"
 const unsigned long LEVEL_INTERVAL_MS = 100;         // 干接点采样周期（100ms 足够，远快于 3s 浇一轮）
 const uint8_t       LEVEL_STABLE_N = 3;              // 连续 3 次一致才认（水面波动会抖，别只看 1 次）
