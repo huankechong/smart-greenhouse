@@ -107,11 +107,11 @@ PARAMS = {
         "base_t": 4.0,
         "post_b": 11.0,
         "post_t": 10.0,
-        "post_top": 26.0,        # 柱顶中心高度（45° 斜切成托盘的支撑面）
+        "post_top": 60.0,        # 柱顶中心高度（2026-11-12：38→60，整体高约 62.3 ≈ DHT 座 62.8）
         "head_w": 36.0,          # 34→36：板槽 32.5，两侧壁从 0.4 加到 1.75
         "head_d": 18.0,
         "head_t": 4.6,
-        "tilt": 52.0,            # 45→52：托盘底面悬垂从 45° 降到 38°
+        "tilt": 0.0,             # 2026-11-12 领导：放平（托盘水平），底面改由喇叭托支撑
         "pocket_clear": 0.6,     # 单边间隙
         "pocket_depth": 2.6,     # 板 1.6 + 1.0
         "pin_slot_w": 12.0,      # 排针过线槽宽（4P 10.2 + 余量）
@@ -358,6 +358,10 @@ def build_ldr_stand(p):
     plane_pt = head_c - n * (ht / 2) + n * 0.35   # 柱顶比托盘底面高 0.35，避免共面导致 bodies=2
     cutter = B(0, 0, 30.0, 120, 120, 60)
     body = cut(body, [frame_part(cutter, ang, plane_pt)])
+
+    # 喇叭托（2026-11-12）：从收腰柱放大到托盘底面，避免水平托盘底面悬空
+    flare_h = 15.0
+    body = add(body, [loft_rect(ztop - flare_h, ztop - 0.15, pt_, pt_, hw - 2.0, hd - 2.0)])
 
     # 托盘
     body = add(body, [frame_part(B(0, 0, 0, hw, hd, ht), ang, head_c)])
