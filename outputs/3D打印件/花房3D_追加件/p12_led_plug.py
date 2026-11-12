@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-花房追加件（2026-11-12）：12 LED 灯座 + 13 理线槽盖板
+花房追加件：12 LED 灯座（13 理线槽盖板已于 2026-11-13 删除——领导决定不需要）
 =====================================================
 12_led_stand : 坐在底盘 φ5.2 通孔上，把裸 5mm LED 抬到 24mm 高
-13_clip_plug : 填平 08 扎线座的嵌槽（30.2×16.2×2.0），与板面齐平
 
 尺寸来源
   · 底盘 φ5.2 通孔：(-22, 18)，贯穿 8mm 板（base_2pc_models.py  "led_d": 5.2）
@@ -130,27 +129,10 @@ PLUG = {
 }
 
 
-def build_clip_plug(p=PLUG):
-    w = p["pocket_w"] - 2 * p["gap"]
-    d = p["pocket_d"] - 2 * p["gap"]
-    h = p["thick"]
-    ch = p["mouth_ch"]
-    straight = h - ch
-    body = B(0, 0, straight / 2, w, d, straight)
-    if ch > 0.05:
-        body = union([body, loft_rect(straight, h, w, d, w + 2 * ch, d + 2 * ch)], engine="manifold")
-    # 顶面撬孔
-    body = difference([body, C(0, 0, h - p["notch_h"] / 2 + 0.05,
-                               p["notch_d"] / 2, p["notch_h"] + 0.1)], engine="manifold")
-    body.apply_translation([0, 0, -body.bounds[0][2]])
-    return body
-
-
 if __name__ == "__main__":
     report = []
     for name, disp, fn, fname in (
         ("12_led_stand", "LED 灯座", build_led_stand, "12_led_stand_v1.stl"),
-        ("13_clip_plug", "理线槽盖板", build_clip_plug, "13_clip_plug_v1.stl"),
     ):
         m = fn()
         path = os.path.join(STL, fname)
