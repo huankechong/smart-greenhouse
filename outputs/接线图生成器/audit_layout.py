@@ -96,6 +96,6 @@ for rm in re.finditer(r'<rect\b([^>]*)/?>', body):
 print(f"{path} | text {len(texts)} 线径 {len(paths)}")
 if issues:
     print(f"!! 共 {len(issues)} 个问题：")
-    for s in issues[:40]: print("  " + s)
+    for s in issues: print("  " + s)
     sys.exit(2)
 print("✅ 布局三查全部通过：0 问题")

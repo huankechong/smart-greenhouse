@@ -1,206 +1,193 @@
 # -*- coding: utf-8 -*-
 """
-花房整机接线总图 v5 生成器 —— 拟物版
-=====================================
-改图改这里（PARAMS 区），跑完自动写 HTML 并做布局审计。
+花房整机接线总图 v5.4 生成器 —— 单板直插版（真实 BB400 几何）
+================================================================
+v5.4（2026-11-12 领导拍板 A：ESP32 直插面包板，实测跨距 a↔i 通过）
+与 v5.3.x 两板展开画法的本质区别：
+1. 单块 BB400 真实朝向绘制：1–30 位号沿板长轴，字母 a–j 沿板宽；
+   5 孔连通条 = 同位号的 a–e 一条 / f–j 一条（垂直于板长轴）——v5.3.x 的
+   "字母×5行" 分组是转了 90° 的抽象，v5.4 起按实物语义画。
+2. ESP32 直插：左排针 EN–VIN → a1–a15，右排针 3V3–D23 → i1–i15，USB 朝 1 位端。
+   占位 1–15；模块全部 16–30 位。
+3. 信号/供电一律 ESP32 针顶夹持（母头套 PCB 上方露出针头），线材口径不变。
+4. 电源轨 = 上缘红(外)+蓝(内) 各 50 孔，中点断成 2×25 → 跨段必须桥接（清单#3/#4）。
 
-设计规则（AR 记录）：
-1. 拟物但不卡尺寸：面包板按 400 孔标准比例（2 排孔带 × 5 孔/组 + 中沟），ESP32 按 30P
-   DevKitC 比例（宽窄两段 + USB 口 + 两排针），模块画 PCB + 引脚 + 丝印。
-2. 只画 4 条信号线 + 2 根轨桥（v4 决策保留）；右侧接线写在盒内，不画长线。
-3. 电源轨上的孔不逐个画：轨是铜条贯通，画两端引线孔即可。
-4. 布局审计（文字重叠/线穿裸文字/越界）必须 0 问题才允许交付。
+改图改这里（PARAMS 区），跑完自动写 HTML 并做布局审计（audit_layout.py 单独跑）。
 """
-import re, html as H
+import math
 
 # ============ PARAMS ============
-BB = dict(          # 面包板
-    x=250, y=120, w=380, h=500,      # 左板（左侧留 210px 放模块）
-    gap=90,                          # 两板间隙（ESP32 骑缝宽度）
-    rail_h=13,                       # 电源轨条高
-    hole_r=2.2,                      # 孔半径
-    group_pitch=12.6,                # 组间距（列方向，5孔+间隔≈0.3in）
-    hole_pitch=7.4,                  # 孔间距（行方向）
-)
-ESP = dict(cx=675, top=162, w=88, h=300)   # ESP32 骑缝：左缘贴左板右缘，右缘贴右板左缘
+POS_PITCH = 24.0        # 位号间距（1–30 沿板长轴）
+LETTER_PITCH = 14.0     # 字母行距（a–j 沿板宽）
+BX = 150.0              # 位号1 的 x
+ROW_A = 432.0           # 字母 a 行的 y（b–e 依次 +14）
+GUTTER_H = 26.0         # 中沟高
+RAIL_RED_Y = 396.0      # 红轨（外）
+RAIL_BLUE_Y = 410.0     # 蓝轨（内，靠 a 行）
+BOARD_X0, BOARD_X1 = 140.0, 880.0
+BOARD_Y0, BOARD_Y1 = 384.0, 600.0
+ESP_POS0, ESP_POS1 = 1, 15          # ESP32 占位 1–15
+ESP_PCB_TOP = 424.0                 # PCB 底边压在 a 行上方（针顶从此出线）
+ESP_PCB_BOT = 572.0                 # 不盖 j 行（i=566, +6px）
 SVG_W, SVG_H = 1300, 960
 
-# ============ 面包板几何 ============
-def bb_geometry(bx, by, bw, bh):
-    """返回 (孔坐标表, 板部件列表)。列 a-e / f-j，行 1-30。
-    标准面包板：a-e 五孔一列组，中沟，f-j 五孔一列组；行方向 30 行分 10 组。"""
-    rails = dict(red_top=by+8, blue_top=by+8+13, red_bot=by+bh-21, blue_bot=by+bh-8)
-    holes_top_y = rails['blue_top'] + 18
-    body_h = 30 * 7.4
-    holes_bot_y = by + bh - 21 - body_h + 2
-    # 列 x：每板 10 列(a..j)，组间加宽
-    col_x = {}
-    x = bx + 14
-    for i, name in enumerate('abcdefghij'):
-        col_x[name] = x + i * 9.2
-        if i == 4:                       # 中沟
-            x += 26
-    rows_y = {r: holes_top_y + (r-1) * 7.4 for r in range(1, 31)}
-    return rails, col_x, rows_y, holes_bot_y
+def pos_x(n):
+    return BX + (n - 1) * POS_PITCH
+
+def letter_y(L):
+    seq = 'abcdefghij'
+    i = seq.index(L)
+    if i < 5:
+        return ROW_A + i * LETTER_PITCH
+    return ROW_A + 5 * LETTER_PITCH + GUTTER_H + (i - 5) * LETTER_PITCH
+
+LEFT_PINS  = ['EN','VP36','VN39','D34','D35','D32','D33','D25','D26','D27','D14','D12','D13','GND','VIN']
+RIGHT_PINS = ['3V3','GND','D15','D2','D4','RX2','TX2','D5','D18','D19','D21','RX0','TX0','D22','D23']
+
+# ============ 位号分配（v5.4）============
+# 浮球 RC 16–18（R1: a16↔a18，节点=位18）→ 土壤 19–21 → 光敏 22–25 → DHT 26–29 → 30 备用
+RC_FEED, RC_NODE = 16, 18
+SOIL_POS  = dict(GND=19, V5=20, OUT=21)
+LUX_POS   = dict(DO=22, GND=23, VCC=24, AO=25)
+DHT_POS   = dict(VCC=26, DATA=27, NC=28, GND=29)
+RAIL_BREAK_HOLE = 25   # 轨中断：25↔26 之间
 
 def build():
-    P = []  # svg parts
-    # ---------- 左右两板 ----------
-    boards = []
-    bx1, by = BB['x'], BB['y']
-    bx2 = bx1 + BB['w'] + BB['gap']
-    for idx, (bx, label) in enumerate([(bx1, '左板（模拟区）Soil / Light / DHT / 浮球'),
-                                        (bx2, '右板（数字区）OLED / LED / 继电器')]):
-        bw = BB['w']
-        P.append(f'<rect x="{bx}" y="{by}" width="{bw}" height="{BB["h"]}" rx="10" fill="#F4F1E8" stroke="#B4B2A9" stroke-width="1.5"/>')
-        # 电源轨
-        rails, *_ = bb_geometry(bx, by, bw, BB['h'])
-        P.append(f'<rect x="{bx+8}" y="{rails["red_top"]}" width="{bw-16}" height="{BB["rail_h"]}" rx="3" fill="#E88B8B" stroke="#A32D2D" stroke-width="0.8"/>')
-        P.append(f'<text x="{bx+16}" y="{rails["red_top"]+10}" font-size="8.5" fill="#791F1F">红轨 +3V3（贯通）</text>')
-        P.append(f'<rect x="{bx+8}" y="{rails["blue_top"]}" width="{bw-16}" height="{BB["rail_h"]}" rx="3" fill="#8FBCE3" stroke="#185FA5" stroke-width="0.8"/>')
-        P.append(f'<text x="{bx+16}" y="{rails["blue_top"]+10}" font-size="8.5" fill="#0C447C">蓝轨 GND（贯通）</text>')
-        # 主孔区背景
-        rails2, col_x, rows_y, holes_bot_y = bb_geometry(bx, by, bw, BB['h'])
-        body_top = rails2['blue_top'] + BB['rail_h'] + 6
-        body_h = 30 * 7.4 + 10
-        P.append(f'<rect x="{bx+6}" y="{body_top}" width="{bw-12}" height="{body_h}" rx="4" fill="#FBFAF5" stroke="#D8D5CB" stroke-width="0.7"/>')
-        # 中沟
-        gutter_x = col_x['e'] + 12
-        P.append(f'<rect x="{gutter_x}" y="{body_top+3}" width="10" height="{body_h-6}" fill="#E4E1D6"/>')
-        P.append(f'<text x="{gutter_x+5}" y="{body_top+14}" font-size="7.5" fill="#A5A296" text-anchor="middle">沟</text>')
-        # 孔阵
-        holes = []
-        for cname, cx in col_x.items():
-            side = 'L' if cname in 'abcde' else 'R'
-            for r in range(1, 31):
-                holes.append((cname, r, cx, rows_y[r], side))
-        for cname, r, cx, cy, side in holes:
-            P.append(f'<circle cx="{cx:.1f}" cy="{cy:.1f}" r="{BB["hole_r"]}" fill="#C9C6BB"/>')
-        # 行号（每 5 行标一次，左右两侧）
-        for r in range(1, 31, 1):
-            if r % 5 == 1 or r == 30:
-                P.append(f'<text x="{bx+1}" y="{rows_y[r]+3}" font-size="7" fill="#A5A296" text-anchor="start" stroke="#F4F1E8" stroke-width="2.5" paint-order="stroke">{r}</text>')
-                P.append(f'<text x="{bx+bw-1}" y="{rows_y[r]+3}" font-size="7" fill="#A5A296" text-anchor="end" stroke="#F4F1E8" stroke-width="2.5" paint-order="stroke">{r}</text>')
-        # 列名（顶部）
-        for cname, cx in col_x.items():
-            P.append(f'<text x="{cx:.1f}" y="{body_top-2}" font-size="7.5" fill="#A5A296" text-anchor="middle">{cname}</text>')
-        # 底轨（浅画）
-        P.append(f'<rect x="{bx+8}" y="{by+BB["h"]-21}" width="{bw-16}" height="{BB["rail_h"]}" rx="3" fill="#F2D9A8" stroke="#C9A55C" stroke-width="0.7" opacity="0.7"/>')
-        P.append(f'<text x="{bx+16}" y="{by+BB["h"]-11}" font-size="8" fill="#A08430" opacity="0.8">底部轨（本图不用）</text>')
-        boards.append((bx, label, rails2, col_x, rows_y))
-    # 板名
-    P.insert(0, f'<text x="{bx1+BB["w"]/2}" y="{by-8}" text-anchor="middle" font-size="11.5" font-weight="500" fill="#5F5E5A">{boards[0][1]}</text>')
-    P.insert(1, f'<text x="{bx2+BB["w"]/2}" y="{by-8}" text-anchor="middle" font-size="11.5" font-weight="500" fill="#5F5E5A">{boards[1][1]}</text>')
+    P = []
+    hx = lambda n: pos_x(n)
 
-    Lr, Lc, Lry = boards[0][2], boards[0][3], boards[0][4]
-    Rr, Rc, Rry = boards[1][2], boards[1][3], boards[1][4]
+    # ---------- 1) 面包板本体 ----------
+    P.append(f'<rect x="{BOARD_X0}" y="{BOARD_Y0}" width="{BOARD_X1-BOARD_X0}" height="{BOARD_Y1-BOARD_Y0}" rx="10" fill="#F4F1E8" stroke="#B4B2A9" stroke-width="1.5"/>')
+    # 板名（放 SVG 顶部，彻底避开轨桥标/走廊/直插模块区）
+    P.append(f'<text x="40" y="30" font-size="11" font-weight="600" fill="#5F5E5A">BB400 ×1（真实朝向：1–30 位号沿板长 · 同位号 a–e / f–j 各成一条 5 孔连通）</text>')
 
-    # ---------- 轨桥 ----------
-    P.append(f'<path d="M{bx1+BB["w"]-6} {Lr["red_top"]+6} L{bx2+6} {Rr["red_top"]+6}" stroke="#D0342C" stroke-width="2.5" stroke-linecap="round"/>')
-    P.append(f'<path d="M{bx1+BB["w"]-6} {Lr["blue_top"]+6} L{bx2+6} {Rr["blue_top"]+6}" stroke="#185FA5" stroke-width="2.5" stroke-linecap="round"/>')
-    P.append(f'<text x="{bx1+BB["w"]+10}" y="{Lr["red_top"]-3}" text-anchor="middle" font-size="8.5" fill="#444441" stroke="#F4F1E8" stroke-width="3" paint-order="stroke">轨桥×2</text>')
+    # 电源轨（上缘：红外蓝内，各 50 孔，中点断 2×25）
+    n_rail = 50
+    rail_x0, rail_x1 = BX - 6, pos_x(30) + 6
+    rsp = (rail_x1 - rail_x0) / (n_rail - 1)
+    break_x = rail_x0 + (RAIL_BREAK_HOLE - 0.5) * rsp   # 25/26 之间的断口
+    # 轨标注放轨右端外（竖直信号线都在 x∈[pos1..pos30] 内，右端标注不被穿）
+    lab_x = rail_x1 + 12
+    for (ry, fill, stroke, tcol, lab) in [
+        (RAIL_RED_Y,  '#E88B8B', '#A32D2D', '#791F1F', '红轨 3V3'),
+        (RAIL_BLUE_Y, '#8FBCE3', '#185FA5', '#0C447C', '蓝轨 GND'),
+    ]:
+        P.append(f'<rect x="{rail_x0-7}" y="{ry-6}" width="{rail_x1-rail_x0+14}" height="12" rx="5" fill="{fill}" stroke="{stroke}" stroke-width="0.8"/>')
+        for k in range(1, n_rail + 1):
+            rxk = rail_x0 + (k - 1) * rsp
+            P.append(f'<circle cx="{rxk:.1f}" cy="{ry}" r="2.2" fill="#FBFAF5" stroke="{stroke}" stroke-width="0.6"/>')
+        # 断口标记
+        P.append(f'<path d="M{break_x-4:.1f} {ry-8} L{break_x+4:.1f} {ry+8}" stroke="#FFFFFF" stroke-width="2.2"/>')
+        P.append(f'<path d="M{break_x-1:.1f} {ry-8} L{break_x+7:.1f} {ry+8}" stroke="#FFFFFF" stroke-width="1.2"/>')
+        P.append(f'<text x="{lab_x}" y="{ry+3:.1f}" font-size="8.5" font-weight="600" fill="{tcol}">{lab}</text>')
+    P.append(f'<text x="{lab_x}" y="{RAIL_RED_Y-16:.1f}" font-size="7.5" fill="#888780">各50孔 · 中断 2×25</text>')
+    # 断口标注：信息已并入轨右端"中断 2×25"+ 轨桥拟物旁标注，此处不再重复（防撞针名带）
 
-    # ---------- ESP32 拟物 ----------
-    ex, et, ew, eh = ESP['cx']-ESP['w']/2, ESP['top'], ESP['w'], ESP['h']
-    P.append(f'<rect x="{ex}" y="{et}" width="{ew}" height="{eh}" rx="6" fill="#3B4252" stroke="#2E3440" stroke-width="1.5"/>')
-    P.append(f'<text x="{ex+ew/2}" y="{et+16}" text-anchor="middle" font-size="11" font-weight="600" fill="#ECEFF4">ESP32</text>')
-    P.append(f'<text x="{ex+ew/2}" y="{et+28}" text-anchor="middle" font-size="8" fill="#B8C0D0">30P DevKitC</text>')
-    # USB 口（顶部）
-    P.append(f'<rect x="{ex+ew/2-14}" y="{et-12}" width="28" height="13" rx="2" fill="#98A2B3" stroke="#6B7280" stroke-width="1"/>')
-    P.append(f'<text x="{ex+ew/2}" y="{et-20}" text-anchor="middle" font-size="8" fill="#5F5E5A">USB 朝外</text>')
-    # 屏蔽罩装饰
-    P.append(f'<rect x="{ex+ew/2-24}" y="{et+32}" width="48" height="20" rx="3" fill="#4C566A" stroke="#2E3440"/>')
-    P.append(f'<text x="{ex+ew/2}" y="{et+47}" text-anchor="middle" font-size="6" fill="#D8DEE9">ESP-WROOM-32</text>')
-    # 左右引脚（各15）
-    left_pins  = ['EN','VP36','VN39','D34','D35','D32','D33','D25','D26','D27','D14','D12','D13','GND','VIN']
-    right_pins = ['3V3','GND','D15','D2','D4','RX2','TX2','D5','D18','D19','D21','RX0','TX0','D22','D23']
-    pin_r = 2.6
-    pin_gap = (eh - 80) / 14
-    pin_y0 = et + 56
+    # 中沟
+    gut_y0 = ROW_A + 5 * LETTER_PITCH + 2
+    P.append(f'<rect x="{BOARD_X0+8}" y="{gut_y0}" width="{BOARD_X1-BOARD_X0-16}" height="{GUTTER_H-4}" fill="#E4E1D6"/>')
+    P.append(f'<text x="{BOARD_X0+22}" y="{gut_y0+16}" font-size="7.5" fill="#A5A296">中沟（DIP）</text>')
+
+    # 孔阵：每位号两条竖条（a–e / f–j），条底淡色区分连通
+    for n in range(1, 31):
+        x = pos_x(n)
+        for (y0, y1, fill) in [(ROW_A-6, ROW_A+4*LETTER_PITCH+6, '#EDEAE0'),
+                               (ROW_A+5*LETTER_PITCH+GUTTER_H-6, ROW_A+9*LETTER_PITCH+GUTTER_H+6, '#E6E3D8')]:
+            P.append(f'<rect x="{x-5:.1f}" y="{y0}" width="10" height="{y1-y0}" rx="4" fill="{fill}" stroke="none"/>')
+        for L in 'abcdefghij':
+            P.append(f'<circle cx="{x:.1f}" cy="{letter_y(L):.1f}" r="2.2" fill="#C9C6BB"/>')
+        if n == 1 or n % 5 == 0 or n == 30:
+            P.append(f'<text x="{x:.1f}" y="{BOARD_Y1+14}" text-anchor="middle" font-size="7.5" fill="#A5A296">{n}</text>')
+    for L in 'abcde':
+        P.append(f'<text x="{BOARD_X0-8}" y="{letter_y(L)+3:.1f}" text-anchor="end" font-size="7.5" fill="#A5A296">{L}</text>')
+    for L in 'fghij':
+        P.append(f'<text x="{BOARD_X1+8}" y="{letter_y(L)+3:.1f}" text-anchor="start" font-size="7.5" fill="#A5A296">{L}</text>')
+    P.append(f'<text x="{BOARD_X0-8}" y="{BOARD_Y0-4}" text-anchor="end" font-size="7" fill="#888780">1位端</text>')
+
+    # ---------- 2) ESP32 直插拟物（占位 1–15，跨 a↔i） ----------
+    ex0, ex1 = pos_x(ESP_POS0) - 8, pos_x(ESP_POS1) + 8
+    P.append(f'<rect x="{ex0}" y="{ESP_PCB_TOP}" width="{ex1-ex0}" height="{ESP_PCB_BOT-ESP_PCB_TOP}" rx="6" fill="#3B4252" stroke="#2E3440" stroke-width="1.5" fill-opacity="0.96"/>')
+    P.append(f'<text x="{(ex0+ex1)/2}" y="{ESP_PCB_TOP+58}" text-anchor="middle" font-size="11" font-weight="600" fill="#ECEFF4">ESP32 30P DevKitC</text>')
+    P.append(f'<text x="{(ex0+ex1)/2}" y="{ESP_PCB_TOP+70}" text-anchor="middle" font-size="7.5" fill="#B8C0D0">直插：左排→a1–a15 · 右排→i1–i15（11/12 实测 ✓）</text>')
+    P.append(f'<rect x="{ex0-26}" y="{(ESP_PCB_TOP+ESP_PCB_BOT)/2-13}" width="26" height="26" rx="2" fill="#98A2B3" stroke="#6B7280"/>')
+    P.append(f'<text x="{ex0-13}" y="{(ESP_PCB_TOP+ESP_PCB_BOT)/2+40}" text-anchor="middle" font-size="7.5" fill="#5F5E5A">USB 朝 1 位端</text>')
     pinpos = {}
-    for i, name in enumerate(left_pins):
-        py = pin_y0 + i * pin_gap
-        P.append(f'<circle cx="{ex+5}" cy="{py:.1f}" r="{pin_r}" fill="#E7D06B" stroke="#8A7A2E" stroke-width="0.8"/>')
-        used = {'D34': '#A32D2D', 'D35': '#A32D2D', 'D32': '#27500A', 'D33': '#72243E',
-                'D25': '#2C2C2A', 'D26': '#EF6C00', 'D27': '#2C2C2A', 'VIN': '#791F1F'}
-        col = used.get(name, '#D8DEE9')
-        w = '600' if name in used else '400'
-        P.append(f'<text x="{ex+11}" y="{py+3:.1f}" font-size="8" font-weight="{w}" fill="{col}">{name}</text>')
-        pinpos[('L', name)] = (ex+5, py)
-    for i, name in enumerate(right_pins):
-        py = pin_y0 + i * pin_gap
-        P.append(f'<circle cx="{ex+ew-5}" cy="{py:.1f}" r="{pin_r}" fill="#E7D06B" stroke="#8A7A2E" stroke-width="0.8"/>')
-        used = {'3V3': '#791F1F', 'GND': '#0C447C', 'D21': '#A32D2D', 'D22': '#A32D2D'}
-        col = used.get(name, '#D8DEE9')
-        w = '600' if name in used else '400'
-        P.append(f'<text x="{ex+ew-11}" y="{py+3:.1f}" font-size="8" font-weight="{w}" fill="{col}" text-anchor="end">{name}</text>')
-        pinpos[('R', name)] = (ex+ew-5, py)
+    for i, name in enumerate(LEFT_PINS):
+        x, y = pos_x(i + 1), letter_y('a')
+        P.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="3.0" fill="#E7D06B" stroke="#8A7A2E" stroke-width="0.9"/>')
+        used = {'D34':'#E8B54A','D35':'#B98EE8','D32':'#7CBF5E','D33':'#C9C6BB','D25':'#F0766B','D26':'#F5A54B','D27':'#6FCF7C','VIN':'#F0766B'}
+        col, w = used.get(name, '#D8DEE9'), ('600' if name in used else '400')
+        P.append(f'<text x="{x:.1f}" y="{ESP_PCB_TOP+14}" text-anchor="middle" font-size="6.3" font-weight="{w}" fill="{col}">{name}</text>')
+        pinpos[('a', name)] = (x, y)
+    for i, name in enumerate(RIGHT_PINS):
+        x, y = pos_x(i + 1), letter_y('i')
+        P.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="3.0" fill="#E7D06B" stroke="#8A7A2E" stroke-width="0.9"/>')
+        used = {'3V3':'#F0766B','GND':'#6FA8DC','D21':'#6FCF7C','D22':'#E8E6E0'}
+        col, w = used.get(name, '#D8DEE9'), ('600' if name in used else '400')
+        P.append(f'<text x="{x:.1f}" y="{ESP_PCB_BOT-8}" text-anchor="middle" font-size="6.3" font-weight="{w}" fill="{col}">{name}</text>')
+        pinpos[('i', name)] = (x, y)
+    P.append(f'<text x="{(ex0+ex1)/2}" y="{ESP_PCB_BOT+16}" text-anchor="middle" font-size="7.5" font-weight="600" fill="#A32D2D">信号/供电一律针顶夹持（母头套 PCB 上方露头 ~5mm）· 若板宽≤25.4 旁孔外露可改旁孔取线</text>')
 
-    # ---------- 模块拟物（PCB + 引脚 + 丝印）----------
-    def module(x, y, w, h, color, title, pins, title_dy=15, pin_side='bottom'):
-        """pins: [(丝印, 相对x)]，pin_side bottom→PCB下缘引脚朝下"""
-        parts = []
-        parts.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="4" fill="{color}" stroke="#3B6D11" stroke-width="1.2"/>')
-        parts.append(f'<text x="{x+w/2}" y="{y+title_dy}" text-anchor="middle" font-size="10.5" font-weight="600" fill="#27500A">{title[0]}</text>')
-        parts.append(f'<text x="{x+w/2}" y="{y+title_dy+13}" text-anchor="middle" font-size="8.5" fill="#4B6B2A">{title[1]}</text>')
-        px = x + w/2 - (len(pins)-1) * 8
-        pinpos_m = {}
-        for label, _ in pins:
-            parts.append(f'<rect x="{px-2.6:.1f}" y="{y+h-3}" width="5.2" height="9" rx="1" fill="#E7D06B" stroke="#8A7A2E" stroke-width="0.7"/>')
-            parts.append(f'<text x="{px:.1f}" y="{y+h+17}" text-anchor="middle" font-size="7.5" fill="#444441">{label}</text>')
-            pinpos_m[label] = (px, y+h+6)
-            px += 16
-        return parts, pinpos_m
+    # 针顶出线点（画在 PCB 上缘；GND 有左右两颗——v5.4 口径取右列 i2，与清单 #2 一致）
+    def stub(name):
+        if name != 'GND' and ('a', name) in pinpos:
+            return (pinpos[('a', name)][0], ESP_PCB_TOP)
+        return (pinpos[('i', name)][0], ESP_PCB_TOP)
 
-    # 模块放板外左侧（x=板左缘-160），引脚标签朝下，避免压孔阵
-    # 土壤（3针）→ 指向 a4–a6
-    soil_x = BB['x'] - 218; soil_y = 170
-    m, soil_pins = module(soil_x, soil_y, 118, 40, '#DDEBD0', ('土壤传感器', '3针直插 a4–a6'),
-                          [('GND',0),('5V',0),('OUT',0)], title_dy=13)
-    P += m
-    P.append(f'<text x="{soil_x+118+6}" y="{soil_y+18}" font-size="8" fill="#5F5E5A">↔ a4–a6</text>')
-    # 光敏（4针）→ a10–a13
-    lux_x = BB['x'] - 218; lux_y = 286
-    m, lux_pins = module(lux_x, lux_y, 118, 40, '#DDEBD0', ('光敏模块', '4针直插 a10–a13'),
-                         [('DO',0),('GND',0),('VCC',0),('AO',0)], title_dy=13)
-    P += m
-    P.append(f'<text x="{lux_x+118+6}" y="{lux_y+18}" font-size="8" fill="#5F5E5A">↔ a10–a13</text>')
-    # DHT（4针）→ a15–a18
-    dht_x = BB['x'] - 218; dht_y = 402
-    m, dht_pins = module(dht_x, dht_y, 118, 40, '#DDEBD0', ('DHT11', '4针直插 a15–a18'),
-                         [('VCC',0),('DATA',0),('NC',0),('GND',0)], title_dy=13)
-    P += m
-    P.append(f'<text x="{dht_x+118+6}" y="{dht_y+18}" font-size="8" fill="#5F5E5A">↔ a15–a18</text>')
-    # OLED（4针）→ 右板外右侧
-    oled_x = bx2 + BB['w'] + 30; oled_y = 170
-    m, oled_pins = module(oled_x, oled_y, 150, 46, '#DDEBD0', ('OLED 0.96 I2C', '4针直插 g2–g5 · 0x3C'),
-                          [('GND',0),('VCC',0),('SCL',0),('SDA',0)], title_dy=14)
-    P += m
-    # LED 模块（3针）→ 右板外右侧
-    led_x = bx2 + BB['w'] + 30; led_y = 300
-    m, led_pins = module(led_x, led_y, 150, 42, '#DDEBD0', ('双色 LED 模块', '3针直插 g7–g9 · 限流板载'),
-                         [('−',0),('R',0),('G',0)], title_dy=14)
-    P += m
-    # 浮球 RC 区（左板内行19-21 a-e 附近但避开孔阵→放行23-27 区域叠加半透明底）
-    fx = Lc['a'] - 4; fy = rows_y[31] if False else (by + BB['h'] - 21 - 96)
-    P.append(f'<rect x="{fx}" y="{fy}" width="170" height="84" rx="5" fill="#FAEEDA" fill-opacity="0.93" stroke="#854F0B" stroke-width="1"/>')
-    P.append(f'<text x="{fx+6}" y="{fy+14}" font-size="9.5" font-weight="600" fill="#633806">浮球 RC 区（节点=行21）</text>')
-    P.append(f'<text x="{fx+6}" y="{fy+27}" font-size="8.5" fill="#444441">R1 1kΩ：a19↔a21 · 取电红轨→a19</text>')
-    P.append(f'<text x="{fx+6}" y="{fy+40}" font-size="8.5" fill="#444441">C1 100nF：c21↔蓝轨 · 浮球1：b21</text>')
-    P.append(f'<text x="{fx+6}" y="{fy+53}" font-size="8.5" fill="#444441">浮球2：蓝轨任意 · D32跳线：e21</text>')
-    P.append(f'<text x="{fx+6}" y="{fy+68}" font-size="8" font-weight="600" fill="#A32D2D">⚠ 全在 a–e 列 · 不跨中沟</text>')
-    # R1/C1 拟物小图
-    P.append(f'<rect x="{fx+112}" y="{fy+56}" width="30" height="9" rx="4" fill="#D8CBA8" stroke="#854F0B" stroke-width="0.8"/>')
-    P.append(f'<circle cx="{fx+117}" cy="{fy+60.5}" r="2.2" fill="#8A4B2A"/><circle cx="{fx+124}" cy="{fy+60.5}" r="2.2" fill="#C9A227"/><circle cx="{fx+131}" cy="{fy+60.5}" r="2.2" fill="#B33A2B"/><circle cx="{fx+138}" cy="{fy+60.5}" r="2.2" fill="#C9A227"/>')
-    P.append(f'<circle cx="{fx+118}" cy="{fy+73}" r="6.5" fill="#8C6239" stroke="#5F4324" stroke-width="0.8"/>')
-    P.append(f'<text x="{fx+118}" y="{fy+75.5}" text-anchor="middle" font-size="6" fill="#F5EDE0">104</text>')
+    # ---------- 3) 直插模块拟物（悬跨在真实位号上方：针脚对齐 a 列孔位 x） ----------
+    # 三行式盒：题 / 直插位号 / 针名（针名进盒内防与相邻盒/线相撞）
+    # 台阶错开：土壤 y=40 / 光敏 y=84 / DHT y=132
+    def module_at(pos_list, y, title, sub):
+        xs = [pos_x(n) for (n, _) in pos_list]
+        bx0 = min(xs) - 16
+        w = (max(xs) - min(xs)) + 32
+        h = 34
+        P.append(f'<rect x="{bx0:.1f}" y="{y}" width="{w:.1f}" height="{h}" rx="4" fill="#DDEBD0" fill-opacity="0.97" stroke="#3B6D11" stroke-width="1.2"/>')
+        cx = sum(xs) / len(xs)
+        P.append(f'<text x="{cx:.1f}" y="{y+13}" text-anchor="middle" font-size="10" font-weight="600" fill="#27500A">{title}</text>')
+        P.append(f'<text x="{cx:.1f}" y="{y+23}" text-anchor="middle" font-size="7.5" fill="#4B6B2A">{sub}</text>')
+        pins_out = {}
+        for (n, lab) in pos_list:
+            px = pos_x(n)
+            P.append(f'<text x="{px:.1f}" y="{y+31}" text-anchor="middle" font-size="6.5" font-weight="600" fill="#27500A">{lab}</text>')
+            # 短针 + 淡虚引导线 + a 孔插入环
+            P.append(f'<rect x="{px-2.6:.1f}" y="{y+h+2}" width="5.2" height="11" rx="1" fill="#E7D06B" stroke="#8A7A2E" stroke-width="0.7"/>')
+            P.append(f'<path d="M{px:.1f} {y+h+15} L{px:.1f} {ROW_A-10}" stroke="#B9B5A5" stroke-width="1" stroke-dasharray="2 4" fill="none" opacity="0.55"/>')
+            P.append(f'<circle cx="{px:.1f}" cy="{ROW_A:.1f}" r="3" fill="#E7D06B" fill-opacity="0.85" stroke="#8A7A2E" stroke-width="0.9"/>')
+            pins_out[lab] = (px, ROW_A)
+        return pins_out
 
-    # ---------- 继电器拟物（右板右缘外侧，与 OLED/LED 同列下方）----------
-    rx = bx2 + BB['w'] + 8; ry = 430
-    P.append(f'<rect x="{rx}" y="{ry}" width="188" height="148" rx="8" fill="#2D6CB5" stroke="#1B4E8A" stroke-width="1.5"/>')
-    P.append(f'<text x="{rx+94}" y="{ry+18}" text-anchor="middle" font-size="10.5" font-weight="600" fill="#EAF2FB">继电器 JQC-3FF/5VDC</text>')
-    P.append(f'<text x="{rx+94}" y="{ry+31}" text-anchor="middle" font-size="8" fill="#C8DCF2">悬放不插板 · 跳帽→H档</text>')
-    # 输入侧端子（3螺丝）
+    soil_pins = module_at([(SOIL_POS['GND'], 'GND'), (SOIL_POS['V5'], '5V'), (SOIL_POS['OUT'], 'OUT')],
+                          40, '土壤传感器', '直插 a19–a21')
+    lux_pins = module_at([(LUX_POS['DO'], 'DO'), (LUX_POS['GND'], 'GND'), (LUX_POS['VCC'], 'VCC'), (LUX_POS['AO'], 'AO')],
+                         84, '光敏模块', '直插 a22–a25')
+    dht_pins = module_at([(DHT_POS['VCC'], 'VCC'), (DHT_POS['DATA'], 'DATA'), (DHT_POS['NC'], 'NC'), (DHT_POS['GND'], 'GND')],
+                         132, 'DHT11', '直插 a26–a29')
+    P.append(f'<text x="430" y="42" text-anchor="middle" font-size="7.5" fill="#888780">信号侧另一头插同位号 b 列空孔（D34→b21 · D35→b25 · D33→b27）</text>')
+
+    # ---------- 3b) 板外模块拟物（不插板，放左上空域；三行式：题/sub/接线小注，针名盒内） ----------
+    def module(x, y, w, h, title, sub, note, pins):
+        P.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="4" fill="#DDEBD0" stroke="#3B6D11" stroke-width="1.2"/>')
+        P.append(f'<text x="{x+w/2}" y="{y+13}" text-anchor="middle" font-size="10" font-weight="600" fill="#27500A">{title}</text>')
+        P.append(f'<text x="{x+w/2}" y="{y+23}" text-anchor="middle" font-size="7.5" fill="#4B6B2A">{sub}</text>')
+        P.append(f'<text x="{x+w/2}" y="{y+31}" text-anchor="middle" font-size="6.8" fill="#888780">{note}</text>')
+        px = x + w/2 - (len(pins)-1) * 9
+        pins_out = {}
+        for lab in pins:
+            P.append(f'<rect x="{px-2.6:.1f}" y="{y+h-3}" width="5.2" height="9" rx="1" fill="#E7D06B" stroke="#8A7A2E" stroke-width="0.7"/>')
+            P.append(f'<text x="{px:.1f}" y="{y+h-6}" text-anchor="middle" font-size="7" font-weight="600" fill="#27500A">{lab}</text>')
+            pins_out[lab] = (px, y + h + 6)
+            px += 18
+        return pins_out
+
+    oled_pins = module(60, 60, 150, 44, 'OLED 0.96 I2C', '板外 · 04 屏架', 'SDA/SCL←D21/D22针顶 · VCC/GND←轨', ['GND','VCC','SCL','SDA'])
+    led_pins = module(260, 60, 150, 44, '双色 LED 模块', '板外 · 底盘嵌槽', 'R/G←D25/D27针顶 · −←蓝轨', ['−','R','G'])
+
+    # ---------- 4) 继电器拟物（右侧，板外悬放；输入侧端子台凸出盒顶，线从凸台上方进） ----------
+    rx, ry = 940, 84
+    P.append(f'<rect x="{rx}" y="{ry}" width="200" height="176" rx="8" fill="#2D6CB5" stroke="#1B4E8A" stroke-width="1.5"/>')
+    P.append(f'<text x="{rx+100}" y="{ry+26}" text-anchor="middle" font-size="10.5" font-weight="600" fill="#EAF2FB">继电器 JQC-3FF/5VDC</text>')
+    P.append(f'<text x="{rx+100}" y="{ry+38}" text-anchor="middle" font-size="8" fill="#C8DCF2">悬放不插板 · 跳帽→H档</text>')
     def screw_row(x0, y0, n, pitch, labels, lab_color='#EAF2FB'):
         out = []
         px = x0
@@ -208,53 +195,142 @@ def build():
             out.append(f'<rect x="{px-9:.1f}" y="{y0}" width="18" height="14" rx="2" fill="#3A7BC8" stroke="#1B4E8A"/>')
             out.append(f'<circle cx="{px:.1f}" cy="{y0+7:.1f}" r="4.5" fill="#C9D6E8" stroke="#5B7EA6" stroke-width="1"/>')
             out.append(f'<path d="M{px-3:.1f} {y0+7:.1f} L{px+3:.1f} {y0+7:.1f}" stroke="#5B7EA6" stroke-width="1.4"/>')
-            out.append(f'<text x="{px:.1f}" y="{y0+24:.1f}" text-anchor="middle" font-size="8" font-weight="600" fill="{lab_color}">{labels[i]}</text>')
             px += pitch
         return out
-    P += screw_row(rx+22, ry+40, 3, 34, ['DC+', 'DC−', 'IN'])
-    P.append(f'<text x="{rx+8}" y="{ry+38}" font-size="7.5" fill="#BBD4EE">输入侧(5V线圈)</text>')
-    # 强电侧端子
-    P += screw_row(rx+22, ry+88, 3, 34, ['NC', 'COM', 'NO'], lab_color='#FFD9D9')
-    P.append(f'<text x="{rx+8}" y="{ry+86}" font-size="7.5" fill="#BBD4EE">强电侧(触点)</text>')
-    P.append(f'<text x="{rx+94}" y="{ry+72}" text-anchor="middle" font-size="7.5" fill="#9FBEDD">───── 隔离沿 ─────</text>')
-    P.append(f'<text x="{rx+170}" y="{ry+120}" text-anchor="middle" font-size="7.5" fill="#CFE2F5">跳帽→H档</text>')
-    P.append(f'<circle cx="{rx+158}" cy="{ry+116}" r="5" fill="#F5C542" stroke="#B08A1E" stroke-width="1"/>')
+    # 输入侧凸台（盒顶上方 14px，与盒顶贴合），线从凸台顶入
+    P += screw_row(rx+30, ry-14, 3, 36, ['DC+', 'DC−', 'IN'])
+    for i, lab in enumerate(['DC+', 'DC−', 'IN']):
+        P.append(f'<text x="{rx+30+i*36}" y="{ry+10}" text-anchor="middle" font-size="8" font-weight="600" fill="#EAF2FB">{lab}</text>')
+    P.append(f'<text x="{rx-8}" y="{ry-8}" text-anchor="end" font-size="7.5" fill="#BBD4EE">输入侧(5V线圈)</text>')
+    # 强电侧触点排（盒内下方）
+    P += screw_row(rx+30, ry+96, 3, 36, ['NC', 'COM', 'NO'])
+    for i, lab in enumerate(['NC', 'COM', 'NO']):
+        P.append(f'<text x="{rx+30+i*36}" y="{ry+120}" text-anchor="middle" font-size="8" font-weight="600" fill="#FFD9D9">{lab}</text>')
+    P.append(f'<text x="{rx+16}" y="{ry+94}" font-size="7.5" fill="#BBD4EE">强电侧(触点)</text>')
+    P.append(f'<text x="{rx+104}" y="{ry+82}" text-anchor="middle" font-size="7.5" fill="#9FBEDD">─── 隔离沿 ───</text>')
+    P.append(f'<circle cx="{rx+180}" cy="{ry+150}" r="5" fill="#F5C542" stroke="#B08A1E" stroke-width="1"/>')
+    P.append(f'<text x="{rx+168}" y="{ry+154}" text-anchor="end" font-size="7.5" fill="#CFE2F5">跳帽→H档</text>')
 
-    # ---------- 4 条信号线（左板→ESP32 左列）----------
-    def sig(p1, p2, color, label, lx, ly):
-        P.append(f'<path d="M{p1[0]:.1f} {p1[1]:.1f} L{(p1[0]+p2[0])/2-40:.1f} {p1[1]:.1f} L{(p1[0]+p2[0])/2-40:.1f} {p2[1]:.1f} L{p2[0]:.1f} {p2[1]:.1f}" stroke="{color}" stroke-width="1.8" fill="none" stroke-dasharray="5 3" stroke-linejoin="round" marker-end="url(#arr)"/>')
-        P.append(f'<text x="{lx}" y="{ly}" font-size="8.5" font-weight="600" fill="{color}" stroke="#F4F1E8" stroke-width="3" paint-order="stroke">{label}</text>')
-    # 信号线：从模块右缘中点水平走到 ESP32 左列针（路径全在板外空域 y 走廊）
-    def sig2(p1, p2, color, label):
-        mx = (p1[0]+p2[0])/2
-        P.append(f'<path d="M{p1[0]:.1f} {p1[1]:.1f} L{mx:.1f} {p1[1]:.1f} L{mx:.1f} {p2[1]:.1f} L{p2[0]:.1f} {p2[1]:.1f}" stroke="{color}" stroke-width="1.8" fill="none" stroke-dasharray="5 3" stroke-linejoin="round" marker-end="url(#arr)"/>')
-        P.append(f'<text x="{mx-6:.1f}" y="{(p1[1]+p2[1])/2+3:.1f}" font-size="8.5" font-weight="600" fill="{color}" text-anchor="end" stroke="#FBFAF5" stroke-width="3" paint-order="stroke">{label}</text>')
-    sig2(soil_pins['OUT'], pinpos[('L','D34')], '#A32D2D', 'OUT→D34')
-    sig2(lux_pins['AO'],  pinpos[('L','D35')], '#A32D2D', 'AO→D35')
-    sig2(dht_pins['DATA'],pinpos[('L','D33')], '#72243E', 'DATA→D33')
-    # 浮球节点（a21）→ D32
-    node = (Lc['a']-6, Lry[21])
-    P.append(f'<path d="M{node[0]:.1f} {node[1]:.1f} L{node[0]-16:.1f} {node[1]:.1f} L{node[0]-16:.1f} {pinpos[("L","D32")][1]:.1f} L{pinpos[("L","D32")][0]:.1f} {pinpos[("L","D32")][1]:.1f}" stroke="#27500A" stroke-width="1.8" fill="none" stroke-dasharray="5 3" stroke-linejoin="round" marker-end="url(#arr)"/>')
-    P.append(f'<text x="{node[0]-20:.1f}" y="{(node[1]+pinpos[("L","D32")][1])/2:.1f}" font-size="8.5" font-weight="600" fill="#27500A" text-anchor="end" stroke="#FBFAF5" stroke-width="3" paint-order="stroke">行21→D32</text>')
+    # ---------- 5) 浮球 RC 区标注（位 16–18，直接画在孔阵上） ----------
+    fx, fy = pos_x(16) - 8, BOARD_Y1 + 24
+    P.append(f'<rect x="{fx}" y="{fy}" width="252" height="74" rx="5" fill="#FAEEDA" fill-opacity="0.95" stroke="#854F0B" stroke-width="1"/>')
+    P.append(f'<text x="{fx+6}" y="{fy+14}" font-size="9.5" font-weight="600" fill="#633806">浮球 RC 区（位 16–18 · 节点=位 18）</text>')
+    P.append(f'<text x="{fx+6}" y="{fy+27}" font-size="8.5" fill="#444441">R1 1kΩ：a16↔a18 · 供电 红轨→b16（清单#14）</text>')
+    P.append(f'<text x="{fx+6}" y="{fy+40}" font-size="8.5" fill="#444441">C1 100nF：c18↔蓝轨（腿直插）· 浮球1：b18</text>')
+    P.append(f'<text x="{fx+6}" y="{fy+53}" font-size="8.5" fill="#444441">浮球2：蓝轨任意 · D32针顶→e18（绿）</text>')
+    P.append(f'<text x="{fx+6}" y="{fy+66}" font-size="8" font-weight="600" fill="#A32D2D">⚠ 全在同位号竖条内取孔 · 不跨位号</text>')
 
-    # ---------- 右列两根电源短线 ----------
-    for (pn, rail, color) in [('3V3', Rr['red_top']+6, '#D0342C'), ('GND', Rr['blue_top']+6, '#185FA5')]:
-        p2 = pinpos[('R', pn)]
-        gx = bx2 + 2 if pn == '3V3' else bx2 + 6
-        ext = 12 if pn == '3V3' else 5   # GND 短伸入，避开右板蓝轨文字
-    P.append(f'<path d="M{p2[0]:.1f} {p2[1]:.1f} L{gx:.1f} {p2[1]:.1f} L{gx:.1f} {rail} L{gx+ext:.1f} {rail}" stroke="{color}" stroke-width="1.8" fill="none" stroke-dasharray="5 3" stroke-linejoin="round"/>')
+    # ---------- 6) 信号线（虚线=信号；竖直段跨红/蓝轨处垫板色 halo=跨越不搭接） ----------
+    # 直插模块信号：ESP32 针顶 → 同位号 b 列孔（D34→b21 / D35→b25 / D33→b27），从孔右侧 8px 下落
+    # 板外件信号：针顶 → 左上 OLED/LED 盒；继电器：针顶 → 右侧绕行 → 凸台顶入
+    SIG_LANES = dict(soil=170, lux=196, dht=222, oled_sda=248, oled_scl=272,
+                     led_r=296, led_g=320, rel_in=344, rel_vin=352)
+    def sig_path(pts, color, halo=False):
+        d = 'M' + ' L'.join(f'{x:.1f} {y:.1f}' for (x, y) in pts)
+        if halo:
+            P.append(f'<path d="{d}" stroke="#F4F1E8" stroke-width="4.6" fill="none" stroke-linejoin="round" stroke-linecap="round"/>')
+        P.append(f'<path d="{d}" stroke="{color}" stroke-width="1.8" fill="none" stroke-dasharray="5 3" stroke-linejoin="round" marker-end="url(#arr)"/>')
+    def sig_label(x, y, text, color, anchor='middle'):
+        P.append(f'<text x="{x:.1f}" y="{y:.1f}" text-anchor="{anchor}" font-size="8.5" font-weight="600" fill="{color}" stroke="#FBFAF5" stroke-width="3" paint-order="stroke">{text}</text>')
 
-    # ---------- 板外强电区（拟物，v5.2 pigtail 免剪方案）----------
-    px0, py0 = 40, by + BB['h'] + 30
+    # 直插模块 3 根（针顶→走廊→目标 b 孔右 8px 下落→横进孔）
+    for (pname, n, lane, color, lab) in [
+        ('D34', SOIL_POS['OUT'], SIG_LANES['soil'], '#B8860B', '针顶D34→b21'),
+        ('D35', LUX_POS['AO'],   SIG_LANES['lux'],  '#6A3D9A', '针顶D35→b25'),
+        ('D33', DHT_POS['DATA'], SIG_LANES['dht'],  '#888780', '针顶D33→b27'),
+    ]:
+        sx, sy = stub(pname)
+        tx = pos_x(n)
+        ty = letter_y('b')
+        sig_path([(sx, sy), (sx, lane), (tx+8, lane), (tx+8, ty), (tx, ty)], color, halo=True)
+        sig_label((sx + tx + 8) / 2, lane - 4, lab, color)
+
+    # 板外件 4 根（针顶→走廊→盒针正下方竖入）
+    for (pname, pin, lane, color, lab) in [
+        ('D21', oled_pins['SDA'], SIG_LANES['oled_sda'], '#27500A', '针顶D21→SDA'),
+        ('D22', oled_pins['SCL'], SIG_LANES['oled_scl'], '#888780', '针顶D22→SCL'),
+        ('D25', led_pins['R'],    SIG_LANES['led_r'],    '#D0342C', '针顶D25→R'),
+        ('D27', led_pins['G'],    SIG_LANES['led_g'],    '#27500A', '针顶D27→G'),
+    ]:
+        sx, sy = stub(pname)
+        tx, ty = pin
+        sig_path([(sx, sy), (sx, lane), (tx, lane), (tx, ty)], color, halo=True)
+        sig_label((sx + tx) / 2, lane - 4, lab, color)
+
+    # 继电器 2 根（针顶→走廊→盒右侧绕行→凸台上方→竖入端子）
+    for (pname, k, lane, side_x, top_y, color, lab, lab_xy) in [
+        ('D26', 2, SIG_LANES['rel_in'],  1150, 58, '#EF6C00', '针顶D26→IN',  (1096, 54)),
+        ('VIN', 0, SIG_LANES['rel_vin'], 1170, 46, '#F0766B', '针顶VIN→DC+', (1070, 42)),
+    ]:
+        sx, sy = stub(pname)
+        tx = rx + 30 + k * 36
+        ty = ry - 14 + 7
+        sig_path([(sx, sy), (sx, lane), (side_x, lane), (side_x, top_y), (tx, top_y), (tx, ty)], color, halo=True)
+        sig_label(lab_xy[0], lab_xy[1], lab, color)
+
+    # ---------- 7) 供电短线（实线=飞线；b 孔出发右偏 10px 肘形上轨，避开 a 孔插入环） ----------
+    def rail_x_near(n):
+        return rail_x0 + round((pos_x(n) - rail_x0) / rsp) * rsp
+    def wire(p1, p2, color, w=2.0, halo=False):
+        if halo:
+            P.append(f'<path d="M{p1[0]:.1f} {p1[1]:.1f} L{p2[0]:.1f} {p2[1]:.1f}" stroke="#F4F1E8" stroke-width="4.6" fill="none" stroke-linecap="round"/>')
+        P.append(f'<path d="M{p1[0]:.1f} {p1[1]:.1f} L{p2[0]:.1f} {p2[1]:.1f}" stroke="{color}" stroke-width="{w}" fill="none" stroke-linecap="round"/>')
+    def wire_elbow(pts, color, halo=False):
+        d = 'M' + ' L'.join(f'{x:.1f} {y:.1f}' for (x, y) in pts)
+        if halo:
+            P.append(f'<path d="{d}" stroke="#F4F1E8" stroke-width="4.6" fill="none" stroke-linejoin="round" stroke-linecap="round"/>')
+        P.append(f'<path d="{d}" stroke="{color}" stroke-width="2.0" fill="none" stroke-linejoin="round" stroke-linecap="round"/>')
+    # 模块供电：b 列孔 → 右偏 10px → 轨（红线跨蓝轨段 halo=跨越不搭接）
+    for (n, color, rail_y, halo) in [
+        (SOIL_POS['GND'], '#185FA5', RAIL_BLUE_Y, False),
+        (SOIL_POS['V5'],  '#D0342C', RAIL_RED_Y,  True),
+        (LUX_POS['GND'],  '#185FA5', RAIL_BLUE_Y, False),
+        (LUX_POS['VCC'],  '#D0342C', RAIL_RED_Y,  True),
+        (DHT_POS['VCC'],  '#D0342C', RAIL_RED_Y,  True),
+        (DHT_POS['GND'],  '#185FA5', RAIL_BLUE_Y, False),
+    ]:
+        px = pos_x(n)
+        wire_elbow([(px, letter_y('b')), (px+10, letter_y('b')), (px+10, rail_y), (rail_x_near(n), rail_y)], color, halo=halo)
+    # ESP32 3V3/GND 针顶 → 轨近1端（3V3 红线跨蓝轨 → halo）
+    wire((stub('3V3')[0], ESP_PCB_TOP), (rail_x0+10, RAIL_RED_Y), '#D0342C', halo=True)
+    P.append(f'<text x="136" y="392" text-anchor="end" font-size="7.5" font-weight="600" fill="#D0342C">3V3→红轨</text>')
+    wire((stub('GND')[0], ESP_PCB_TOP), (rail_x0+28, RAIL_BLUE_Y), '#185FA5')
+    P.append(f'<text x="136" y="406" text-anchor="end" font-size="7.5" font-weight="600" fill="#185FA5">GND→蓝轨</text>')
+    # 轨桥 ×2（跨断口 25↔26，公对公）
+    bx_a = rail_x0 + (RAIL_BREAK_HOLE - 1) * rsp
+    bx_b = rail_x0 + RAIL_BREAK_HOLE * rsp
+    P.append(f'<path d="M{bx_a:.1f} {RAIL_RED_Y-10} L{bx_a:.1f} {RAIL_RED_Y-20} L{bx_b:.1f} {RAIL_RED_Y-20} L{bx_b:.1f} {RAIL_RED_Y-10}" stroke="#D0342C" stroke-width="2.2" fill="none"/>')
+    P.append(f'<path d="M{bx_a:.1f} {RAIL_BLUE_Y+10} L{bx_a:.1f} {RAIL_BLUE_Y+20} L{bx_b:.1f} {RAIL_BLUE_Y+20} L{bx_b:.1f} {RAIL_BLUE_Y+10}" stroke="#185FA5" stroke-width="2.2" fill="none"/>')
+    P.append(f'<text x="{(bx_a+bx_b)/2:.1f}" y="{RAIL_RED_Y-24}" text-anchor="middle" font-size="8" font-weight="600" fill="#444441" stroke="#FBFAF5" stroke-width="3" paint-order="stroke">轨桥×2（#3红/#4蓝·公对公）</text>')
+    # R1 供电：红轨→b16（公对公；跨蓝轨 → halo；贴 R1 体左缘 3px 通过）
+    wire((rail_x_near(RC_FEED), RAIL_RED_Y), (pos_x(RC_FEED), letter_y('b')), '#D0342C', halo=True)
+    # R1 电阻拟物：a16↔a18；标号放电阻体内（避开 R1 取电竖线）
+    P.append(f'<rect x="{pos_x(16)+4:.1f}" y="{letter_y("a")-5}" width="{POS_PITCH*2-8:.1f}" height="10" rx="5" fill="#D8CBA8" stroke="#854F0B" stroke-width="0.8"/>')
+    P.append(f'<text x="{pos_x(17):.1f}" y="{letter_y("a")+3}" text-anchor="middle" font-size="6.5" font-weight="600" fill="#633806">R1 1kΩ</text>')
+    # C1 拟物：c18 → 蓝轨（腿直插；C1 上腿与浮球1 点位 18 同条同节点，共节点不歧义）
+    c18y = letter_y('c')
+    P.append(f'<circle cx="{pos_x(RC_NODE):.1f}" cy="{(c18y+RAIL_BLUE_Y)/2:.1f}" r="7" fill="#8C6239" stroke="#5F4324" stroke-width="0.8"/>')
+    P.append(f'<text x="{pos_x(RC_NODE):.1f}" y="{(c18y+RAIL_BLUE_Y)/2+2.5:.1f}" text-anchor="middle" font-size="6" fill="#F5EDE0" stroke="#8C6239" stroke-width="2" paint-order="stroke">104</text>')
+    wire((pos_x(RC_NODE), c18y), (pos_x(RC_NODE), (c18y+RAIL_BLUE_Y)/2-7), '#5F4324', 1.4)
+    wire((pos_x(RC_NODE), (c18y+RAIL_BLUE_Y)/2+7), (rail_x_near(RC_NODE), RAIL_BLUE_Y), '#5F4324', 1.4)
+    # 浮球1 → b18（圆点+左置标注，避开 D32 竖直段 x=570）
+    P.append(f'<circle cx="{pos_x(RC_NODE):.1f}" cy="{letter_y("b"):.1f}" r="3.2" fill="#EF6C00"/>')
+    P.append(f'<text x="{pos_x(RC_NODE)-8:.1f}" y="{letter_y("b")+3:.1f}" text-anchor="end" font-size="7.5" fill="#EF6C00">浮球1</text>')
+    # D32 针顶 → e18（绿，走廊 y=368；标放右段 x=540 避左区竖线）
+    dxs, dys = stub('D32')
+    cor_y = 368
+    P.append(f'<path d="M{dxs:.1f} {dys:.1f} L{dxs:.1f} {cor_y} L{pos_x(RC_NODE)+12:.1f} {cor_y} L{pos_x(RC_NODE)+12:.1f} {letter_y("e"):.1f} L{pos_x(RC_NODE):.1f} {letter_y("e"):.1f}" stroke="#27500A" stroke-width="1.8" fill="none" stroke-dasharray="5 3" stroke-linejoin="round" marker-end="url(#arr)"/>')
+    P.append(f'<text x="540" y="{cor_y-4}" text-anchor="middle" font-size="8.5" font-weight="600" fill="#27500A" stroke="#FBFAF5" stroke-width="3" paint-order="stroke">针顶D32→e{RC_NODE}</text>')
+
+    # ---------- 8) 板外强电区（拟物，v5.2 pigtail 免剪方案 · 原样保留） ----------
+    px0, py0 = 40, 700
     P.append(f'<rect x="{px0-10}" y="{py0-6}" width="{SVG_W-px0}" height="196" rx="8" fill="#FCEBEB" stroke="#A32D2D" stroke-width="1"/>')
-    P.append(f'<text x="{px0}" y="{py0+8}" font-size="10.5" font-weight="600" fill="#791F1F">板外：水泵强电回路（不过面包板）</text>')
+    P.append(f'<text x="{px0}" y="{py0+8}" font-size="10.5" font-weight="600" fill="#791F1F" stroke="#FCEBEB" stroke-width="4" paint-order="stroke">板外：水泵强电回路（不过面包板）</text>')
     cy = py0 + 52
-    # 充电宝（开小电流模式，防轻载自动断电）
     P.append(f'<rect x="{px0}" y="{cy-24}" width="76" height="46" rx="6" fill="#DCE9F8" stroke="#185FA5" stroke-width="1.2"/>')
     P.append(f'<rect x="{px0+8}" y="{cy-16}" width="34" height="16" rx="2" fill="#8FBCE3"/>')
     P.append(f'<text x="{px0+38}" y="{cy+16}" text-anchor="middle" font-size="8" fill="#0C447C" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">充电宝 5V ≥1A</text>')
     P.append(f'<text x="{px0+38}" y="{cy+34}" text-anchor="middle" font-size="8" font-weight="600" fill="#A32D2D" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">⚠ 开小电流模式</text>')
-    # 公头线（USB-A 公头插充电宝，尾部出红黑两线）· SKU1
     plugx = px0 + 96
     P.append(f'<rect x="{plugx}" y="{cy-12}" width="34" height="24" rx="2" fill="#B8BCC4" stroke="#6B7280" stroke-width="1"/>')
     P.append(f'<rect x="{plugx+6}" y="{cy-5}" width="22" height="10" rx="1" fill="#FBFAF5" stroke="#888170" stroke-width="0.7"/>')
@@ -262,68 +338,57 @@ def build():
         P.append(f'<rect x="{plugx+8+i*4.6}" y="{cy-3}" width="2.4" height="6" fill="#C9A227"/>')
     P.append(f'<text x="{plugx+17}" y="{cy+30}" text-anchor="middle" font-size="7.5" font-weight="600" fill="#5F5E5A" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">公头线 30cm</text>')
     P.append(f'<text x="{plugx+17}" y="{cy+44}" text-anchor="middle" font-size="7" fill="#888170" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">SKU1 插充电宝</text>')
-    # 继电器强电侧端子（NC/COM/NO）
     jx = 300
-    P.append(f'<text x="{jx+60}" y="{cy+34}" text-anchor="middle" font-size="7.5" fill="#791F1F" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">COM→NO 常开 · 断电自动停泵</text>')
+    P.append(f'<text x="{jx+40}" y="{cy+34}" text-anchor="middle" font-size="7.5" fill="#791F1F" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">常开 · 断电自动停泵</text>')
     P.append(f'<rect x="{jx}" y="{cy-22}" width="120" height="44" rx="6" fill="#2D6CB5" stroke="#1B4E8A" stroke-width="1.2"/>')
     for i,(lab,c) in enumerate([('NC','#A5B8CE'),('COM','#FFB3B3'),('NO','#FFB3B3')]):
         sx = jx + 18 + i*38
         P.append(f'<rect x="{sx-9}" y="{cy-14}" width="18" height="14" rx="2" fill="#3A7BC8" stroke="#1B4E8A"/>')
         P.append(f'<circle cx="{sx}" cy="{cy-7}" r="4.5" fill="#C9D6E8" stroke="#5B7EA6"/>')
         P.append(f'<text x="{sx}" y="{cy+14}" text-anchor="middle" font-size="8.5" font-weight="600" fill="{c}">{lab}</text>')
-    # 红1：公头线红 → COM
     P.append(f'<path d="M{plugx+34} {cy-8} L{jx+48} {cy-8}" stroke="#D0342C" stroke-width="2.5"/>')
     P.append(f'<text x="{(plugx+34+jx+48)/2}" y="{cy-16}" text-anchor="middle" font-size="8" font-weight="600" fill="#A32D2D" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">公头红 → COM</text>')
-    # 红2：NO → 母头线红（1N4007 色环端同孔并进）
     P.append(f'<path d="M{jx+103} {cy-8} L500 {cy-8}" stroke="#D0342C" stroke-width="2.5"/>')
-    P.append(f'<circle cx="440" cy="{cy-8}" r="2.2" fill="#D0342C"/>')
     P.append(f'<text x="458" y="{cy-16}" text-anchor="middle" font-size="8" font-weight="600" fill="#A32D2D" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">NO → 母头红</text>')
-    # 母头线母座（USB-A 母口，泵公头插入）· SKU2
     P.append(f'<rect x="500" y="{cy-12}" width="34" height="24" rx="3" fill="#C9C6BB" stroke="#888170" stroke-width="1"/>')
     P.append(f'<rect x="504" y="{cy-7}" width="26" height="14" rx="2" fill="#FBFAF5" stroke="#888170" stroke-width="0.7"/>')
     for i in range(4):
         P.append(f'<rect x="{506+i*5.8}" y="{cy-4}" width="2.6" height="8" fill="#B5B2A6"/>')
     P.append(f'<text x="560" y="{cy+30}" text-anchor="middle" font-size="7.5" font-weight="600" fill="#5F5E5A" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">母头线 30cm</text>')
     P.append(f'<text x="560" y="{cy+44}" text-anchor="middle" font-size="7" fill="#888170" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">SKU2 泵公头插入</text>')
-    # 万可 221-413（三孔汇流：公头黑 / 二极管无环端 / 母头黑）
-    wago_x, wago_y = 240, 792
+    wago_x, wago_y = 240, 866
     P.append(f'<rect x="{wago_x}" y="{wago_y}" width="106" height="28" rx="4" fill="#F5C542" stroke="#B08A1E" stroke-width="1.2"/>')
-    for hx in (262, 293, 324):
-        P.append(f'<rect x="{hx-8}" y="{wago_y+4}" width="16" height="9" rx="2" fill="#E0A92E" stroke="#B08A1E" stroke-width="0.7"/>')
-        P.append(f'<circle cx="{hx}" cy="{wago_y+21}" r="4.2" fill="#8A6A10"/>')
-    # 母头黑：母座下缘 → 万可孔3
-    P.append(f'<path d="M508 {cy+12} L508 784 L324 784 L324 {wago_y+21}" stroke="#2C2C2A" stroke-width="2.5" fill="none" stroke-linejoin="round"/>')
-    P.append(f'<text x="470" y="780" text-anchor="middle" font-size="8" font-weight="600" fill="#444441" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">母头黑</text>')
-    # 黑线三路（互不交叉，线头落到孔位圆点）
+    for hx2 in (262, 293, 324):
+        P.append(f'<rect x="{hx2-8}" y="{wago_y+4}" width="16" height="9" rx="2" fill="#E0A92E" stroke="#B08A1E" stroke-width="0.7"/>')
+        P.append(f'<circle cx="{hx2}" cy="{wago_y+21}" r="4.2" fill="#8A6A10"/>')
+    P.append(f'<path d="M508 {cy+12} L508 {wago_y-8} L324 {wago_y-8} L324 {wago_y+21}" stroke="#2C2C2A" stroke-width="2.5" fill="none" stroke-linejoin="round"/>')
+    P.append(f'<text x="470" y="{wago_y-12}" text-anchor="middle" font-size="8" font-weight="600" fill="#444441" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">母头黑</text>')
     P.append(f'<path d="M{plugx+34} {cy+8} L262 {cy+8} L262 {wago_y+21}" stroke="#2C2C2A" stroke-width="2.5" fill="none" stroke-linejoin="round"/>')
     P.append(f'<text x="216" y="{cy+2}" text-anchor="middle" font-size="8" font-weight="600" fill="#444441" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">公头黑</text>')
     P.append(f'<text x="232" y="{wago_y+10}" text-anchor="end" font-size="7.5" font-weight="600" fill="#854F0B">万可 221-413</text>')
     P.append(f'<text x="293" y="{wago_y+40}" text-anchor="middle" font-size="7.5" fill="#854F0B">孔1 公头黑 · 孔2 二极管无环端 · 孔3 母头黑</text>')
-    # 1N4007：色环端(阴极)→并进 NO 螺丝同孔；无环端→万可孔2（跨泵续流）
-    P.append(f'<path d="M440 718 L440 720" stroke="#444441" stroke-width="1.8"/>')
-    P.append(f'<rect x="435" y="720" width="10" height="14" rx="2" fill="#2C2C2A"/>')
-    P.append(f'<rect x="435" y="720" width="10" height="4" fill="#C9C6BB"/>')
-    P.append(f'<path d="M440 734 L440 772 L293 772 L293 {wago_y+21}" stroke="#444441" stroke-width="1.8" fill="none"/>')
-    P.append(f'<text x="462" y="716" text-anchor="middle" font-size="7" font-weight="600" fill="#854F0B" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">1N4007</text>')
-    # 泵公头 → 插入母座；水泵拟物
+    _dx, _dy = jx + 79, cy + 26
+    P.append(f'<rect x="{_dx}" y="{_dy}" width="10" height="15" rx="2" fill="#2C2C2A" stroke="#111111" stroke-width="0.6"/>')
+    P.append(f'<rect x="{_dx}" y="{_dy+3.5}" width="10" height="3.5" fill="#C9C6BB"/>')
+    P.append(f'<path d="M{_dx+5} {_dy+15} L{_dx+5} {wago_y-16} L293 {wago_y-16} L293 {wago_y+21}" stroke="#444441" stroke-width="1.8" fill="none" stroke-linejoin="round"/>')
+    P.append(f'<text x="{_dx+18}" y="{_dy+8}" font-size="7" font-weight="600" fill="#854F0B" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">1N4007</text>')
+    P.append(f'<text x="{_dx+18}" y="{_dy+17}" font-size="6.5" fill="#854F0B" stroke="#FCEBEB" stroke-width="2.5" paint-order="stroke">色环端↑同孔插NO</text>')
     P.append(f'<rect x="536" y="{cy-6}" width="34" height="12" rx="2" fill="#B8BCC4" stroke="#6B7280" stroke-width="0.9"/>')
     P.append(f'<path d="M570 {cy} L600 {cy}" stroke="#6B7280" stroke-width="3"/>')
     P.append(f'<text x="553" y="{cy-12}" text-anchor="middle" font-size="6.5" fill="#5F5E5A" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">泵公头</text>')
     pump_x = 600
     P.append(f'<rect x="{pump_x}" y="{cy-30}" width="86" height="58" rx="8" fill="#DDEBD0" stroke="#3B6D11" stroke-width="1.2"/>')
     P.append(f'<circle cx="{pump_x+30}" cy="{cy}" r="17" fill="#C4D8B0" stroke="#3B6D11" stroke-width="1"/>')
-    import math
     for a in range(0, 360, 60):
         x1 = pump_x+30 + 6*math.cos(math.radians(a)); y1 = cy + 6*math.sin(math.radians(a))
         x2 = pump_x+30 + 15*math.cos(math.radians(a+30)); y2 = cy + 15*math.sin(math.radians(a+30))
         P.append(f'<path d="M{x1:.1f} {y1:.1f} L{x2:.1f} {y2:.1f}" stroke="#7FA35F" stroke-width="2"/>')
     P.append(f'<text x="{pump_x+43}" y="{cy+42}" text-anchor="middle" font-size="8" fill="#27500A" stroke="#FCEBEB" stroke-width="3" paint-order="stroke">水泵 3W 浸水</text>')
-    # 采购口径备注框
-    P.append(f'<rect x="730" y="672" width="250" height="76" rx="6" fill="#FAEEDA" stroke="#854F0B" stroke-width="1"/>')
-    P.append(f'<text x="742" y="688" font-size="9" font-weight="600" fill="#633806">采购口径（11/10 已下单）</text>')
-    P.append(f'<text x="742" y="703" font-size="8" fill="#633806">USB母转2P端子 · 0.3mm² 纯铜 · 充电款</text>')
-    P.append(f'<text x="742" y="716" font-size="8" fill="#633806">SKU1 公头线 30cm ×1 + SKU2 母头线 30cm ×1</text>')
-    P.append(f'<text x="742" y="729" font-size="8" fill="#633806">零剪线零焊接 · 万可压接 · 合计 ≤¥4</text>')
+    P.append(f'<rect x="730" y="{py0+96}" width="250" height="76" rx="6" fill="#FAEEDA" stroke="#854F0B" stroke-width="1"/>')
+    P.append(f'<text x="742" y="{py0+112}" font-size="9" font-weight="600" fill="#633806">采购口径（11/10 已下单）</text>')
+    P.append(f'<text x="742" y="{py0+127}" font-size="8" fill="#633806">USB母转2P端子 · 0.3mm² 纯铜 · 充电款</text>')
+    P.append(f'<text x="742" y="{py0+140}" font-size="8" fill="#633806">SKU1 公头线 30cm ×1 + SKU2 母头线 30cm ×1</text>')
+    P.append(f'<text x="742" y="{py0+153}" font-size="8" fill="#633806">零剪线零焊接 · 万可压接 · 合计 ≤¥4</text>')
 
     return '\n'.join(P)
 
@@ -334,7 +399,7 @@ HEAD = f'''<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>花房整机接线总图（拟物版）</title>
+<title>花房整机接线总图（单板直插版）</title>
 <style>
   body{{font-family:"Microsoft YaHei","PingFang SC",sans-serif;margin:0;background:#fff;color:#2C2C2A;}}
   .wrap{{max-width:1120px;margin:0 auto;padding:28px 20px 40px;}}
@@ -355,15 +420,15 @@ HEAD = f'''<!DOCTYPE html>
 </head>
 <body>
 <div class="wrap">
-  <h1>花房整机接线总图 · 拟物版（实物形状 + 端口标注）</h1>
-  <p class="meta">花房项目 Smart GreenHouse · 引脚与固件 <code>GreenHouse_v1.ino</code> 第 55–61 行逐一核对 · 器件丝印按 11/06–11/08 实拍 OCR · 与《docs/操作手册/花房接线规划表.md》同口径（冲突以此图 + 固件为准）· <b>模块针序一律以实物丝印对号入座</b></p>
-  <p class="warn">四条铁律：① 模拟线只在 GPIO32–39（ADC1）——土壤 34 / 光敏 35；② 全系统共地只有一处——蓝轨单点回 ESP32 GND；③ <b>红轨/蓝轨与主孔区不互通，电源线别插进 a1/b1 这类主区孔</b>；④ <b>中沟两侧不通——a–e 与 f–j 是两套独立孔</b></p>
+  <h1>花房整机接线总图 · 单板直插版（ESP32 直插 BB400 · 真实几何）</h1>
+  <p class="meta">花房项目 Smart GreenHouse · 引脚与固件 <code>GreenHouse_v1.ino</code> 第 55–61 行逐一核对 · ESP32 直插 11/12 实测（跨距正好 a↔i）· 与《docs/操作手册/花房接线规划表.md》§三同口径（冲突以此图 + 固件为准）· <b>模块针序一律以实物丝印对号入座</b></p>
+  <p class="warn">五条铁律：① 模拟线只在 GPIO32–39（ADC1）——土壤 34 / 光敏 35；② 全系统共地只有一处——蓝轨单点回 ESP32 GND；③ <b>红轨/蓝轨与主孔区不互通，电源线别插进主区孔</b>；④ <b>同位号竖条才连通——a–e 一条 / f–j 一条，跨位号不通、跨中沟不通</b>；⑤ <b>电源轨中点断成 2×25 两段——跨段必接轨桥（清单#3/#4）</b></p>
 
-  <h2>一、面包板拟物总图（孔阵 = 真实 400 孔板布局：a–j 十列 × 1–30 行）</h2>
+  <h2>一、面包板拟物总图（单板 BB400：1–30 位号 × a–j 列 · ESP32 直插占位 1–15）</h2>
   <figure>
   <svg viewBox="0 0 {SVG_W} {SVG_H}" width="100%" role="img" xmlns="http://www.w3.org/2000/svg" style="font-family:inherit">
-  <title>花房整机接线总图：拟物版</title>
-  <desc>两块400孔面包板画出真实孔阵，ESP32画板身与两排引脚并标注，五个模块画PCB与引脚丝印，继电器画蓝色本体与两排螺丝端子，板外强电区画充电宝/公头线/母头线/万可/水泵/二极管的免剪pigtail接法。</desc>
+  <title>花房整机接线总图：单板直插版</title>
+  <desc>单块BB400真实朝向：位号1-30沿板长、字母a-j沿板宽、同位号a-e/f-j各成5孔连通条；ESP32直插位1-15（左排a1-a15右排i1-i15）；土壤19-21、光敏22-25、DHT26-29直插，浮球RC区16-18；OLED/LED/继电器为板外件针顶直连；上缘红蓝电源轨中断成两段并轨桥跨接；板外强电区画充电宝/公头线/母头线/万可/水泵/二极管的免剪pigtail接法。</desc>
   <defs>
   <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
   <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -372,73 +437,136 @@ HEAD = f'''<!DOCTYPE html>
 '''
 
 FOOT = '''  </svg>
-  <figcaption>拟物图：孔阵/引脚/端子按实物布局绘制（非严格比例）。只画 4 条信号线 + 2 根轨桥；OLED/LED/继电器接线见盒内标注与第二节清单；模块针序以实物丝印为准，行号窗口（a4–a6 / a10–a13 / a15–a18 / g2–g5 / g7–g9）不变。</figcaption>
+  <figcaption>单板直插版：孔阵按真实 BB400 几何绘制（同位号 a–e / f–j 各成一条 5 孔连通，跨位号不通）。<b>直插三模块（土壤 a19–21 / 光敏 a22–25 / DHT a26–29）画在真实位号正上方</b>，短针+淡虚引导线指向所插 a 孔；信号线（虚线）从 ESP32 针顶出、另一头插同位号 b/e 列空孔（D34→b21 · D35→b25 · D33→b27 · D32→e18）；模块取电 6 根为<b>公对公跳线</b>（b 列孔 → 轨，直插后针不露、母头无处可套）。所有跨红/蓝轨的线垫板色光晕 = 飞线跨越不搭接；电源轨中断 2×25，红 25↔26 / 蓝 25↔26 两根轨桥跨接（清单#3/#4）。OLED/LED/继电器为板外件（04 屏架/底盘嵌槽/悬放），接线见盒内小注与清单；模块针序以实物丝印为准。</figcaption>
   </figure>
 
-  <h2>二、逐线清单（杜邦 21 + 跳线 6 + 元件 2，行号即孔位）</h2>
+  <h2>二、逐线清单（杜邦 16 + 跳线 9 + 元件 2，位号即孔位）</h2>
   <table>
-    <tr><th style="width:36px;">#</th><th style="width:130px;">从</th><th style="width:140px;">到</th><th style="width:64px;">线种·色</th><th>孔位 / 说明</th></tr>
-    <tr><td>1</td><td>ESP32 3V3（右列第1针）</td><td><b>右板红轨</b>第 1 孔</td><td>跳线·红</td><td>全板 3V3 母线起点。<b>红轨与主孔区不互通，别插 a1 这类主区孔</b></td></tr>
-    <tr><td>2</td><td>ESP32 GND（右列第2针）</td><td><b>右板蓝轨</b>第 1 孔</td><td>跳线·黑</td><td>全板 GND 母线，<b>单点共地</b></td></tr>
-    <tr><td>3</td><td>左板红轨</td><td>右板红轨</td><td>跳线·红</td><td>轨桥：两板红轨第 1 孔之间</td></tr>
-    <tr><td>4</td><td>左板蓝轨</td><td>右板蓝轨</td><td>跳线·黑</td><td>轨桥：两板蓝轨第 1 孔之间</td></tr>
-    <tr><td>5</td><td>土壤 5V 针</td><td>左板红轨</td><td>杜邦·红</td><td>模块 3 针直插 <b>a4–a6</b>（丝印 GND/5V/OUT 对号），引线插<b>针所在行的 b 列孔</b></td></tr>
-    <tr><td>6</td><td>土壤 GND 针</td><td>左板蓝轨</td><td>杜邦·黑</td><td>同上（丝印 5V 实接 3V3 ✓ 11/08 已验）</td></tr>
-    <tr><td>7</td><td>土壤 OUT 针</td><td>ESP32 <b>D34</b></td><td>杜邦·黄</td><td>ADC1 只读脚</td></tr>
-    <tr><td>8</td><td>光敏 VCC 针</td><td>左板红轨</td><td>杜邦·红</td><td>模块 4 针直插 <b>a10–a13</b>，引线插针同行 b 列孔</td></tr>
-    <tr><td>9</td><td>光敏 GND 针</td><td>左板蓝轨</td><td>杜邦·黑</td><td>同上</td></tr>
-    <tr><td>10</td><td>光敏 AO 针</td><td>ESP32 <b>D35</b></td><td>杜邦·紫</td><td>DO 针<b>悬空不接</b>（raw=1421 已验）</td></tr>
-    <tr><td>11</td><td>DHT11 VCC 针</td><td>左板红轨</td><td>杜邦·红</td><td>模块 4 针直插 <b>a15–a18</b>（3 针实物则 a15–a17）</td></tr>
-    <tr><td>12</td><td>DHT11 GND 针</td><td>左板蓝轨</td><td>杜邦·黑</td><td>同上</td></tr>
-    <tr><td>13</td><td>DHT11 DATA 针</td><td>ESP32 <b>D33</b></td><td>杜邦·白</td><td>单总线（29.2℃/68% 已验）</td></tr>
-    <tr><td>14</td><td>左板红轨</td><td><b>a19</b></td><td>跳线·红</td><td>浮球上拉取 3V3（不与 DHT 的 a15–a18 撞行）</td></tr>
-    <tr><td>15</td><td>R1 · 1kΩ（棕黑红）</td><td>—</td><td>元件</td><td>两脚插 <b>a19 ↔ a21</b>：a19=3V3 侧，a21=上拉节点</td></tr>
-    <tr><td>16</td><td>C1 · 100nF</td><td>—</td><td>元件</td><td><b>c21 ↔ 顶部蓝轨</b>（无极性可倒插）</td></tr>
-    <tr><td>17</td><td>浮球线 1</td><td><b>b21</b></td><td>杜邦·任意</td><td>节点行 21 的 b 孔</td></tr>
-    <tr><td>18</td><td>浮球线 2</td><td>顶部蓝轨任意孔</td><td>杜邦·任意</td><td>两线可互换</td></tr>
-    <tr><td>19</td><td>ESP32 <b>D32</b>（左列第6针）</td><td><b>e21</b></td><td>跳线·绿</td><td>短跳线：排针 → e21（与 a21 同列贯通）</td></tr>
-    <tr><td>20</td><td>ESP32 D21</td><td>OLED SDA</td><td>杜邦·绿</td><td>I2C 数据；OLED 插 <b>g2–g5</b>（常见序 GND/VCC/SCL/SDA，0x3C 已验）</td></tr>
-    <tr><td>21</td><td>ESP32 D22</td><td>OLED SCL</td><td>杜邦·白</td><td>I2C 时钟</td></tr>
-    <tr><td>22</td><td>OLED VCC</td><td>右板红轨</td><td>杜邦·红</td><td>丝印 VCC 针引出</td></tr>
-    <tr><td>23</td><td>OLED GND</td><td>右板蓝轨</td><td>杜邦·黑</td><td>丝印 GND 针引出</td></tr>
-    <tr><td>24</td><td>ESP32 D25</td><td>LED 模块 R（g8）</td><td>杜邦·红</td><td>LED 3 针插 <b>g7–g9</b>（−/R/G 序，限流板载）</td></tr>
-    <tr><td>25</td><td>ESP32 D27</td><td>LED 模块 G（g9）</td><td>杜邦·绿</td><td>D25/D27 在<b>左列</b>第 8/10 针（D26 居中=第 9 针，别插错行）</td></tr>
-    <tr><td>26</td><td>LED 模块 −（g7）</td><td>右板蓝轨</td><td>杜邦·黑</td><td>GND 已由 #4 桥通</td></tr>
-    <tr><td>27</td><td>ESP32 <b>VIN</b>（左列第15针）</td><td>继电器 <b>DC+</b></td><td>杜邦·红（剥头8mm）</td><td>线圈 5VDC；绝不用 3V3</td></tr>
-    <tr><td>28</td><td>右板蓝轨</td><td>继电器 <b>DC−</b></td><td>杜邦·黑（剥头8mm）</td><td>借蓝轨取 GND（#2/#4 已桥通）</td></tr>
-    <tr><td>29</td><td>ESP32 <b>D26</b>（左列第9针）</td><td>继电器 <b>IN</b></td><td>杜邦·橙（剥头8mm）</td><td>信号线</td></tr>
+    <tr><th style="width:36px;">#</th><th style="width:150px;">从</th><th style="width:150px;">到</th><th style="width:88px;">线种·色</th><th>孔位 / 说明</th></tr>
+    <tr><td>1</td><td>ESP32 3V3 针顶（i1）</td><td><b>红轨近1端孔</b></td><td>杜邦·红（公-母）</td><td>全板 3V3 母线起点。公端入轨孔、母端套针顶</td></tr>
+    <tr><td>2</td><td>ESP32 GND 针顶（i2）</td><td><b>蓝轨近1端孔</b></td><td>杜邦·黑（公-母）</td><td>全板 GND 母线，<b>单点共地</b></td></tr>
+    <tr><td>3</td><td>红轨第 25 孔</td><td>红轨第 26 孔</td><td>跳线·红（公对公）</td><td><b>轨桥</b>：轨中点断成 2×25，跨段必接</td></tr>
+    <tr><td>4</td><td>蓝轨第 25 孔</td><td>蓝轨第 26 孔</td><td>跳线·黑（公对公）</td><td><b>轨桥</b>：同上</td></tr>
+    <tr><td>5</td><td>土壤 GND（a19 针已插）</td><td>蓝轨</td><td>跳线·黑（公对公）</td><td>两端插孔：<b>b19</b> → 蓝轨孔（同位号竖条与 GND 针连通）</td></tr>
+    <tr><td>6</td><td>土壤 5V（a20 针已插）</td><td>红轨</td><td>跳线·红（公对公）</td><td><b>b20</b> → 红轨孔（跨蓝轨飞线；丝印 5V 实接 3V3 ✓ 11/08 已验）</td></tr>
+    <tr><td>7</td><td>ESP32 <b>D34</b> 针顶（a4）</td><td><b>b21</b></td><td>杜邦·黄（公-母）</td><td>母端套 D34 针顶、公端插 <b>b21</b>（与土壤 OUT 针 a21 同条）；ADC1 只读脚</td></tr>
+    <tr><td>8</td><td>光敏 GND（a23 针已插）</td><td>蓝轨</td><td>跳线·黑（公对公）</td><td><b>b23</b> → 蓝轨孔</td></tr>
+    <tr><td>9</td><td>光敏 VCC（a24 针已插）</td><td>红轨</td><td>跳线·红（公对公）</td><td><b>b24</b> → 红轨孔</td></tr>
+    <tr><td>10</td><td>ESP32 <b>D35</b> 针顶（a5）</td><td><b>b25</b></td><td>杜邦·紫（公-母）</td><td>母端套 D35 针顶、公端插 <b>b25</b>（与光敏 AO 针 a25 同条）；DO 针<b>悬空不接</b>（raw=1421 已验）</td></tr>
+    <tr><td>11</td><td>DHT11 VCC（a26 针已插）</td><td>红轨</td><td>跳线·红（公对公）</td><td><b>b26</b> → 红轨孔（在第2段轨——#3 桥接后有效）</td></tr>
+    <tr><td>12</td><td>DHT11 GND（a29 针已插）</td><td>蓝轨</td><td>跳线·黑（公对公）</td><td><b>b29</b> → 蓝轨孔（第2段轨）</td></tr>
+    <tr><td>13</td><td>ESP32 <b>D33</b> 针顶（a7）</td><td><b>b27</b></td><td>杜邦·白（公-母）</td><td>母端套 D33 针顶、公端插 <b>b27</b>（与 DATA 针 a27 同条）；单总线（29.2℃/68% 已验）</td></tr>
+    <tr><td>14</td><td>红轨</td><td><b>b16</b></td><td>跳线·红（公对公）</td><td>浮球上拉取电（R1 上端同位号）</td></tr>
+    <tr><td>15</td><td>R1 · 1kΩ（棕黑红）</td><td>—</td><td>元件</td><td>两脚插 <b>a16 ↔ a18</b>：a16=3V3 侧，a18=上拉节点</td></tr>
+    <tr><td>16</td><td>C1 · 100nF</td><td>—</td><td>元件</td><td>一脚 <b>c18</b>（节点），另一脚弯腿直插<b>蓝轨孔</b>（无极性可倒插）</td></tr>
+    <tr><td>17</td><td>浮球线 1</td><td><b>b18</b></td><td>裸线直插孔</td><td>节点位 18 的 b 孔</td></tr>
+    <tr><td>18</td><td>浮球线 2</td><td><b>蓝轨</b>任意孔</td><td>裸线直插孔</td><td>两线可互换；优先插第1段（1–25）更稳</td></tr>
+    <tr><td>19</td><td>ESP32 <b>D32</b> 针顶（a6）</td><td><b>e18</b></td><td>杜邦·绿（公-母）</td><td>母端套 D32 针顶、公端插 <b>e18</b>（节点位 18 同条）</td></tr>
+    <tr><td>20</td><td>ESP32 D21 针顶（i11）</td><td>OLED SDA</td><td>杜邦·绿（母-母）</td><td>I2C 数据；OLED 装在 04 屏架（板外）</td></tr>
+    <tr><td>21</td><td>ESP32 D22 针顶（i14）</td><td>OLED SCL</td><td>杜邦·白（母-母）</td><td>I2C 时钟</td></tr>
+    <tr><td>22</td><td>OLED VCC</td><td>红轨</td><td>杜邦·红（公-母）</td><td>公端入轨孔</td></tr>
+    <tr><td>23</td><td>OLED GND</td><td>蓝轨</td><td>杜邦·黑（公-母）</td><td>丝印 GND 针引出</td></tr>
+    <tr><td>24</td><td>ESP32 D25 针顶（a8）</td><td>LED 模块 R</td><td>杜邦·红（母-母）</td><td>LED 在底盘嵌槽（板外）；D25/D27 在左排第 8/10 位</td></tr>
+    <tr><td>25</td><td>ESP32 D27 针顶（a10）</td><td>LED 模块 G</td><td>杜邦·绿（母-母）</td><td>D26 居中=第 9 位，别认错行</td></tr>
+    <tr><td>26</td><td>LED 模块 −</td><td>蓝轨</td><td>杜邦·黑（公-母）</td><td>GND 已由 #2/#4 桥通</td></tr>
+    <tr><td>27</td><td>ESP32 <b>VIN</b> 针顶（a15）</td><td>继电器 <b>DC+</b></td><td>杜邦·红（母-母）</td><td>线圈 5VDC；绝不用 3V3</td></tr>
+    <tr><td>28</td><td>蓝轨</td><td>继电器 <b>DC−</b></td><td>杜邦·黑（公-母）</td><td>借蓝轨取 GND</td></tr>
+    <tr><td>29</td><td>ESP32 <b>D26</b> 针顶（a9）</td><td>继电器 <b>IN</b></td><td>杜邦·橙（母-母）</td><td>信号线</td></tr>
     <tr><td>30–32</td><td>继电器 COM / NO / 万可</td><td>泵回路</td><td>板外</td><td><b>pigtail 免剪</b>：公头线红→COM；NO→母头线红（1N4007 色环端同孔并进）；公头黑+母头黑+二极管无环端 → 万可 221-413 三孔；泵公头插母座；NC 不接（见第一节强电区）</td></tr>
   </table>
-  <p class="meta">合计：杜邦母对母 21 根（#5–13、#17–18、#20–26、#27–29，其中 3 根剥头拧螺丝）+ 面包板跳线 6 根（#1–4、#14、#19）+ 元件 2 个（R1/C1）+ 强电板外 = <b>pigtail 两根（公头线 30cm + 母头线 30cm，已下单）</b> + 万可 221-413 ×1 + 1N4007 ×1，全程零剪线零焊接。</p>
+  <p class="meta">合计：<b>杜邦 16 根</b>（母-母 6：#20/21/24/25/27/29——两端都套针顶；公-母 10：#1/2/7/10/13/19/22/23/26/28——母端套针顶、公端入轨孔或 b/e 列孔）+ <b>跳线公对公 9 根</b>（#3/#4 轨桥、#14 R1 取电 + #5/6/8/9/11/12 直插模块取电——直插后模块针已占 a 孔，取电只能两端都插孔）+ 元件 2 个（R1/C1）+ 强电板外 = <b>pigtail 两根（公头线 30cm + 母头线 30cm，已下单）</b> + 万可 221-413 ×1 + 1N4007 ×1，全程零剪线零焊接。<b>⚠ BOM 提醒：公对公跳线需 9 根（学校 40P 杜邦排里公对公那排）、公对母 10 根</b>。第二块面包板不作接线用，留桌面调试备板。</p>
+
+  <h2>二·补、按元器件的接口对照表（本端接口 → 对端接口 · 核对视角）</h2>
+  <p class="meta">逐线清单（第二节）是<b>施工视角</b>——拿一根线插两端；本表是<b>核对视角</b>——一个器件的所有接口一屏看全。同一根线两边都出现，用末列「清单#」对号；板上路径列说明这根线经面包板哪个孔中转（直插件的信号/取电都走同位号竖条连通，不是点对点直连）。</p>
+  <table>
+    <tr><th style="width:190px;">本端接口</th><th style="width:190px;">→ 对端接口</th><th style="width:110px;">线种·色</th><th>板上路径（孔位）</th><th style="width:64px;">清单#</th></tr>
+    <tr><td colspan="5" style="background:#EAF3E1;font-weight:600;">ESP32 DevKitC（直插位 1–15：左排 a1–a15 / 右排 i1–i15 · USB 朝 1 位端）</td></tr>
+    <tr><td>3V3 针顶（i1）</td><td>→ 红轨近 1 端孔</td><td>杜邦·红（公-母）</td><td>直连；全板 3V3 母线起点</td><td>#1</td></tr>
+    <tr><td>GND 针顶（i2）</td><td>→ 蓝轨近 1 端孔</td><td>杜邦·黑（公-母）</td><td>直连；<b>单点共地</b></td><td>#2</td></tr>
+    <tr><td>D34 针顶（a4）</td><td>→ 土壤 OUT</td><td>杜邦·黄（公-母）</td><td>针顶→<b>b21</b>（与土壤 OUT 针 a21 同条连通）；ADC1</td><td>#7</td></tr>
+    <tr><td>D35 针顶（a5）</td><td>→ 光敏 AO</td><td>杜邦·紫（公-母）</td><td>针顶→<b>b25</b>（与 AO 针 a25 同条连通）；ADC1</td><td>#10</td></tr>
+    <tr><td>D33 针顶（a7）</td><td>→ DHT11 DATA</td><td>杜邦·白（公-母）</td><td>针顶→<b>b27</b>（与 DATA 针 a27 同条连通）</td><td>#13</td></tr>
+    <tr><td>D32 针顶（a6）</td><td>→ 浮球节点（位 18）</td><td>杜邦·绿（公-母）</td><td>针顶→<b>e18</b>（节点同条，外接 1kΩ 上拉+100nF）</td><td>#19</td></tr>
+    <tr><td>D21 针顶（i11）</td><td>→ OLED SDA</td><td>杜邦·绿（母-母）</td><td>板外直连（04 屏架）；I2C 数据</td><td>#20</td></tr>
+    <tr><td>D22 针顶（i14）</td><td>→ OLED SCL</td><td>杜邦·白（母-母）</td><td>板外直连；I2C 时钟</td><td>#21</td></tr>
+    <tr><td>D25 针顶（a8）</td><td>→ LED 模块 R</td><td>杜邦·红（母-母）</td><td>板外直连（底盘嵌槽）</td><td>#24</td></tr>
+    <tr><td>D27 针顶（a10）</td><td>→ LED 模块 G</td><td>杜邦·绿（母-母）</td><td>板外直连</td><td>#25</td></tr>
+    <tr><td>D26 针顶（a9）</td><td>→ 继电器 IN</td><td>杜邦·橙（母-母）</td><td>板外直连；信号</td><td>#29</td></tr>
+    <tr><td>VIN 针顶（a15）</td><td>→ 继电器 DC+</td><td>杜邦·红（母-母）</td><td>板外直连；5V 线圈供电（绝不用 3V3）</td><td>#27</td></tr>
+    <tr><td colspan="5" style="background:#EAF3E1;font-weight:600;">土壤传感器（直插 a19–a21 · 丝印 5V 实接 3V3 ✓ 11/08 已验）</td></tr>
+    <tr><td>GND 针（a19）</td><td>→ 蓝轨</td><td>跳线·黑（公对公）</td><td><b>b19</b> → 蓝轨孔（同条连通）</td><td>#5</td></tr>
+    <tr><td>5V 针（a20）</td><td>→ 红轨</td><td>跳线·红（公对公）</td><td><b>b20</b> → 红轨孔</td><td>#6</td></tr>
+    <tr><td>OUT 针（a21）</td><td>→ ESP32 D34</td><td>杜邦·黄（公-母）</td><td>a21 同条 → b21 → D34 针顶（模拟信号）</td><td>#7</td></tr>
+    <tr><td colspan="5" style="background:#EAF3E1;font-weight:600;">光敏模块（直插 a22–a25）</td></tr>
+    <tr><td>GND 针（a23）</td><td>→ 蓝轨</td><td>跳线·黑（公对公）</td><td><b>b23</b> → 蓝轨孔</td><td>#8</td></tr>
+    <tr><td>VCC 针（a24）</td><td>→ 红轨</td><td>跳线·红（公对公）</td><td><b>b24</b> → 红轨孔</td><td>#9</td></tr>
+    <tr><td>AO 针（a25）</td><td>→ ESP32 D35</td><td>杜邦·紫（公-母）</td><td>a25 同条 → b25 → D35 针顶（模拟信号）</td><td>#10</td></tr>
+    <tr><td>DO 针（a22）</td><td>→ <b>悬空不接</b></td><td>—</td><td>raw=1421 已验，数字口弃用</td><td>#10 注</td></tr>
+    <tr><td colspan="5" style="background:#EAF3E1;font-weight:600;">DHT11（直插 a26–a29 · 第 2 段轨区——轨桥 #3/#4 不在则全部无电）</td></tr>
+    <tr><td>VCC 针（a26）</td><td>→ 红轨</td><td>跳线·红（公对公）</td><td><b>b26</b> → 红轨孔（第 2 段）</td><td>#11</td></tr>
+    <tr><td>DATA 针（a27）</td><td>→ ESP32 D33</td><td>杜邦·白（公-母）</td><td>a27 同条 → b27 → D33 针顶（单总线）</td><td>#13</td></tr>
+    <tr><td>NC 针（a28）</td><td>→ <b>悬空不接</b></td><td>—</td><td>空脚</td><td>—</td></tr>
+    <tr><td>GND 针（a29）</td><td>→ 蓝轨</td><td>跳线·黑（公对公）</td><td><b>b29</b> → 蓝轨孔（第 2 段）</td><td>#12</td></tr>
+    <tr><td colspan="5" style="background:#FAF0DA;font-weight:600;">浮球 RC 区（位 16–18 · 全在位 18 同一条竖条取孔，不跨位号）</td></tr>
+    <tr><td>红轨</td><td>→ R1 上端（a16）</td><td>跳线·红（公对公）</td><td>红轨孔 → <b>b16</b>（与 a16 同条）</td><td>#14</td></tr>
+    <tr><td>R1 · 1kΩ（棕黑红）</td><td>a16 ↔ a18</td><td>元件</td><td>两脚直插孔；a18=上拉节点</td><td>#15</td></tr>
+    <tr><td>C1 · 100nF（104）</td><td>c18 ↔ 蓝轨</td><td>元件</td><td>一脚 c18（节点）、一脚弯腿直插蓝轨孔；无极性</td><td>#16</td></tr>
+    <tr><td>浮球线 1</td><td>→ b18</td><td>裸线直插孔</td><td>节点位 18 的 b 孔</td><td>#17</td></tr>
+    <tr><td>浮球线 2</td><td>→ 蓝轨任意孔</td><td>裸线直插孔</td><td>两线可互换；优先第 1 段（1–25）</td><td>#18</td></tr>
+    <tr><td colspan="5" style="background:#EAF3E1;font-weight:600;">OLED 0.96 I2C（板外 · 04 屏架）</td></tr>
+    <tr><td>VCC</td><td>→ 红轨</td><td>杜邦·红（公-母）</td><td>公端入轨孔</td><td>#22</td></tr>
+    <tr><td>GND</td><td>→ 蓝轨</td><td>杜邦·黑（公-母）</td><td>公端入轨孔</td><td>#23</td></tr>
+    <tr><td>SDA</td><td>→ ESP32 D21 针顶</td><td>杜邦·绿（母-母）</td><td>板外直连</td><td>#20</td></tr>
+    <tr><td>SCL</td><td>→ ESP32 D22 针顶</td><td>杜邦·白（母-母）</td><td>板外直连</td><td>#21</td></tr>
+    <tr><td colspan="5" style="background:#EAF3E1;font-weight:600;">双色 LED 模块（板外 · 底盘嵌槽 · 自带限流电阻）</td></tr>
+    <tr><td>R</td><td>→ ESP32 D25 针顶</td><td>杜邦·红（母-母）</td><td>板外直连</td><td>#24</td></tr>
+    <tr><td>G</td><td>→ ESP32 D27 针顶</td><td>杜邦·绿（母-母）</td><td>板外直连</td><td>#25</td></tr>
+    <tr><td>−</td><td>→ 蓝轨</td><td>杜邦·黑（公-母）</td><td>公端入轨孔；GND 经 #2/#4 桥通</td><td>#26</td></tr>
+    <tr><td colspan="5" style="background:#E3EDF8;font-weight:600;">继电器 JQC-3FF/5VDC（板外 · 悬放 · 跳帽 H 档）</td></tr>
+    <tr><td>DC+</td><td>→ ESP32 VIN 针顶</td><td>杜邦·红（母-母）</td><td>板外直连；线圈 5VDC</td><td>#27</td></tr>
+    <tr><td>DC−</td><td>→ 蓝轨</td><td>杜邦·黑（公-母）</td><td>公端入轨孔；借蓝轨取 GND</td><td>#28</td></tr>
+    <tr><td>IN</td><td>→ ESP32 D26 针顶</td><td>杜邦·橙（母-母）</td><td>板外直连</td><td>#29</td></tr>
+    <tr><td>COM</td><td>→ 公头线红（充电宝 5V+）</td><td>pigtail</td><td>板外强电；公头线另一端插充电宝</td><td>#30–32</td></tr>
+    <tr><td>NO</td><td>→ 母头线红（→ 泵正）</td><td>pigtail</td><td>1N4007 <b>色环端同孔并进</b> NO；常开=断电自动停泵</td><td>#30–32</td></tr>
+    <tr><td>NC</td><td>→ <b>不接（空着）</b></td><td>—</td><td>接 NC = 一上电就抽水</td><td>—</td></tr>
+    <tr><td colspan="5" style="background:#FCEBEB;font-weight:600;">板外泵强电回路（充电宝 → 继电器 → 泵 · 不过面包板 · 全程零剪线）</td></tr>
+    <tr><td>充电宝 USB 口</td><td>→ 公头线 30cm（SKU1）</td><td>pigtail</td><td>⚠ 先开小电流模式</td><td>#30–32</td></tr>
+    <tr><td>公头线黑</td><td>→ 万可 221-413 孔1</td><td>pigtail</td><td>5V 负极汇流</td><td>#30–32</td></tr>
+    <tr><td>1N4007 无环端</td><td>→ 万可 221-413 孔2</td><td>元件</td><td>色环端在继电器 NO 孔；续流防打火</td><td>#30–32</td></tr>
+    <tr><td>母头线黑</td><td>→ 万可 221-413 孔3</td><td>pigtail</td><td>→ 泵负</td><td>#30–32</td></tr>
+    <tr><td>泵公头</td><td>→ 母头线插座（SKU2）</td><td>pigtail</td><td>母头红=NO 来的 5V+，黑=万可孔3</td><td>#30–32</td></tr>
+  </table>
 
   <h2>三、ESP32 端口占用总表（= 固件 55–61 行 + I2C 默认）</h2>
   <table>
-    <tr><th>GPIO</th><th>丝印</th><th>接谁</th><th>方向</th><th>为什么是这个脚</th></tr>
-    <tr><td><b>34</b></td><td>D34（左列4）</td><td>土壤 OUT</td><td>ADC1 只进</td><td>ADC1 组，WiFi 开启不受影响；只读脚不能接输出设备</td></tr>
-    <tr><td><b>35</b></td><td>D35（左列5）</td><td>光敏 AO</td><td>ADC1 只进</td><td>同上；DO 弃用</td></tr>
-    <tr><td><b>33</b></td><td>D33（左列7）</td><td>DHT11 DATA</td><td>数字双向</td><td>单总线，模块自带上拉</td></tr>
-    <tr><td><b>32</b></td><td>D32（左列6）</td><td>浮球干接点</td><td>数字输入</td><td>外接 1kΩ 上拉 + 100nF 滤抖；fail-safe</td></tr>
-    <tr><td><b>26</b></td><td>D26（左列9）</td><td>继电器 IN</td><td>数字输出</td><td>普通 IO，无启动毛刺历史问题（v1.3 已锁）</td></tr>
-    <tr><td><b>25</b> / <b>27</b></td><td>D25 / D27（左列8/10）</td><td>LED 红 / 绿</td><td>数字输出</td><td>模块带限流电阻，直驱</td></tr>
-    <tr><td><b>21</b> / <b>22</b></td><td>D21 / D22（右列11/14）</td><td>OLED SDA / SCL</td><td>I2C</td><td>硬件 I2C 默认脚（0x3C 实扫确认）</td></tr>
-    <tr><td><b>VIN</b></td><td>VIN（左列15）</td><td>继电器 DC+</td><td>电源 5V</td><td>线圈 5VDC；USB 供电时 ≈4.7V 可用；绝不用 3V3</td></tr>
-    <tr><td>3V3</td><td>3V3（右列1）</td><td>红轨母线</td><td>电源 3.3V</td><td>喂 4 个传感器 + 浮球上拉</td></tr>
+    <tr><th>GPIO</th><th>丝印（直插位）</th><th>接谁</th><th>方向</th><th>为什么是这个脚</th></tr>
+    <tr><td><b>34</b></td><td>D34（a4）</td><td>土壤 OUT</td><td>ADC1 只进</td><td>ADC1 组，WiFi 开启不受影响；只读脚不能接输出设备</td></tr>
+    <tr><td><b>35</b></td><td>D35（a5）</td><td>光敏 AO</td><td>ADC1 只进</td><td>同上；DO 弃用</td></tr>
+    <tr><td><b>33</b></td><td>D33（a7）</td><td>DHT11 DATA</td><td>数字双向</td><td>单总线，模块自带上拉</td></tr>
+    <tr><td><b>32</b></td><td>D32（a6）</td><td>浮球干接点</td><td>数字输入</td><td>外接 1kΩ 上拉 + 100nF 滤抖；fail-safe</td></tr>
+    <tr><td><b>26</b></td><td>D26（a9）</td><td>继电器 IN</td><td>数字输出</td><td>普通 IO，无启动毛刺历史问题（v1.3 已锁）</td></tr>
+    <tr><td><b>25</b> / <b>27</b></td><td>D25 / D27（a8/a10）</td><td>LED 红 / 绿</td><td>数字输出</td><td>模块带限流电阻，直驱</td></tr>
+    <tr><td><b>21</b> / <b>22</b></td><td>D21 / D22（i11/i14）</td><td>OLED SDA / SCL</td><td>I2C</td><td>硬件 I2C 默认脚（0x3C 实扫确认）</td></tr>
+    <tr><td><b>VIN</b></td><td>VIN（a15）</td><td>继电器 DC+</td><td>电源 5V</td><td>线圈 5VDC；USB 供电时 ≈4.7V 可用；绝不用 3V3</td></tr>
+    <tr><td>3V3</td><td>3V3（i1）</td><td>红轨母线</td><td>电源 3.3V</td><td>喂 4 个传感器 + 浮球上拉</td></tr>
     <tr><td>⚠️ 禁用</td><td>GPIO 6–11 / 12 / 4 / 13 / 14 等</td><td>—</td><td>—</td><td>6–11 接 flash 碰了变砖；12 启动脚拉错刷不进固件；4/13/14 属 ADC2 WiFi 一开读数全废——本机均未用</td></tr>
   </table>
 
   <h2>四、通电前 60 秒核对（打勾才上电）</h2>
   <ol>
-    <li><b>共地单点</b>：ESP32 GND → 蓝轨只有 #2 一根线（#28 继电器 DC− 借右板蓝轨）</li>
+    <li><b>ESP32 插稳</b>：左排 a1–a15 / 右排 i1–i15 全针入孔，板身不翘；USB 朝 1 位端</li>
+    <li><b>轨桥已接</b>：红 25↔26、蓝 25↔26 两根桥在（缺桥则第 2 段轨全部无电）</li>
+    <li><b>共地单点</b>：ESP32 GND → 蓝轨只有 #2 一根线（#28 继电器 DC− 借蓝轨）</li>
     <li><b>模拟双线</b>：土壤 OUT→D34、光敏 AO→D35，没插到 ADC2 组</li>
     <li><b>继电器供电</b>：DC+ 接的是 <b>VIN</b> 不是 3V3；线圈 5VDC</li>
     <li><b>触点侧</b>：接 COM+NO，NC 空着（接 NC = 一上电就抽水）</li>
-    <li><b>浮球 RC</b>：节点全在<b>行 21 的 a–e 列</b>（a=R1 / b=浮球1 / c=C1 / e=D32），不跨中沟</li>
+    <li><b>浮球 RC</b>：节点全在<b>位 18 同一条竖条</b>（a=R1 / b=浮球1 / c=C1 / e=D32）</li>
     <li><b>二极管</b>：断电态红笔泵−黑笔泵+ 读 0.5–0.7V；读 0/双向通 = 击穿，立刻拆</li>
     <li><b>跳帽</b>：High/Low 跳帽在 <b>H 档</b>；吸合逻辑反了先拨 L 档验证，再查 <code>RELAY_ACTIVE_HIGH</code></li>
     <li><b>固件先决</b>：联调烧 <code>RelayPumpTest</code>，测完烧回 <code>GreenHouse_v1</code> v1.6</li>
   </ol>
 
-  <p class="foot">花房项目 · Smart GreenHouse · 整机接线总图 v5.2 拟物版（2026-11-11，强电区改 pigtail 免剪方案：公头线+母头线+万可 221-413+1N4007；供电=充电宝小电流模式；由 outputs/接线图生成器/build_wiring_v5.py 参数化生成）· 引脚对照 GreenHouse_v1.ino L55–61 · 器件丝印对照 11/06–11/08 实拍 OCR · 配套《花房接线规划表.md》《花房接线图_水泵.html》</p>
+  <p class="foot">花房项目 · Smart GreenHouse · 整机接线总图 v5.4 单板直插版（2026-11-12：领导拍板 ESP32 直插 BB400 并实测跨距 a↔i 通过；真实几何重画——同位号 a–e/f–j 竖条连通、电源轨中断 2×25 加轨桥；ESP32 占位 1–15、模块 16–30；信号一律针顶夹持；v5.3.5 两板版备份于 生成器目录 build_wiring_v5_备份v5.3.5.py）· 引脚对照 GreenHouse_v1.ino L55–61 · 配套《花房接线规划表.md》《花房接线图_水泵.html》</p>
 </div>
 </body>
 </html>

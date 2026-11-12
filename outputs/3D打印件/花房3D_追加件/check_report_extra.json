@@ -1,0 +1,26 @@
+[
+ {
+  "name": "12_led_stand | LED 灯座",
+  "bbox": [
+   21.0,
+   15.7,
+   28.8
+  ],
+  "mass_g": 4.71,
+  "watertight": true,
+  "bodies": 1,
+  "stl": "D:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\3D打印件\\花房3D_追加件\\STL\\12_led_stand_v1.stl"
+ },
+ {
+  "name": "13_clip_plug | 理线槽盖板",
+  "bbox": [
+   30.0,
+   16.0,
+   2.0
+  ],
+  "mass_g": 1.17,
+  "watertight": true,
+  "bodies": 1,
+  "stl": "D:\\Documents\\workbuddydocument\\2026-10-17-08-59-13\\outputs\\3D打印件\\花房3D_追加件\\STL\\13_clip_plug_v1.stl"
+ }
+]
