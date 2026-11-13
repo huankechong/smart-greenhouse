@@ -73,13 +73,16 @@ P = {
    # 圆槽直径 = 桶底 105（实测）+ 2
     "tank_pos": (85.0, 32.0),
     "tank_depth": 5.0,          # 槽底仍 z=3
+    "slot_pos": (130.0, -13.0),    # 围墙内远角排水槽（2026-11-13）：排掉墙内积水
+    "slot_w": 16.0, "slot_d": 4.0,   # 2026-11-13 领导：20×6 太大 → 收回 16×4
 
     # 槽底排水孔：水箱漏的水从这里穿板滴到桌面，不进电控区
-    "drain_pos": (120.0, 52.0),
+    "drain_pos": (85.0, -5.0),     # 2026-11-13 水箱槽底排水槽中心（桶槽内，靠 -Y 侧）
+    "drain_w": 16.0, "drain_h": 4.0,  # 2026-11-13 领导：与围墙内那个统一为 16×4
     "drain_d": 5.0,
     # 挡水堤（v1.3 AR05）：沿水箱槽的电控侧两边竖起 3mm 高堤，拦住横向漫流
     "dam_w": 3.0,
-    "dam_h": 3.0,
+    "dam_h": 8.0,             # 2026-11-13 领导：围墙加高到 8（原 3 挡不住水）
 
     # 拼接
     "joint_y": (60.0, -60.0),   # 2026-11-12 领导：连接槽与花盆/oled 对齐到 y=60
@@ -225,22 +228,27 @@ def build_half(p, side):
         # 圆槽：竖壁圆柱切 5 深（1L 桶落座），见参数注释
         holes.append(C(p["tank_pos"][0], p["tank_pos"][1], pt + 1.0 - p["tank_depth"] / 2,
                        p["tank_d"] / 2, p["tank_depth"] + 2, sections=96))   # 槽底 = pt-tank_depth
-        # 槽底排水孔（通板，漏水直落桌面）——位置在槽内，桶底下也照排渗水
-        holes.append(C(p["drain_pos"][0], p["drain_pos"][1], pt / 2,
-                       p["drain_d"] / 2, pt + 4, sections=32))
-        for yy in (-80, 75):
-            for xx in (45, 125):
-                holes.append(B(xx, yy, pt / 2, p["slot_l"], p["slot_w"], pt + 4))
+        # 2026-11-13：水箱圆槽底增加排水槽（桶内渗水从此排出）
+        holes.append(B(p["drain_pos"][0], p["drain_pos"][1], pt / 2,
+                       p["drain_w"], p["drain_h"], pt + 4))
+        # 2026-11-13 领导：除这两个排水槽外，其余孔洞全部删除
+        #   → 删掉原 φ5 排水孔 (120,52) 和 4 个扎带过孔 (45/125, -80/75)
+        #   保留：水箱圆槽（功能）、06c 连接槽、M3 引导孔、φ4.1 定位销孔（结构必需）
 
     body = cut(body, holes)
 
-    # 挡水堤：沿圆槽 -Y/-X 两切点外侧竖 3×3（槽外实板上，避开 φ108 圆）
+    # 挡水堤：2026-11-13 领导要求改成「四面连着的围墙」（原来是 -Y/-X 两道直堤）
     if side > 0:
         tx, ty = p["tank_pos"]
         d, dw, dh = p["tank_d"] / 2, p["dam_w"], p["dam_h"]
-        dam = add(B(tx, ty - d - dw / 2 - 3.0, pt + dh / 2, 2 * d + 8, dw, dh),
-                  [B(tx - d - dw / 2 - 3.0, ty, pt + dh / 2, dw, 2 * d + 8, dh)])
-        body = add(body, [dam])
+        s_i = d + 3.0                      # 内壁：距桶壁 3mm（水可积在环内）
+        s_o = s_i + dw                     # 外壁
+        ring = B(tx, ty, pt + dh / 2, 2 * s_o, 2 * s_o, dh)
+        ring = cut(ring, [B(tx, ty, pt + dh / 2, 2 * s_i, 2 * s_i, dh + 4)])
+        body = add(body, [ring])
+        # 排水槽：远离元件的一角（06b 的远端），12×3 通槽 + 外侧导流口
+        dx_, dy_ = p["slot_pos"]
+        body = cut(body, [B(dx_, dy_, pt / 2, p["drain_w"], p["drain_h"], pt + 6)])   # 用 drain_w/h，避开同名 slot_w
     return body
 
 
