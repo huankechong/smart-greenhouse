@@ -241,7 +241,9 @@ def build_half(p, side):
     if side > 0:
         tx, ty = p["tank_pos"]
         d, dw, dh = p["tank_d"] / 2, p["dam_w"], p["dam_h"]
-        s_i = d + 3.0                      # 内壁：距桶壁 3mm（水可积在环内）
+        # 内壁 56.3（= 槽半径 53.3 + 3）—— 2026-11-16 复核：桶是锥形的（底 φ106 / 口沿 φ124），
+        # 在墙高（z 8~16）处桶径只有 ≈108，对 112.6 内壁仍有 2.3mm 余量，故维持原值
+        s_i = d + 3.0
         s_o = s_i + dw                     # 外壁
         ring = B(tx, ty, pt + dh / 2, 2 * s_o, 2 * s_o, dh)
         ring = cut(ring, [B(tx, ty, pt + dh / 2, 2 * s_i, 2 * s_i, dh + 4)])
