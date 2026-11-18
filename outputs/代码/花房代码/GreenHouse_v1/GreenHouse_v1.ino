@@ -43,8 +43,8 @@
  */
 
 // ==================== 功能开关（按周开启） ====================
-#define EN_DHT  0   // W1-D5：接好温湿度(41号)后改 1 → 需装 DHT sensor library
-#define EN_OLED  0   // W1-D5：接好 OLED(25号)后改 1  → 需装 U8g2
+#define EN_DHT  1   // 2026-11-18 启用：三针版已插 a26–a28，D33→b27，DHT lib 1.4.7 已装
+#define EN_OLED  1   // 2026-11-18 启用：屏已接（VCC/GND→下轨、SDA→D21、SCL→D22），U8g2 2.36.19 已装
 #define EN_WATER  1   // [2026-11-12 解锁] 标定 2372/1050 定稿 + 水位保护实测通过（常开型）→ 全自动闭环启用（会真实出水）
 #define EN_WIFI  0   // W3-D11：上云时改 1 → 需装 PubSubClient
 #define EN_MQTT  0   // 依赖 EN_WIFI=1：数据上报 + 远程浇水
@@ -80,8 +80,9 @@ const int           MAX_ROUNDS_PER_CYCLE = 6;        // 一次处理最多连浇
 const unsigned long COOLDOWN_MS  = 600000;           // 触发上限后冷却 10 分钟再恢复自动
 
 // ---------- v1.4 水位检测（浮球开关，干接点） ----------
-const bool          LEVEL_WET_CLOSED = true;         // [2026-11-12 实测二次定稿] true=有水时触点闭合（常开型）。装桶姿态=杆尖朝下：浮子坠向杆尖(没水)=断开=低；浮子托向盖端(有水)=闭合=正常
-                                                     //   万用表蜂鸣档：浮子推上端应"响"，拉下端"不响"
+const bool          LEVEL_WET_CLOSED = false;        // [2026-11-18 实测三次翻转定稿] false=没水时触点闭合（常闭型接线口径）。
+                                                     //   实测链条：贴杆尖(没水)=闭合=LOW→判"低"；靠盖端(有水)=断开=HIGH→判"正常"
+                                                     //   （11-12 的 true 判断被 11-18 实机三次观测推翻：当时把"浮子位置"读反了）
 const unsigned long LEVEL_INTERVAL_MS = 100;         // 干接点采样周期（100ms 足够，远快于 3s 浇一轮）
 const uint8_t       LEVEL_STABLE_N = 3;              // 连续 3 次一致才认（水面波动会抖，别只看 1 次）
 const bool          LEVEL_USE_INTERNAL_PULLUP = false; // 外部 1kΩ 上拉时填 false（内部 45kΩ 太弱，
@@ -127,6 +128,7 @@ unsigned long lastMqttRetry = 0;
 DHT dht(PIN_DHT, DHT11);
 #endif
 #if EN_OLED
+#include <Wire.h>
 #include <U8g2lib.h>
 U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);
 #endif
@@ -194,7 +196,9 @@ void levelTick() {
   if (now - tLevel < LEVEL_INTERVAL_MS) return;
   tLevel = now;
 
-  // 常开型(有水闭合)：有水→闭合→读到 LOW；没水/线断→断开→被 1kΩ 上拉到 HIGH
+  // 11-18 三测定稿：本颗浮球「没水(=浮子贴杆尖)时闭合」；有水浮起→断开→被 1kΩ 上拉到 HIGH
+  // LEVEL_WET_CLOSED=false → 读到 LOW 判"低"。⚠️ 代价：断线=HIGH=判"有水"，非 fail-safe 方向——
+  // 若把浮球体机械翻转（恢复无水利断开），应改回 true 恢复断线保护。
   bool rawLow = (digitalRead(PIN_LEVEL) == (LEVEL_WET_CLOSED ? HIGH : LOW));
 
   if (rawLow == levelLast) {
@@ -435,7 +439,7 @@ void setup() {
   digitalWrite(PIN_RELAY, RELAY_ACTIVE_HIGH ? LOW : HIGH);
   pinMode(PIN_RELAY, OUTPUT);
   relayOff();
-  Serial.println("\n===== 智能花房养护站 v1.6 启动 =====");
+  Serial.println("\n===== 智能花房养护站 v1.8 启动 =====");
   Serial.printf("功能开关: DHT=%d OLED=%d WATER=%d LEVEL=%d WIFI=%d MQTT=%d WEB=%d\n",
                 EN_DHT, EN_OLED, EN_WATER, EN_LEVEL, EN_WIFI, EN_MQTT, EN_WEB);   // v1.1：排障先看烧的是哪套配置
   Serial.printf("标定: dry=%d wet=%d 缺水阈值=%d%%\n", SOIL_RAW_DRY, SOIL_RAW_WET, SOIL_THRESHOLD_PCT);
@@ -483,6 +487,17 @@ void setup() {
   dht.begin();
 #endif
 #if EN_OLED
+  // 11-18 加：I2C 扫描（无表环境下的屏诊断——扫到 0x3C 才说明 VCC/GND/SDA/SCL 四线全通）
+  Wire.begin(21, 22);
+  Serial.print("[I2C] 扫描 0x08–0x77：");
+  { uint8_t n = 0;
+    for (uint8_t a = 0x08; a <= 0x77; a++) {
+      Wire.beginTransmission(a);
+      if (Wire.endTransmission() == 0) { Serial.printf(" 0x%02X", a); n++; }
+    }
+    if (n == 0) Serial.print(" 无设备！依次查 VCC/GND 是否 3.3V、SDA→D21、SCL→D22、屏丝印针序");
+    Serial.println();
+  }
   u8g2.begin();
   u8g2.enableUTF8Print();
 #endif
@@ -538,15 +553,32 @@ void loop() {
     tOled = now;
     u8g2.clearBuffer();
     u8g2.setFont(u8g2_font_wqy12_t_gb2312a);   // 中文字体
-    char line[28];
-    snprintf(line, sizeof(line), "土壤: %d%%", gSoilPct);  u8g2.drawUTF8(0, 14, line);
-    snprintf(line, sizeof(line), "光照: %d", gLightRaw);   u8g2.drawUTF8(0, 30, line);
+    // v1.8 两列布局：标签右对齐（末字对齐 x=62 竖线）+ 数值左对齐（x=70）
+    // 5 行 y = 14/26/38/50/62 占满 64px 高；行高 12px（wqy12）
+    char val[20];
+    auto row = [&](int y, const char* label, const char* value) {
+      u8g2.drawUTF8(62 - u8g2.getUTF8Width(label), y, label);  // 右对齐
+      u8g2.drawUTF8(70, y, value);                              // 左对齐
+    };
+    snprintf(val, sizeof(val), "%d%%", gSoilPct);
+    row(14, "土壤湿度", val);
+    snprintf(val, sizeof(val), "%d", gLightRaw);
+    row(26, "光照", val);
 #if EN_DHT
     if (!isnan(gTemp)) {
-      snprintf(line, sizeof(line), "温度: %.1fC", gTemp);  u8g2.drawUTF8(0, 46, line);
-      snprintf(line, sizeof(line), "气湿: %.0f%%", gHum);  u8g2.drawUTF8(0, 62, line);
+      snprintf(val, sizeof(val), "%.1f℃", gTemp);
+      row(38, "气温", val);
+      snprintf(val, sizeof(val), "%.0f%%", gHum);
+      row(50, "气湿", val);
+    } else {
+      row(38, "气温", "--");
+      row(50, "气湿", "--");
     }
+#else
+    row(38, "气温", "--");
+    row(50, "气湿", "--");
 #endif
+    row(62, "水位", gLevelLow ? "低!!" : "正常");
     u8g2.sendBuffer();
   }
 #endif
