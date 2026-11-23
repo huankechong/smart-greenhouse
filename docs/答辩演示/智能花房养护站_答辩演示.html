@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="deep-tech" data-ratio="16:9">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="generator" content="ppt-master">
+<title>智能花房养护站</title>
+<style>
+/* ============================================================
+   THEMES —— 12 套视觉风格，切换 html[data-theme] 即可
+   ============================================================ */
+/* ============================================================
+   PPT Master · 12 套视觉主题
+   用法：<html data-theme="风格id">，切换 id 即换肤
+   变量契约（缺一不可）：
+     --page-bg 舞台底色  --bg 画布底色  --surface 卡片底
+     --ink 主文字  --ink-2 正文  --ink-3 次要/注释
+     --accent 主强调  --accent-ink 强调色上的文字  --accent-soft 强调浅底
+     --line 分割线  --radius 卡片圆角  --radius-sm 条形圆角  --radius-pill 标签圆角
+     --dot-radius 列表点形状  --shadow 卡片阴影
+     --font-h 标题字体  --font-b 正文字体  --font-m 等宽  --font-n 数字字体
+     --h-weight 标题字重
+   ============================================================ */
+
+/* ---------- 通用字体栈 ---------- */
+:root{
+  --font-sans: "PingFang SC","HarmonyOS Sans SC","Microsoft YaHei","Source Han Sans SC","Noto Sans SC",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-serif:"Source Han Serif SC","Noto Serif SC","Songti SC",Georgia,"Times New Roman","SimSun",serif;
+  --font-mono:"JetBrains Mono","SF Mono","Cascadia Mono",Consolas,"Courier New",monospace;
+  --font-figure:"Bahnschrift","DIN Alternate","Inter","Helvetica Neue",Arial,sans-serif;
+}
+
+/* ============ 1. 瑞士极简 swiss-minimal ============
+   白底黑字一点红。栅格严谨，零圆角零阴影。最安全的汇报风。 */
+html[data-theme="swiss-minimal"]{
+  --page-bg:#e6e7e9; --bg:#ffffff; --surface:#fafafa;
+  --ink:#101010; --ink-2:#3c3c3c; --ink-3:#8c8c8c;
+  --accent:#e2231a; --accent-ink:#ffffff; --accent-soft:#fdecea;
+  --line:#e4e4e4; --radius:0px; --radius-sm:0px; --radius-pill:0px; --dot-radius:0px;
+  --shadow:none; --h-weight:700;
+  --font-h:var(--font-sans); --font-b:var(--font-sans); --font-m:var(--font-mono); --font-n:var(--font-figure);
+}
+html[data-theme="swiss-minimal"] .slide::before{
+  content:"";position:absolute;top:0;left:0;width:calc(var(--sc)*150px);height:calc(var(--sc)*7px);background:var(--accent);
+}
+html[data-theme="swiss-minimal"] .layout-cover .cv-t{font-weight:800;letter-spacing:-.03em}
+
+/* ============ 2. 深空科技 deep-tech ============
+   深蓝黑 + 青蓝辉光。适合技术方案、产品发布。 */
+html[data-theme="deep-tech"]{
+  --page-bg:#05080f; --bg:#0a1020; --surface:#121a2e;
+  --ink:#f2f6ff; --ink-2:#a9b8d4; --ink-3:#64789b;
+  --accent:#38bdf8; --accent-ink:#04121f; --accent-soft:rgba(56,189,248,.13);
+  --line:rgba(120,160,220,.18); --radius:10px; --radius-sm:3px; --radius-pill:99px; --dot-radius:2px;
+  --shadow:0 2px 24px rgba(0,0,0,.36); --h-weight:700;
+  --font-h:var(--font-sans); --font-b:var(--font-sans); --font-m:var(--font-mono); --font-n:var(--font-figure);
+}
+html[data-theme="deep-tech"] .slide::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(900px 520px at 88% 4%, rgba(56,189,248,.16), transparent 62%),
+    radial-gradient(700px 460px at 4% 96%, rgba(99,102,241,.16), transparent 60%),
+    linear-gradient(rgba(120,160,220,.055) 1px, transparent 1px) 0 0/calc(var(--sc)*64px) calc(var(--sc)*64px),
+    linear-gradient(90deg, rgba(120,160,220,.055) 1px, transparent 1px) 0 0/calc(var(--sc)*64px) calc(var(--sc)*64px);
+}
+html[data-theme="deep-tech"] .metric .n{text-shadow:0 0 calc(var(--sc)*26px) rgba(56,189,248,.45)}
+html[data-theme="deep-tech"] .card{border-color:rgba(120,160,220,.22)}
+
+/* ============ 3. 乔布斯黑 jobs-keynote ============
+   纯黑无边界，超大标题，极致留白。发布会/演讲专用。 */
+html[data-theme="jobs-keynote"]{
+  --page-bg:#000000; --bg:#000000; --surface:#131313;
+  --ink:#f5f5f7; --ink-2:#c7c7cc; --ink-3:#7d7d85;
+  --accent:#2997ff; --accent-ink:#ffffff; --accent-soft:rgba(41,151,255,.16);
+  --line:rgba(255,255,255,.13); --radius:14px; --radius-sm:99px; --radius-pill:99px; --dot-radius:50%;
+  --shadow:none; --h-weight:600;
+  --font-h:var(--font-sans); --font-b:var(--font-sans); --font-m:var(--font-mono); --font-n:var(--font-figure);
+}
+html[data-theme="jobs-keynote"] .slide{padding:calc(var(--sc)*86px) calc(var(--sc)*112px)}
+html[data-theme="jobs-keynote"] .h1,
+html[data-theme="jobs-keynote"] .layout-cover .cv-t{font-size:calc(var(--sc)*92px);font-weight:600;letter-spacing:-.035em;line-height:1.06}
+html[data-theme="jobs-keynote"] .h2{font-size:calc(var(--sc)*52px);font-weight:600;letter-spacing:-.028em}
+html[data-theme="jobs-keynote"] .layout-statement .big{font-size:calc(var(--sc)*64px);font-weight:600;letter-spacing:-.03em}
+html[data-theme="jobs-keynote"] .kicker{letter-spacing:.28em;font-size:calc(var(--sc)*13px)}
+html[data-theme="jobs-keynote"] .card{background:#131313;border-color:rgba(255,255,255,.08)}
+html[data-theme="jobs-keynote"] .card.tint{background:rgba(41,151,255,.1)}
+
+/* ============ 4. 麦肯锡深蓝 consulting-navy ============
+   深蓝 + 金。信息密度高但层级分明，页眉细线是灵魂。 */
+html[data-theme="consulting-navy"]{
+  --page-bg:#dfe4ec; --bg:#ffffff; --surface:#f4f6fa;
+  --ink:#0b2545; --ink-2:#3a5273; --ink-3:#7d8ea8;
+  --accent:#1a3a6b; --accent-ink:#ffffff; --accent-soft:#eef2f8;
+  --line:#d9e1ec; --radius:4px; --radius-sm:2px; --radius-pill:3px; --dot-radius:1px;
+  --shadow:none; --h-weight:700;
+  --font-h:var(--font-sans); --font-b:var(--font-sans); --font-m:var(--font-mono); --font-n:var(--font-figure);
+}
+html[data-theme="consulting-navy"] .slide::before{
+  content:"";position:absolute;left:var(--pad-x);right:var(--pad-x);top:calc(var(--sc)*34px);
+  height:calc(var(--sc)*3px);background:var(--ink);
+}
+html[data-theme="consulting-navy"] .slide::after{
+  content:"";position:absolute;left:var(--pad-x);top:calc(var(--sc)*34px);
+  width:calc(var(--sc)*86px);height:calc(var(--sc)*3px);background:#b8873b;
+}
+html[data-theme="consulting-navy"] .h2{color:var(--ink)}
+html[data-theme="consulting-navy"] .metric .n{color:var(--accent)}
+html[data-theme="consulting-navy"] .card{border-left:calc(var(--sc)*3px) solid var(--accent);border-radius:0}
+
+/* ============ 5. 北欧雾灰 nordic-calm ============
+   低饱和莫兰迪，大圆角浅阴影。久看不累，适合课件与内部宣讲。 */
+html[data-theme="nordic-calm"]{
+  --page-bg:#eceae5; --bg:#f9f8f5; --surface:#ffffff;
+  --ink:#2e3336; --ink-2:#565d61; --ink-3:#8d9397;
+  --accent:#7c8f86; --accent-ink:#ffffff; --accent-soft:#e9eeea;
+  --line:#e3e0d8; --radius:18px; --radius-sm:99px; --radius-pill:99px; --dot-radius:50%;
+  --shadow:0 2px 14px rgba(90,100,95,.07); --h-weight:600;
+  --font-h:var(--font-sans); --font-b:var(--font-sans); --font-m:var(--font-mono); --font-n:var(--font-figure);
+}
+html[data-theme="nordic-calm"] .slide::before{
+  content:"";position:absolute;top:calc(var(--sc)*-140px);right:calc(var(--sc)*-120px);
+  width:calc(var(--sc)*440px);height:calc(var(--sc)*440px);border-radius:50%;
+  background:radial-gradient(circle,rgba(124,143,134,.14),transparent 68%);
+}
+html[data-theme="nordic-calm"] .card{border-color:transparent}
+html[data-theme="nordic-calm"] .kicker::before{width:calc(var(--sc)*18px);height:calc(var(--sc)*18px);border-radius:50%}
+
+/* ============ 6. 暖调杂志 warm-editorial ============
+   米色纸感 + 衬线标题 + 陶土橙。品牌/内容分享有质感。 */
+html[data-theme="warm-editorial"]{
+  --page-bg:#e3dbcd; --bg:#fbf7f0; --surface:#f4eee3;
+  --ink:#201c16; --ink-2:#4a423a; --ink-3:#8e8271;
+  --accent:#b4562f; --accent-ink:#ffffff; --accent-soft:#f3e3d8;
+  --line:#e2d8c8; --radius:2px; --radius-sm:1px; --radius-pill:2px; --dot-radius:50%;
+  --shadow:none; --h-weight:700;
+  --font-h:var(--font-serif); --font-b:var(--font-sans); --font-m:var(--font-mono); --font-n:var(--font-figure);
+}
+html[data-theme="warm-editorial"] .h1,
+html[data-theme="warm-editorial"] .h2,
+html[data-theme="warm-editorial"] .h3{font-family:var(--font-serif);font-weight:700;letter-spacing:.005em}
+html[data-theme="warm-editorial"] .kicker{text-transform:none;letter-spacing:.2em;font-size:calc(var(--sc)*14px)}
+html[data-theme="warm-editorial"] .slide::before{
+  content:"";position:absolute;left:var(--pad-x);right:var(--pad-x);bottom:calc(var(--sc)*46px);
+  height:1px;background:var(--line);
+}
+
+/* ============ 7. 数据黑白 data-mono ============
+   等宽字、细线表格、零装饰。财务/数据复盘首选。 */
+html[data-theme="data-mono"]{
+  --page-bg:#dcdcdc; --bg:#ffffff; --surface:#f7f7f7;
+  --ink:#000000; --ink-2:#333333; --ink-3:#8a8a8a;
+  --accent:#1f6feb; --accent-ink:#ffffff; --accent-soft:#eaf1fd;
+  --line:#d0d0d0; --radius:0px; --radius-sm:0px; --radius-pill:0px; --dot-radius:0px;
+  --shadow:none; --h-weight:500;
+  --font-h:var(--font-mono); --font-b:var(--font-sans); --font-m:var(--font-mono); --font-n:var(--font-mono);
+}
+html[data-theme="data-mono"] .h1,
+html[data-theme="data-mono"] .h2{font-family:var(--font-sans);font-weight:700}
+html[data-theme="data-mono"] .kicker{text-transform:none;letter-spacing:.08em;font-family:var(--font-mono)}
+html[data-theme="data-mono"] .slide::before{
+  content:"";position:absolute;left:var(--pad-x);right:var(--pad-x);top:calc(var(--sc)*30px);height:1px;background:#000;
+}
+html[data-theme="data-mono"] .card{background:transparent;border:1px solid var(--line)}
+html[data-theme="data-mono"] .metric .n{font-feature-settings:"tnum"}
+
+/* ============ 8. 活力渐变 vibrant-pop ============
+   紫粉橙渐变、大圆角、柔和阴影。营销/招募/活动。 */
+html[data-theme="vibrant-pop"]{
+  --page-bg:#efeaf6; --bg:#ffffff; --surface:#faf8ff;
+  --ink:#1c1230; --ink-2:#4a3d63; --ink-3:#8b7fa3;
+  --accent:#6d28d9; --accent-ink:#ffffff; --accent-soft:#f1e9fe;
+  --line:#e8e0f5; --radius:22px; --radius-sm:99px; --radius-pill:99px; --dot-radius:50%;
+  --shadow:0 10px 34px rgba(109,40,217,.10); --h-weight:800;
+  --font-h:var(--font-sans); --font-b:var(--font-sans); --font-m:var(--font-mono); --font-n:var(--font-figure);
+}
+html[data-theme="vibrant-pop"] .slide::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(680px 420px at 94% -8%, rgba(249,115,22,.20), transparent 62%),
+    radial-gradient(620px 400px at -6% 104%, rgba(168,85,247,.20), transparent 60%),
+    radial-gradient(520px 360px at 62% 108%, rgba(236,72,153,.13), transparent 62%);
+}
+html[data-theme="vibrant-pop"] .layout-cover .cv-t{
+  background:linear-gradient(96deg,#6d28d9 8%,#c026d3 52%,#f97316 96%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+html[data-theme="vibrant-pop"] .metric .n{
+  background:linear-gradient(100deg,#6d28d9,#f97316);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+
+/* ============ 9. 生态绿 eco-green ============
+   森林绿 + 米白。政策宣讲、可持续、农业、ESG。 */
+html[data-theme="eco-green"]{
+  --page-bg:#e2e9e0; --bg:#f5f8f3; --surface:#ffffff;
+  --ink:#17281d; --ink-2:#3d5445; --ink-3:#7c9284;
+  --accent:#2f6b46; --accent-ink:#ffffff; --accent-soft:#e2eee5;
+  --line:#d6e3d9; --radius:8px; --radius-sm:4px; --radius-pill:99px; --dot-radius:50%;
+  --shadow:0 2px 12px rgba(47,107,70,.07); --h-weight:700;
+  --font-h:var(--font-sans); --font-b:var(--font-sans); --font-m:var(--font-mono); --font-n:var(--font-figure);
+}
+html[data-theme="eco-green"] .slide::before{
+  content:"";position:absolute;left:0;right:0;top:0;height:calc(var(--sc)*8px);
+  background:linear-gradient(90deg,#2f6b46 0%,#7aa886 62%,#cfe0ce 100%);
+}
+html[data-theme="eco-green"] .metric .n{color:var(--accent)}
+
+/* ============ 10. 学术蓝 academic-blue ============
+   白底蓝灰，层级规范，注释克制。论文答辩/公开课。 */
+html[data-theme="academic-blue"]{
+  --page-bg:#e4e9f0; --bg:#ffffff; --surface:#f6f9fc;
+  --ink:#12263f; --ink-2:#3d5b7c; --ink-3:#8395ab;
+  --accent:#1b5c9c; --accent-ink:#ffffff; --accent-soft:#e9f2fa;
+  --line:#dbe5ef; --radius:5px; --radius-sm:2px; --radius-pill:3px; --dot-radius:50%;
+  --shadow:none; --h-weight:700;
+  --font-h:var(--font-sans); --font-b:var(--font-sans); --font-m:var(--font-mono); --font-n:var(--font-figure);
+}
+html[data-theme="academic-blue"] .slide::before{
+  content:"";position:absolute;left:var(--pad-x);right:var(--pad-x);top:0;height:calc(var(--sc)*5px);
+  background:linear-gradient(90deg,#1b5c9c,#4d90cc 70%,#dbe5ef 100%);
+}
+html[data-theme="academic-blue"] .card{border-top:calc(var(--sc)*3px) solid var(--accent);border-radius:0 0 5px 5px}
+
+/* ============ 11. 东方墨 ink-brush ============
+   宣纸底 + 墨黑 + 朱红，衬线标题。文化/中医药/国风。 */
+html[data-theme="ink-brush"]{
+  --page-bg:#ded5c2; --bg:#f7f3e9; --surface:#f0eade;
+  --ink:#1a1a18; --ink-2:#3f3d38; --ink-3:#8a8377;
+  --accent:#a33a2a; --accent-ink:#ffffff; --accent-soft:#f0e0da;
+  --line:#ddd3c0; --radius:0px; --radius-sm:0px; --radius-pill:0px; --dot-radius:0px;
+  --shadow:none; --h-weight:700;
+  --font-h:var(--font-serif); --font-b:var(--font-sans); --font-m:var(--font-mono); --font-n:var(--font-serif);
+}
+html[data-theme="ink-brush"] .h1,
+html[data-theme="ink-brush"] .h2,
+html[data-theme="ink-brush"] .layout-cover .cv-t{font-family:var(--font-serif);letter-spacing:.06em;line-height:1.3}
+html[data-theme="ink-brush"] .kicker{letter-spacing:.34em;font-family:var(--font-serif)}
+html[data-theme="ink-brush"] .slide::before{
+  content:"";position:absolute;inset:calc(var(--sc)*22px);border:1px solid rgba(26,26,24,.14);
+  pointer-events:none;
+}
+html[data-theme="ink-brush"] .slide::after{
+  content:"";position:absolute;right:calc(var(--sc)*22px);top:calc(var(--sc)*22px);
+  width:calc(var(--sc)*46px);height:calc(var(--sc)*46px);background:var(--accent);opacity:.9;
+}
+html[data-theme="ink-brush"] .card{border:1px solid rgba(26,26,24,.13);background:transparent}
+
+/* ============ 12. 机甲橙黑 mecha-orange ============
+   黑底荧光橙、斜切色块、粗黑标题。无人机/低空经济/工业/汽车。 */
+html[data-theme="mecha-orange"]{
+  --page-bg:#08080a; --bg:#0d0d10; --surface:#16161a;
+  --ink:#f7f7f8; --ink-2:#b6b6bd; --ink-3:#71717a;
+  --accent:#ff6a00; --accent-ink:#0d0d10; --accent-soft:rgba(255,106,0,.14);
+  --line:rgba(255,255,255,.14); --radius:2px; --radius-sm:0px; --radius-pill:2px; --dot-radius:0px;
+  --shadow:none; --h-weight:800;
+  --font-h:var(--font-sans); --font-b:var(--font-sans); --font-m:var(--font-mono); --font-n:var(--font-figure);
+}
+html[data-theme="mecha-orange"] .h1,
+html[data-theme="mecha-orange"] .h2{text-transform:none;letter-spacing:-.02em;font-weight:800}
+html[data-theme="mecha-orange"] .slide::before{
+  content:"";position:absolute;top:0;right:0;width:calc(var(--sc)*300px);height:calc(var(--sc)*180px);
+  background:linear-gradient(135deg,transparent 42%,var(--accent) 42%,var(--accent) 46%,transparent 46%);
+  opacity:.9;pointer-events:none;
+}
+html[data-theme="mecha-orange"] .slide::after{
+  content:"";position:absolute;left:0;bottom:0;width:calc(var(--sc)*180px);height:calc(var(--sc)*6px);
+  background:var(--accent);
+}
+html[data-theme="mecha-orange"] .metric .n{text-shadow:0 0 calc(var(--sc)*30px) rgba(255,106,0,.4)}
+html[data-theme="mecha-orange"] .card{border-left:calc(var(--sc)*3px) solid var(--accent);border-radius:0}
+html[data-theme="mecha-orange"] .kicker{letter-spacing:.22em}
+
+/* ============================================================
+   BASE —— 画布 / 版式 / 组件
+   ============================================================ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+html{
+  --w:1280; --h:720;
+  /* 所有字号/间距都乘以 --sc，保证换画布比例时版式等比不塌 */
+  --sc:calc(var(--w) / 1280);
+  --pad-x:calc(var(--sc) * 92px);
+  --pad-y:calc(var(--sc) * 64px);
+  --gap:calc(var(--sc) * 24px);
+  font-size:16px;
+}
+html[data-ratio="9:16"]{
+  /* 竖屏画布窄，基准取 800（而非 1000）：720/800=0.9，
+     字号与间距相对横屏放大约 25%，手机上看和投屏都更清晰 */
+  --sc:calc(var(--w) / 800);
+  --pad-x:calc(var(--sc) * 56px);--pad-y:calc(var(--sc) * 96px);
+}
+
+body{
+  background:var(--page-bg, #e9ebef);
+  color:var(--ink);
+  font-family:var(--font-b);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  overflow:hidden;
+  letter-spacing:.012em;
+}
+
+/* ---------- 舞台与画布 ---------- */
+.stage{
+  position:fixed;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--page-bg, #e9ebef);
+  overflow:hidden;
+}
+.deck{
+  position:relative;
+  width:calc(var(--w) * 1px);
+  height:calc(var(--h) * 1px);
+  transform-origin:center center;
+  transform:scale(var(--zoom,1));
+  background:var(--bg);
+  box-shadow:0 24px 80px rgba(0,0,0,.28);
+  border-radius:calc(var(--sc) * 6px);
+  overflow:hidden;
+  isolation:isolate;
+}
+.slide{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  display:flex;flex-direction:column;
+  background:var(--bg);
+  padding:var(--pad-y) var(--pad-x);
+  opacity:0;visibility:hidden;
+  transform:translateX(38px);
+  transition:opacity .42s cubic-bezier(.4,0,.2,1), transform .42s cubic-bezier(.4,0,.2,1), visibility .42s;
+  pointer-events:none;
+  overflow:hidden;
+}
+.slide.active{opacity:1;visibility:visible;transform:none;pointer-events:auto;z-index:2}
+.slide.prev{transform:translateX(-38px)}
+
+/* 背景装饰层（各主题用 ::before/::after 或 .bgfx 自定义） */
+.slide > .bgfx{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.slide > .inner{position:relative;z-index:1;display:flex;flex-direction:column;flex:1;min-height:0}
+
+/* 逐元素入场动画 */
+.slide .anim{opacity:0;transform:translateY(calc(var(--sc) * 16px));transition:opacity .5s ease,transform .5s cubic-bezier(.2,.7,.3,1)}
+.slide.active .anim,.slide.past .anim{opacity:1;transform:none}
+.slide.past .anim{transition:none}
+
+/* ---------- 排版 ---------- */
+.kicker{
+  font-size:calc(var(--sc) * 15px);
+  font-weight:600;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--accent);
+  display:flex;align-items:center;gap:calc(var(--sc) * 12px);
+  margin-bottom:calc(var(--sc) * 22px);
+}
+.kicker::before{content:"";width:calc(var(--sc) * 26px);height:2px;background:var(--accent);flex:none}
+.kicker.plain::before{display:none}
+
+.h1{
+  font-family:var(--font-h);
+  font-size:calc(var(--sc) * 68px);
+  line-height:1.12;font-weight:var(--h-weight,700);
+  letter-spacing:-.015em;
+  color:var(--ink);
+}
+.h2{
+  font-family:var(--font-h);
+  font-size:calc(var(--sc) * 44px);
+  line-height:1.2;font-weight:var(--h-weight,700);
+  letter-spacing:-.01em;
+  color:var(--ink);
+}
+.h3{
+  font-family:var(--font-h);
+  font-size:calc(var(--sc) * 26px);
+  line-height:1.3;font-weight:600;
+  color:var(--ink);
+}
+.lead{
+  font-size:calc(var(--sc) * 24px);
+  line-height:1.62;color:var(--ink-2);font-weight:400;
+}
+.body{
+  font-size:calc(var(--sc) * 20px);
+  line-height:1.72;color:var(--ink-2);
+}
+.small{font-size:calc(var(--sc) * 15px);line-height:1.6;color:var(--ink-3)}
+.accent{color:var(--accent);white-space:nowrap}
+.mark{background:linear-gradient(transparent 58%,var(--accent-soft) 58%);padding:0 .12em;color:inherit}
+.u{text-decoration:underline;text-decoration-color:var(--accent);text-underline-offset:.18em;text-decoration-thickness:2px}
+.mono{font-family:var(--font-m)}
+.num{font-family:var(--font-n);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+
+/* 标题与正文的固定节奏 */
+.head{display:flex;flex-direction:column;gap:calc(var(--sc) * 14px);margin-bottom:calc(var(--sc) * 40px);flex:none}
+.head.tight{margin-bottom:calc(var(--sc) * 26px)}
+.head .sub{font-size:calc(var(--sc) * 19px);color:var(--ink-3);line-height:1.55;max-width:76%}
+.rule{height:1px;background:var(--line);width:100%;flex:none}
+.rule.thick{height:calc(var(--sc) * 3px);background:var(--accent);width:calc(var(--sc) * 72px)}
+
+/* ---------- 网格与卡片 ---------- */
+.row{display:flex;gap:var(--gap)}
+.row.between{justify-content:space-between}
+.row.center{align-items:center}
+.col{display:flex;flex-direction:column;gap:var(--gap)}
+.grow{flex:1;min-height:0}
+.g2{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--gap)}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--gap)}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--gap)}
+.g21{display:grid;grid-template-columns:1.35fr 1fr;gap:calc(var(--sc) * 48px)}
+.g12{display:grid;grid-template-columns:1fr 1.6fr;gap:calc(var(--sc) * 48px)}
+
+.card{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:calc(var(--sc) * 30px);
+  display:flex;flex-direction:column;gap:calc(var(--sc) * 12px);
+  box-shadow:var(--shadow, none);
+  min-width:0;
+}
+.card.tint{background:var(--accent-soft);border-color:transparent}
+.card.flat{background:transparent;border:none;border-left:calc(var(--sc)*3px) solid var(--accent);border-radius:0;padding-left:calc(var(--sc)*22px)}
+.card .ct{font-size:calc(var(--sc) * 21px);font-weight:650;color:var(--ink);line-height:1.35}
+.card .cb{font-size:calc(var(--sc) * 16px);line-height:1.68;color:var(--ink-2)}
+.card .idx{font-family:var(--font-n);font-size:calc(var(--sc)*14px);font-weight:700;color:var(--accent);letter-spacing:.1em}
+
+/* 指标块 */
+.metric{display:flex;flex-direction:column;gap:calc(var(--sc) * 6px)}
+.metric .n{
+  font-family:var(--font-n);font-variant-numeric:tabular-nums;
+  font-size:calc(var(--sc) * 66px);line-height:1;font-weight:700;
+  color:var(--accent);letter-spacing:-.03em;
+}
+.metric .n small{font-size:.42em;font-weight:600;margin-left:.06em}
+.metric .l{font-size:calc(var(--sc) * 16px);color:var(--ink-3);line-height:1.45}
+.metric .d{font-size:calc(var(--sc) * 14px);color:var(--ink-3)}
+.up{color:#c0392b}.down{color:#1e8449}
+
+/* 要点列表 */
+.bullets{display:flex;flex-direction:column;gap:calc(var(--sc) * 18px);list-style:none}
+.bullets li{
+  position:relative;padding-left:calc(var(--sc) * 30px);
+  font-size:calc(var(--sc) * 20px);line-height:1.6;color:var(--ink-2);
+}
+.bullets li::before{
+  content:"";position:absolute;left:0;top:.62em;
+  width:calc(var(--sc) * 9px);height:calc(var(--sc) * 9px);
+  background:var(--accent);border-radius:var(--dot-radius,0);
+}
+.bullets li b{color:var(--ink);font-weight:650}
+.bullets.lg li{font-size:calc(var(--sc) * 23px)}
+
+/* 序号列表 */
+.steps{display:flex;flex-direction:column;gap:calc(var(--sc) * 22px);counter-reset:s;justify-content:center}
+.steps .step{display:flex;gap:calc(var(--sc) * 20px);align-items:flex-start}
+.steps .step::before{
+  counter-increment:s;content:counter(s,decimal-leading-zero);
+  font-family:var(--font-n);font-size:calc(var(--sc) * 15px);font-weight:700;
+  color:var(--accent);padding-top:calc(var(--sc) * 4px);flex:none;
+}
+.steps .step .st{font-size:calc(var(--sc) * 20px);font-weight:650;color:var(--ink);line-height:1.4}
+.steps .step .sd{font-size:calc(var(--sc) * 16px);color:var(--ink-2);line-height:1.6;margin-top:calc(var(--sc)*4px)}
+
+/* 条形图 / 进度 */
+.bars{display:flex;flex-direction:column;gap:calc(var(--sc) * 20px)}
+.bar-row{display:grid;grid-template-columns:calc(var(--sc)*140px) 1fr calc(var(--sc)*64px);gap:calc(var(--sc)*16px);align-items:center}
+.bar-row .bl{font-size:calc(var(--sc) * 16px);color:var(--ink-2);text-align:right}
+.bar-track{height:calc(var(--sc) * 14px);background:var(--line);border-radius:var(--radius-sm,2px);overflow:hidden}
+.bar-fill{height:100%;background:var(--accent);width:var(--p,50%);border-radius:inherit;transition:width .8s cubic-bezier(.2,.7,.3,1)}
+.bar-row .bv{font-family:var(--font-n);font-size:calc(var(--sc) * 16px);font-weight:650;color:var(--ink)}
+
+/* 表格 */
+.tbl{width:100%;border-collapse:collapse;font-size:calc(var(--sc) * 16px)}
+.tbl th{
+  text-align:left;font-weight:650;color:var(--ink);
+  padding:calc(var(--sc) * 13px) calc(var(--sc) * 14px);
+  border-bottom:calc(var(--sc)*2px) solid var(--ink);
+  font-size:calc(var(--sc) * 15px);letter-spacing:.04em;
+}
+.tbl td{
+  padding:calc(var(--sc) * 13px) calc(var(--sc) * 14px);
+  color:var(--ink-2);border-bottom:1px solid var(--line);
+}
+.tbl tr:last-child td{border-bottom:none}
+.tbl td.num,.tbl th.num{text-align:right;font-family:var(--font-n)}
+.tbl tr.hl td{background:var(--accent-soft);color:var(--ink);font-weight:600}
+
+/* 引用 */
+.quote{display:flex;flex-direction:column;gap:calc(var(--sc) * 26px);justify-content:center;flex:1;min-height:0}
+.quote .qt{
+  font-family:var(--font-h);font-size:calc(var(--sc) * 40px);line-height:1.42;
+  font-weight:var(--h-weight,700);color:var(--ink);letter-spacing:-.01em;
+}
+.quote .qt::before{content:"“";color:var(--accent);margin-right:.04em}
+.quote .qt::after{content:"”";color:var(--accent);margin-left:.04em}
+.quote .cite{font-size:calc(var(--sc) * 17px);color:var(--ink-3);display:flex;align-items:center;gap:calc(var(--sc)*12px)}
+.quote .cite::before{content:"";width:calc(var(--sc)*32px);height:1px;background:var(--ink-3)}
+
+/* 标签 / 徽章 */
+.tags{display:flex;flex-wrap:wrap;gap:calc(var(--sc) * 10px)}
+.tag{
+  font-size:calc(var(--sc) * 14px);font-weight:600;
+  padding:calc(var(--sc) * 7px) calc(var(--sc) * 15px);
+  border:1px solid var(--line);border-radius:var(--radius-pill,4px);
+  color:var(--ink-2);background:var(--surface);
+}
+.tag.solid{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+
+/* 时间线 */
+.timeline{display:flex;gap:calc(var(--sc) * 18px);align-items:stretch}
+.tl-item{flex:1;display:flex;flex-direction:column;gap:calc(var(--sc) * 12px);position:relative;padding-top:calc(var(--sc) * 30px)}
+.tl-item::before{content:"";position:absolute;top:0;left:0;right:0;height:calc(var(--sc)*3px);background:var(--line)}
+.tl-item:not(:last-child)::before{right:calc(var(--sc)*-18px)}
+.tl-item::after{content:"";position:absolute;top:calc(var(--sc)*-3px);left:0;width:calc(var(--sc)*9px);height:calc(var(--sc)*9px);background:var(--accent);border-radius:50%}
+.tl-item.cur::after{width:calc(var(--sc)*13px);height:calc(var(--sc)*13px);top:calc(var(--sc)*-5px);box-shadow:0 0 0 calc(var(--sc)*4px) var(--accent-soft)}
+.tl-item .ty{font-family:var(--font-n);font-size:calc(var(--sc) * 15px);font-weight:700;color:var(--accent);letter-spacing:.06em}
+.tl-item .tt{font-size:calc(var(--sc) * 19px);font-weight:650;color:var(--ink);line-height:1.35}
+.tl-item .td{font-size:calc(var(--sc) * 15px);color:var(--ink-2);line-height:1.6}
+
+/* 对比 */
+.vs{display:grid;grid-template-columns:1fr auto 1fr;gap:calc(var(--sc) * 24px);align-items:stretch}
+.vs .side{display:flex;flex-direction:column;justify-content:center;gap:calc(var(--sc) * 14px);padding:calc(var(--sc) * 28px);border-radius:var(--radius);background:var(--surface);border:1px solid var(--line)}
+.vs .side.win{border-color:var(--accent);background:var(--accent-soft)}
+.vs .side .sh{font-size:calc(var(--sc) * 15px);font-weight:700;letter-spacing:.1em;color:var(--ink-3);text-transform:uppercase}
+.vs .side.win .sh{color:var(--accent)}
+.vs .mid{font-size:calc(var(--sc) * 15px);font-weight:700;color:var(--ink-3);letter-spacing:.08em;align-self:center}
+
+/* 图片 */
+.figure{display:flex;flex-direction:column;gap:calc(var(--sc) * 10px);min-width:0;min-height:0}
+.figure img{width:100%;height:100%;object-fit:cover;border-radius:var(--radius);display:block}
+.figure .cap{font-size:calc(var(--sc) * 14px);color:var(--ink-3);line-height:1.5}
+.imgbox{flex:1;min-height:0;border-radius:var(--radius);overflow:hidden;background:var(--surface);display:flex;align-items:center;justify-content:center}
+
+/* 页脚 */
+.foot{
+  display:flex;justify-content:space-between;align-items:flex-end;
+  font-size:calc(var(--sc) * 13px);color:var(--ink-3);
+  letter-spacing:.04em;flex:none;margin-top:auto;padding-top:calc(var(--sc) * 20px);
+}
+.foot .pg{font-family:var(--font-n);font-variant-numeric:tabular-nums}
+
+/* 通用工具类 */
+.center-v{justify-content:center}
+.grow.center-v{display:flex;flex-direction:column}
+.g2.center-v,.g3.center-v,.g4.center-v,.g21.center-v,.g12.center-v{display:grid;align-content:center}
+.center-h{align-items:center;text-align:center}
+.mt-a{margin-top:auto}
+.grow > .card{justify-content:center}
+/* 标题换行更均衡，避免最后一行只剩一两个字 */
+.h1,.h2,.big,.cv-t,.qt,.layout-cover .cv-t,.layout-statement .big{text-wrap:balance;line-break:strict}
+.big{
+  font-family:var(--font-h);font-size:calc(var(--sc) * 52px);line-height:1.28;
+  font-weight:var(--h-weight,700);letter-spacing:-.015em;color:var(--ink);max-width:96%;
+}
+.pill{
+  display:inline-flex;align-items:center;gap:calc(var(--sc)*8px);
+  font-size:calc(var(--sc)*14px);font-weight:650;letter-spacing:.04em;
+  padding:calc(var(--sc)*6px) calc(var(--sc)*14px);border-radius:var(--radius-pill,4px);
+  background:var(--accent-soft);color:var(--accent);
+}
+.empty-line{height:1px;background:var(--line);width:100%}
+
+/* 封面/章节大字版式 */
+.layout-cover{justify-content:center;gap:calc(var(--sc) * 34px)}
+.layout-cover .cv-t{font-family:var(--font-h);font-size:calc(var(--sc) * 82px);line-height:1.1;font-weight:var(--h-weight,700);letter-spacing:-.02em;color:var(--ink)}
+.layout-cover .cv-s{font-size:calc(var(--sc) * 24px);color:var(--ink-2);line-height:1.6;max-width:78%}
+.layout-cover .cv-m{margin-top:calc(var(--sc)*26px);display:flex;gap:calc(var(--sc)*34px);font-size:calc(var(--sc)*16px);color:var(--ink-3)}
+.layout-section{justify-content:center}
+.layout-section .sec-n{font-family:var(--font-n);font-size:calc(var(--sc)*150px);line-height:.9;font-weight:700;color:var(--accent-soft);letter-spacing:-.05em}
+.layout-end{justify-content:center;align-items:center;text-align:center;gap:calc(var(--sc)*22px)}
+.layout-statement{justify-content:center;gap:calc(var(--sc)*30px)}
+.layout-statement .big{font-family:var(--font-h);font-size:calc(var(--sc)*56px);line-height:1.26;font-weight:var(--h-weight,700);letter-spacing:-.015em;color:var(--ink);max-width:94%}
+/* 9:16 竖屏 */
+html[data-ratio="9:16"] .h1,
+html[data-ratio="9:16"] .layout-cover .cv-t{font-size:calc(var(--sc) * 74px)}
+html[data-ratio="9:16"] .layout-statement .big{font-size:calc(var(--sc)*58px)}
+html[data-ratio="9:16"] .g2,html[data-ratio="9:16"] .g3,
+html[data-ratio="9:16"] .g4,html[data-ratio="9:16"] .g12,
+html[data-ratio="9:16"] .g21{grid-template-columns:1fr;gap:calc(var(--sc) * 18px)}
+html[data-ratio="9:16"] .vs{grid-template-columns:1fr}
+html[data-ratio="9:16"] .vs .mid{justify-self:center}
+html[data-ratio="9:16"] .card{padding:calc(var(--sc) * 24px)}
+/* 竖屏纵向空间富裕，让 grid 卡片铺满而不是聚在中间（只影响 grid，不影响 flex 居中） */
+html[data-ratio="9:16"] .g2.center-v,html[data-ratio="9:16"] .g3.center-v,
+html[data-ratio="9:16"] .g4.center-v,html[data-ratio="9:16"] .g21.center-v,
+html[data-ratio="9:16"] .g12.center-v{align-content:center}
+html[data-ratio="9:16"] .layout-cover .cv-t{font-size:calc(var(--sc) * 200px);line-height:1}
+html[data-ratio="9:16"] .layout-cover .cv-m{font-size:calc(var(--sc) * 24px)}
+/* 竖屏是"一页一句话"，关键数字必须够大——手机屏上一行只放 4-6 个字才算乔布斯风 */
+html[data-ratio="9:16"] .big{font-size:calc(var(--sc) * 110px);line-height:1.04}
+html[data-ratio="9:16"] .qt{font-size:calc(var(--sc) * 58px)}
+html[data-ratio="9:16"] .h1{font-size:calc(var(--sc) * 86px)}
+html[data-ratio="9:16"] .h2{font-size:calc(var(--sc) * 62px)}
+html[data-ratio="9:16"] .lead{font-size:calc(var(--sc) * 30px)}
+html[data-ratio="9:16"] .metric .n{font-size:calc(var(--sc) * 104px)}
+html[data-ratio="9:16"] .metric .l{font-size:calc(var(--sc) * 32px)}
+html[data-ratio="9:16"] .metric .d{font-size:calc(var(--sc) * 24px)}
+html[data-ratio="9:16"] .cv-s{font-size:calc(var(--sc) * 34px)}
+html[data-ratio="9:16"] .metric .n{font-size:calc(var(--sc) * 54px)}
+
+/* 讲稿备注（不显示，仅导出到 PPTX notes） */
+.notes{display:none}
+
+/* ---------- HUD ---------- */
+.hud{position:fixed;inset:0;pointer-events:none;z-index:50;font-family:var(--font-b)}
+.hud .prog{position:absolute;top:0;left:0;height:2px;background:var(--accent);width:0;transition:width .35s ease;box-shadow:0 0 12px var(--accent)}
+.hud .pgno{position:absolute;right:22px;bottom:16px;font-size:12px;color:var(--ink-3);background:var(--surface);border:1px solid var(--line);padding:4px 11px;border-radius:99px;opacity:.9;font-variant-numeric:tabular-nums}
+.hud .hint{position:absolute;left:22px;bottom:16px;font-size:12px;color:var(--ink-3);opacity:.75}
+.hud .btn{pointer-events:auto;cursor:pointer;background:var(--surface);border:1px solid var(--line);color:var(--ink-2);width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;position:absolute;right:22px;top:16px}
+.hud .btn:hover{color:var(--accent);border-color:var(--accent)}
+.hud .toc{position:fixed;top:50%;right:22px;transform:translate(0,-50%) scale(.96);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:14px;width:min(340px,80vw);max-height:76vh;overflow:auto;pointer-events:auto;opacity:0;visibility:hidden;transition:.22s;box-shadow:0 18px 50px rgba(0,0,0,.18);font-size:13px;z-index:60}
+.hud .toc.open{opacity:1;visibility:visible;transform:translate(0,-50%)}
+.hud .toc .ti{display:flex;gap:9px;padding:6px 8px;border-radius:7px;cursor:pointer;color:var(--ink-2);line-height:1.4}
+.hud .toc .ti:hover{background:var(--accent-soft);color:var(--ink)}
+.hud .toc .ti.now{color:var(--accent);font-weight:650}
+.hud .toc .ti i{font-style:normal;color:var(--ink-3);font-family:var(--font-n);flex:none;width:20px;text-align:right}
+
+body.is-print .hud{display:none}
+
+/* ============================================================
+   PRINT / PDF —— 一页一张，矢量文字
+   ============================================================ */
+@media print{
+  @page{size:1280px 720px;margin:0}
+  html,body{background:#fff!important;overflow:visible!important;height:auto!important}
+  .stage{position:static!important;display:block!important;overflow:visible!important;background:#fff!important}
+  .deck{
+    transform:none!important;width:calc(var(--w)*1px)!important;height:auto!important;
+    box-shadow:none!important;border-radius:0!important;overflow:visible!important;
+  }
+  .slide{
+    position:relative!important;inset:auto!important;display:flex!important;
+    opacity:1!important;visibility:visible!important;transform:none!important;
+    width:calc(var(--w)*1px)!important;height:calc(var(--h)*1px)!important;
+    break-after:page;page-break-after:always;break-inside:avoid;overflow:hidden;
+  }
+  .slide:last-of-type{break-after:auto;page-break-after:auto}
+  .slide .anim{opacity:1!important;transform:none!important;transition:none!important}
+  .hud{display:none!important}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+}
+@media print{
+  .metric .n,
+  .slide .kicker,
+  .slide .h1,
+  .slide .h2,
+  .slide .h3,
+  .slide .big,
+  .slide .cv-t,
+  .slide .quote .qt{text-shadow:none!important}
+  .card{box-shadow:none!important}
+}
+@media print{
+  .metric .n,
+  .slide .kicker,
+  .slide .h1,
+  .slide .h2,
+  .slide .h3,
+  .slide .big,
+  .slide .cv-t,
+  .slide .quote .qt{text-shadow:none!important}
+  .card{box-shadow:none!important}
+  /* Edge 的 printToPDF 不渲染 Bahnschrift（Windows 变体字体），
+     会把整段数字/文字丢掉。打印时降级为 Arial，屏幕显示不受影响。 */
+  .metric .n,
+  .metric .l,
+  .num,
+  .tbl td.num,
+  .tbl th.num,
+  .bar-row .bv,
+  .steps .step::before,
+  .foot .pg,
+  .hud .pgno{font-family:Arial,"Helvetica Neue",Helvetica,sans-serif!important}
+}
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <div class="deck" id="deck">
+<section class="slide" data-title="封面">
+  <div class="inner layout-cover">
+    <div class="kicker anim">Final Project · 嵌入式物联网系统</div>
+    <h1 class="cv-t anim">智能花房养护站</h1>
+    <p class="cv-s anim">感知—决策—执行—上云完整闭环：让土壤湿度真正驱动一次浇水动作</p>
+    <div class="cv-m anim"><span>R1 系统 · R2 上云 · R3 结构 · R4 文档</span><span>2026.11.12</span><span>Introduction to Project Work</span></div>
+  </div>
+  <div class="notes">开场 30 秒：这是一台桌面级智能花房，不是"能显示数据的传感器板子"。全篇只讲两件事：怎么让一个物理量真正驱动执行器，以及过程中挖出来的三处隐蔽缺陷。</div>
+</section>
+
+<section class="slide" data-title="结论先行">
+  <div class="inner">
+    <div class="head tight"><div class="kicker anim">结论先行 / Abstract</div></div>
+    <div class="grow col center-v">
+      <p class="big anim">单片机足以构成完整闭环；<span class="accent">保护代码存在，不等于保护生效</span>。</p>
+      <div class="g3 anim">
+        <div class="card"><div class="idx">01</div><div class="ct">闭环真的跑通</div><div class="cb">实测 32.1 ml/s，单轮 2 s 出 64 ml，11-13 实机闭环跑通。</div></div>
+        <div class="card"><div class="idx">02</div><div class="ct">挖出三处失效</div><div class="cb">连浇上限、水位门控、标定除零，由构造场景暴露。</div></div>
+        <div class="card"><div class="idx">03</div><div class="ct">预算之内</div><div class="cb">自购 107–136 元，打印件实测 338.1 g。</div></div>
+      </div>
+    </div>
+    <div class="foot"><span>数据来源：项目仓库 smart-greenhouse 实测记录</span><span class="pg"></span></div>
+  </div>
+  <div class="notes">这一页是全篇的锚，讲完停两秒。最想让人记住的不是"我们做出来了"，而是右边那句——保护逻辑的存在，和它是否真的生效，是两件完全不同的事。</div>
+</section>
+
+<section class="slide" data-title="系统架构">
+  <div class="inner">
+    <div class="head tight">
+      <div class="kicker anim">系统架构 / Architecture</div>
+      <h2 class="h2 anim">四层解耦：感知、决策、执行、云端互不阻塞</h2>
+    </div>
+    <div class="grow center-v">
+      <div class="row anim" style="align-items:stretch">
+        <div class="card" style="flex:1"><div class="idx">感知层</div><div class="ct">采集</div><div class="cb">土壤湿度 · DHT11 · 光敏<br><span class="mono">GPIO34/35/33</span></div></div>
+        <div style="display:flex;align-items:center;color:var(--accent);font-size:calc(var(--sc)*24px)">→</div>
+        <div class="card" style="flex:1"><div class="idx">决策层</div><div class="ct">判定</div><div class="cb">五态状态机<br>阈值 15% 判缺水</div></div>
+        <div style="display:flex;align-items:center;color:var(--accent);font-size:calc(var(--sc)*24px)">→</div>
+        <div class="card" style="flex:1"><div class="idx">执行层</div><div class="ct">动作</div><div class="cb">继电器 → 底吸泵<br><span class="mono">GPIO26</span></div></div>
+        <div style="display:flex;align-items:center;color:var(--accent);font-size:calc(var(--sc)*24px)">→</div>
+        <div class="card tint" style="flex:1"><div class="idx">云端层</div><div class="ct">联动</div><div class="cb">巴法云 MQTT<br>小程序 · 保底页</div></div>
+      </div>
+    </div>
+    <div class="foot"><span>MQTT 下行指令可远程触发 5 s 浇水并回到执行层，闭环由此成立</span><span class="pg"></span></div>
+  </div>
+  <div class="notes">四层拆开的好处是任一环节故障都不会让系统无法展示：云端不可用就走局域网保底页，自动路径异常就保留远程手动路径。这不是设计洁癖，是答辩现场的实际需要。</div>
+</section>
+
+<section class="slide" data-title="引脚与约束">
+  <div class="inner">
+    <div class="head tight">
+      <div class="kicker anim">关键约束 / Constraints</div>
+      <h2 class="h2 anim">模拟信号必须全落在 GPIO32–39：WiFi 一开 ADC2 失灵</h2>
+    </div>
+    <div class="grow center-v">
+      <table class="tbl anim">
+        <thead><tr><th>功能</th><th>引脚</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr><td>土壤湿度</td><td class="mono">GPIO34</td><td>ADC1_CH6</td></tr>
+          <tr><td>光敏</td><td class="mono">GPIO35</td><td>ADC1_CH7</td></tr>
+          <tr><td>DHT11</td><td class="mono">GPIO33</td><td>数字双向</td></tr>
+          <tr><td>浮球干接点</td><td class="mono">GPIO32</td><td>1kΩ 上拉 + 滤抖</td></tr>
+          <tr class="hl"><td>继电器 IN</td><td class="mono">GPIO26</td><td>ACTIVE_HIGH</td></tr>
+          <tr><td>OLED SDA/SCL</td><td class="mono">GPIO21/22</td><td>I2C 0x3C</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="foot"><span>ADC2 在 WiFi 开启后直接失效，与 UNO 差异最大</span><span class="pg"></span></div>
+  </div>
+  <div class="notes">这一页是给懂硬件的评审看的。ADC2 那条坑我们自己也踩了：接上 WiFi 之后光敏读数直接乱跳，排查半天才发现是芯片级限制，不是代码问题。另外继电器线圈绝不能接 3V3，必须 VIN 5V。</div>
+</section>
+
+<section class="slide" data-title="五态状态机">
+  <div class="inner">
+    <div class="head tight">
+      <div class="kicker anim">决策逻辑 / State Machine</div>
+      <h2 class="h2 anim">五态把互斥路径显式分离，每条转移可独立推理</h2>
+    </div>
+    <div class="grow center-v">
+      <div class="row anim" style="align-items:stretch">
+        <div class="card" style="flex:1"><div class="idx">S0</div><div class="ct">监视</div><div class="cb">判是否低于 15%</div></div>
+        <div class="card tint" style="flex:1"><div class="idx">S1</div><div class="ct">浇水中</div><div class="cb">水泵通电 2 s</div></div>
+        <div class="card" style="flex:1"><div class="idx">S2</div><div class="ct">停水复测</div><div class="cb">静置 30 s 再读</div></div>
+        <div class="card" style="flex:1"><div class="idx">S3</div><div class="ct">远程手动</div><div class="cb">MQTT 触发 5 s</div></div>
+        <div class="card" style="flex:1"><div class="idx">S4</div><div class="ct">冷却保护</div><div class="cb">6 轮仍缺水即停机</div></div>
+      </div>
+      <div class="rule anim"></div>
+      <div class="row anim" style="gap:calc(var(--sc)*14px);flex-wrap:wrap">
+        <span class="pill">阈值 15%</span>
+        <span class="pill">单轮 2 s ≈ 64 ml</span>
+        <span class="pill">静置 30 s 复测</span>
+        <span class="pill">连浇上限 6 轮</span>
+        <span class="pill">冷却 10 min</span>
+        <span class="pill">水位低即拒启</span>
+      </div>
+    </div>
+    <div class="foot"><span>策略：浇一段—停—复测，避免浇透导致盆底漏水而根系未吸收</span><span class="pg"></span></div>
+  </div>
+  <div class="notes">五态不是设计洁癖。互斥的控制路径显式分开之后，每一条转移条件才能被单独推理、单独验证。后面三处缺陷全部是在这个模型上被揪出来的——逻辑如果散落在 if 分支里，根本无从下手。</div>
+</section>
+
+<section class="slide" data-title="土壤标定">
+  <div class="inner">
+    <div class="head tight">
+      <div class="kicker anim">关键标定 / Soil Calibration</div>
+      <h2 class="h2 anim">干 1855 / 湿 857 是自动闭环的分界线</h2>
+    </div>
+    <div class="grow col center-v">
+      <div class="g3 anim">
+        <div class="card"><div class="metric"><div class="n">1855</div><div class="l">干土 raw</div><div class="d">11-19 真干土实测</div></div></div>
+        <div class="card"><div class="metric"><div class="n">857</div><div class="l">湿土 raw</div><div class="d">11-19 完全浸没</div></div></div>
+        <div class="card tint"><div class="metric"><div class="n">998</div><div class="l">干湿差</div><div class="d">超 800 噪声阈值</div></div></div>
+      </div>
+      <div class="row anim" style="gap:calc(var(--sc)*24px);align-items:stretch">
+        <div class="card flat" style="flex:1;opacity:.62"><div class="ct">旧值 2372 <span style="font-size:calc(var(--sc)*13px);color:var(--ink-3);font-weight:400">（已废弃）</span></div><div class="cb">探头悬空取值，土永远到不了，永不浇水。</div></div>
+        <div class="card flat" style="flex:1;background:var(--accent-soft)"><div class="ct">现行 1855</div><div class="cb">11-19 复测 1849~1857 取中值，起表前抓出。</div></div>
+        <div class="card flat" style="flex:1"><div class="ct">现行 857</div><div class="cb">完全浸没实测；旧值 1050 是蘸水取值，<span style="opacity:.62">已废弃</span>。</div></div>
+      </div>
+      <p class="small anim">11-12 置 EN_WATER=1 闭环解锁；11-19 二次修正干土值——未经验证的阈值不应驱动真实动作。</p>
+    </div>
+    <div class="foot"><span>数据来源：11-08 实机采样，11-19 真干土实测回填</span><span class="pg"></span></div>
+  </div>
+  <div class="notes">这是全项目写错代价最高的一步。定稿那天我们把两个值和网上的典型值对了一遍，确认吻合才敢开自动。EN_WATER 保持 0 是刻意的选择，不是保守——未经验证的阈值不应驱动真实动作。</div>
+</section>
+
+<section class="slide" data-title="水泵实测">
+  <div class="inner">
+    <div class="head tight">
+      <div class="kicker anim">执行标定 / Pump Calibration</div>
+      <h2 class="h2 anim">实测 32.1 ml/s，浇水时长从估算 3000 ms 定稿为 2000 ms</h2>
+    </div>
+    <div class="g4 grow center-v">
+      <div class="card anim"><div class="metric"><div class="n">32.1<small>ml/s</small></div><div class="l">出口流量</div><div class="d">250 ml ÷ 7.80 s</div></div></div>
+      <div class="card anim"><div class="metric"><div class="n">2000<small>ms</small></div><div class="l">单轮浇水时长</div><div class="d">WATER_MS 定稿</div></div></div>
+      <div class="card tint anim"><div class="metric"><div class="n">64<small>ml</small></div><div class="l">单轮出水量</div><div class="d">修正前估 96 ml</div></div></div>
+      <div class="card anim"><div class="metric"><div class="n">64<small>ml</small></div><div class="l">远程手动浇水</div><div class="d">2 s 触发</div></div></div>
+    </div>
+    <div class="foot"><span>数据来源：11-10 量筒法三轮计时，波动 &lt; 0.5%</span><span class="pg"></span></div>
+  </div>
+  <div class="notes">最初的 3000 ms 是拍脑袋估的，按 32 ml/s 算得出 96 ml，比花盆容量大了近一半，积水会从盆底漏出去。量筒一测就知道必须往下调——这就是实测和估算的差别。</div>
+</section>
+
+<section class="slide" data-title="硬件与成本">
+  <div class="inner">
+    <div class="head tight">
+      <div class="kicker anim">物料清单 / BOM</div>
+      <h2 class="h2 anim">16 项部件：自购 107–136 元，实验室套件零成本</h2>
+    </div>
+    <div class="grow center-v">
+      <table class="tbl anim">
+        <thead><tr><th>部件</th><th>数量</th><th>来源</th><th class="num">成本</th></tr></thead>
+        <tbody>
+          <tr><td>ESP32 开发板 CH340</td><td class="num">1</td><td>自购</td><td class="num">¥14.17</td></tr>
+          <tr><td>电容式土壤湿度传感器</td><td class="num">2</td><td>自购</td><td class="num">¥5–8</td></tr>
+          <tr><td>USB 微型底吸泵 3W</td><td class="num">1</td><td>自购</td><td class="num">¥10–15</td></tr>
+          <tr><td>P52 浮球开关 + 1L 桶</td><td class="num">2 + 1</td><td>自购</td><td class="num">¥28</td></tr>
+          <tr class="hl"><td>DHT11 · 光敏 · 继电器 · OLED</td><td class="num">各 1</td><td>实验室套件</td><td class="num">¥0</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="foot"><span>其余阻容、二极管、USB 线、软管、花盆等约 ¥48</span><span class="pg"></span></div>
+  </div>
+  <div class="notes">自购总额落在 107 到 136 元之间，取决于浮球和水泵的实际采购价，区间上沿也没突破 150 预算线。有同学会问为什么用两个土壤传感器：一个做触发、一个做对照备份，实际闭环里只用一个触发。</div>
+</section>
+
+<section class="slide" data-title="3D 打印件">
+  <div class="inner">
+    <div class="head tight">
+      <div class="kicker anim">结构件 / 3D Printing</div>
+      <h2 class="h2 anim">十件打印件实测 8 h 37 m / 338.1 g，现已全部打完</h2>
+    </div>
+    <div class="g12 grow">
+      <div class="col" style="gap:calc(var(--sc)*14px)">
+        <div class="card anim" style="padding:calc(var(--sc)*14px)"><div class="metric" style="gap:calc(var(--sc)*2px)"><div class="n" style="font-size:calc(var(--sc)*38px)">10<small>/10</small></div><div class="l">件全部完成</div><div class="d">底盘两片 11-13 打完</div></div></div>
+        <div class="card anim" style="padding:calc(var(--sc)*14px)"><div class="metric" style="gap:calc(var(--sc)*2px)"><div class="n" style="font-size:calc(var(--sc)*38px)">8<small>h37m</small></div><div class="l">切片总时长</div><div class="d">拓竹 X2D 0.4 mm</div></div></div>
+        <div class="card anim" style="padding:calc(var(--sc)*14px)"><div class="metric" style="gap:calc(var(--sc)*2px)"><div class="n" style="font-size:calc(var(--sc)*38px)">338<small>g</small></div><div class="l">耗材克重</div><div class="d">切片实测值</div></div></div>
+      </div>
+      <div class="col center-v">
+        <div class="bars anim" style="gap:calc(var(--sc)*14px)">
+          <div class="bar-row"><div class="bl">10 水箱盖</div><div class="bar-track"><div class="bar-fill" style="--p:100%"></div></div><div class="bv">44.6 g</div></div>
+          <div class="bar-row"><div class="bl">04 OLED 支架</div><div class="bar-track"><div class="bar-fill" style="--p:62%"></div></div><div class="bv">27.7 g</div></div>
+          <div class="bar-row"><div class="bl">01b 土壤架</div><div class="bar-track"><div class="bar-fill" style="--p:32%"></div></div><div class="bv">14.5 g</div></div>
+          <div class="bar-row"><div class="bl">07 DHT11 座</div><div class="bar-track"><div class="bar-fill" style="--p:25%"></div></div><div class="bv">11.2 g</div></div>
+          <div class="bar-row"><div class="bl">其余三件</div><div class="bar-track"><div class="bar-fill" style="--p:25%"></div></div><div class="bv">11.1 g</div></div>
+        </div>
+        <p class="small anim">底盘 06a 118.8 g / 06b 124.1 g，06a AR36 直口版 11-13 打完。</p>
+      </div>
+    </div>
+    <div class="foot"><span>数据来源：Bambu Studio 切片报告 10-24</span><span class="pg"></span></div>
+  </div>
+  <div class="notes">十个件全部用参数化脚本生成 STL，改尺寸只改脚本顶部的常量再重跑。严禁手改 STL——手改过一次就再也没法保证一致性了。这一版一共迭代了四轮。</div>
+</section>
+
+<section class="slide" data-title="核心教训">
+  <div class="inner layout-statement">
+    <div class="kicker plain anim">本项目最贵的一课</div>
+    <p class="big anim">保护代码存在，<span class="mark">不等于保护生效</span>。</p>
+    <p class="lead anim">三处缺陷共用同一个根因：代码走查只能证明一条路径"看起来正确"，而门控条件在目标场景下是否恰好成立、计数变量在每条转移路径上是否都被更新，<span class="accent">读代码得不出结论</span>。</p>
+  </div>
+  <div class="notes">这一页是全场的转折点。前面用数据证明我们把系统做出来了，这一页说明我们在过程中差点交付一个"看起来安全、实际上不触发任何保护"的系统。接下来三页逐个讲这三处。</div>
+</section>
+
+<section class="slide" data-title="缺陷一 · 连浇上限">
+  <div class="inner">
+    <div class="head tight">
+      <div class="kicker anim">缺陷 01 / Consecutive-Watering Limit</div>
+      <h2 class="h2 anim">连浇上限从未触发：转移分支里漏了轮数自增</h2>
+    </div>
+    <div class="grow center-v">
+      <div class="vs anim">
+        <div class="side">
+          <div class="sh">原实现</div>
+          <h3 class="h3">计数变量恒为 1</h3>
+          <ul class="bullets">
+            <li>「复测仍缺水 → 下一轮」未对轮数自增</li>
+            <li>计数恒为 1，<b>6 轮停机冷却永远为假</b></li>
+          </ul>
+        </div>
+        <div class="mid">→</div>
+        <div class="side win">
+          <div class="sh">修复后</div>
+          <h3 class="h3">第 6 轮必进冷却</h3>
+          <ul class="bullets">
+            <li>转移分支补上自增，计数真实递增</li>
+            <li>状态机模拟验证：<b>第 6 轮必进冷却态</b></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="foot"><span>不是逻辑错误，而是实现遗漏——保护写对了，却没有转移会走到它</span><span class="pg"></span></div>
+  </div>
+  <div class="notes">发现方式是构造触发场景，不是读代码。我们把状态机的每个状态、每条转移条件、每个输入组合列成一张完整转移表，然后对着一行一行造输入。造到"复测仍缺水且已满 6 轮"这一行时，发现输出根本不是冷却态。</div>
+</section>
+
+<section class="slide" data-title="缺陷二 · 水位死代码">
+  <div class="inner">
+    <div class="head tight">
+      <div class="kicker anim">缺陷 02 / Dead-Code Level Guard</div>
+      <h2 class="h2 anim">水位保护因引脚门控成为死代码，最需要的窗口反而失效</h2>
+    </div>
+    <div class="grow center-v">
+      <div class="vs anim">
+        <div class="side">
+          <div class="sh">原实现</div>
+          <h3 class="h3">门控条件恒为假</h3>
+          <ul class="bullets">
+            <li>用「继电器输出电平」做门控</li>
+            <li>进入停水复测前继电器<b>已断开</b></li>
+            <li><b>最需要的窗口内，保护不执行</b></li>
+          </ul>
+        </div>
+        <div class="mid">→</div>
+        <div class="side win">
+          <div class="sh">修复后</div>
+          <h3 class="h3">按状态编号判定</h3>
+          <ul class="bullets">
+            <li>改用 <span class="mono">waterState ∈ {1,2,3}</span></li>
+            <li>三种涉水状态真正覆盖</li>
+            <li>断线判"有水"，<b>代价：失效方向不是 fail-safe</b></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="foot"><span>共性：门控条件必须与被保护场景存在逻辑关联</span><span class="pg"></span></div>
+  </div>
+  <div class="notes">这处最阴险，因为它看起来完全合理——继电器通电说明在浇水，浇水时该看水位，多自然。但保护要生效的时刻恰恰是继电器已经断开的时刻。选信号的时候得先问：在我需要它为真的那个瞬间，它真的为真吗？另外补一句现状：浮球 11-18 三测翻转为常闭型（没水闭合），代价是断线会被判成"有水"，失效方向不再 fail-safe——这是已知代价，恢复机械翻转即可改回。</div>
+</section>
+
+<section class="slide" data-title="缺陷三 · 标定除零">
+  <div class="inner">
+    <div class="head tight">
+      <div class="kicker anim">缺陷 03 / map() Divide-by-Zero</div>
+      <h2 class="h2 anim">标定值填反等于崩溃：map() 除零让 ESP32 无限重启</h2>
+    </div>
+    <div class="grow center-v">
+      <div class="vs anim">
+        <div class="side">
+          <div class="sh">原实现</div>
+          <h3 class="h3">用 Arduino map() 宏</h3>
+          <ul class="bullets">
+            <li>区间两端相等即除零，<b>panic 无限重启</b></li>
+            <li>而"填成相等"正是<b>最易犯的误操作</b></li>
+          </ul>
+        </div>
+        <div class="mid">→</div>
+        <div class="side win">
+          <div class="sh">修复后</div>
+          <h3 class="h3">崩溃降级为保守不动作</h3>
+          <ul class="bullets">
+            <li>自实现 <span class="mono">safeMap()</span>，退化返回端点值</li>
+            <li>setup() 校验标定：填反或越界锁红灯，<b>不入主循环</b></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="foot"><span>电平锁定提到 setup() 最开头，否则上电即误吸合、水泵空转</span><span class="pg"></span></div>
+  </div>
+  <div class="notes">这一处的启发是：失效方向决定危害等级。同样是标定填错，让系统崩溃比让它什么都不做要糟得多。我们把"崩溃"降级成"保守不动作"，同时用红灯给出明确指示——故障时趋于保守停止，而不是继续动作。</div>
+</section>
+
+<section class="slide" data-title="方法论沉淀">
+  <div class="inner">
+    <div class="head tight">
+      <div class="kicker anim">方法论 / Methodology</div>
+      <h2 class="h2 anim">四步法把"保护是否生效"变成可验证结论</h2>
+    </div>
+    <div class="grow center-v">
+      <div class="steps anim">
+        <div class="step"><div><div class="st">穷举状态转移表</div><div class="sd">列出每个状态、每条转移条件与输入组合，未列出的均可疑。</div></div></div>
+        <div class="step"><div><div class="st">逐条构造触发场景</div><div class="sd">对每一行构造输入并观测输出，而非只验主路径。</div></div></div>
+        <div class="step"><div><div class="st">门控条件反查</div><div class="sd">反问"保护该触发时，此条件是否必然为真"。</div></div></div>
+        <div class="step"><div><div class="st">失效注入</div><div class="sd">主动制造异常输入，验证系统进入保守状态。</div></div></div>
+      </div>
+    </div>
+    <div class="foot"><span>连浇上限缺陷正是在构造"复测仍缺水且已满 6 轮"这一非主路径时暴露</span><span class="pg"></span></div>
+  </div>
+  <div class="notes">这套方法的通用价值在于，它不依赖任何特定硬件。任何带状态分支和异常处理的嵌入式系统都能用——本质上就是把"我觉得它生效了"换成"我构造了场景，它确实按我预期反应了"。</div>
+</section>
+
+<section class="slide" data-title="实测推翻标称">
+  <div class="inner">
+    <div class="head tight">
+      <div class="kicker anim">尺寸实证 / Measured Dimensions</div>
+      <h2 class="h2 anim">实测推翻商品页：1L 桶差 12 mm，盖子咬合度归零</h2>
+    </div>
+    <div class="grow col center-v">
+      <div class="g3 anim">
+        <div class="card"><div class="idx">01</div><div class="ct">1L 打包桶</div><div class="cb">商品页标"上径 136"（含提手凸缘），实测桶口仅 <b>124</b>。裙边悬空 4.4 mm。</div></div>
+        <div class="card"><div class="idx">02</div><div class="ct">硅胶软管</div><div class="cb">假设 φ8，实测内径 <b>8.5</b> / 外径 <b>10</b>。管夹孔径改 10.6。</div></div>
+        <div class="card"><div class="idx">03</div><div class="ct">花盆</div><div class="cb">原按圆盆建模，实测 8×8×8 直筒盆，φ80。底盘槽由 φ62 改 <b>φ82</b>。</div></div>
+      </div>
+      <div class="card flat anim">
+        <div class="ct">由此确立的红线</div>
+        <div class="cb">实测尺寸优先于商品页标注；配合尺寸改为脚本常量派生，回填后其余几何自动跟随。</div>
+      </div>
+    </div>
+    <div class="foot"><span>修正成本从"重画模型"降为"改一个常量"</span><span class="pg"></span></div>
+  </div>
+  <div class="notes">桶子那个 12 毫米最典型。如果照商品页打印，盖子装上去是悬空的，一碰就掉，而且很难第一时间联想到是尺寸问题——因为模型本身没写错，错的是我们相信了一个标注。</div>
+</section>
+
+<section class="slide" data-title="结论">
+  <div class="inner">
+    <div class="head tight">
+      <div class="kicker anim">结论 / Conclusion</div>
+      <h2 class="h2 anim">六条结论，可归纳为可验证、可失效、可迭代</h2>
+    </div>
+    <div class="grow col center-v">
+      <div class="g3 anim">
+        <div class="card"><div class="idx">可验证</div><div class="ct">状态机是正确载体</div><div class="cb">五态设计把互斥路径显式分离，两处高危缺陷由此暴露。</div></div>
+        <div class="card"><div class="idx">可失效</div><div class="ct">失效方向优先</div><div class="cb">断电泵停、标定异常硬停机，均趋于保守停止；浮球极性翻转的代价已记录在案。</div></div>
+        <div class="card"><div class="idx">可迭代</div><div class="ct">实测是唯一依据</div><div class="cb">未经验证的阈值不应驱动真实动作。</div></div>
+      </div>
+      <p class="small anim">模块化解耦降低演示风险：云端不可用走保底页，任一环节故障都不致命。</p>
+    </div>
+    <div class="foot"><span>结论依据：项目仓库实测记录</span><span class="pg"></span></div>
+  </div>
+  <div class="notes">六条结论里我最想强调最后那句：模块化解耦不是为了代码好看，是为了让演示不翻车。最后一天夜里云端出问题，我们直接切局域网保底页，答辩照常进行。</div>
+</section>
+
+<section class="slide" data-title="长跑实测">
+  <div class="inner">
+    <div class="head tight">
+      <div class="kicker anim">长跑实测 / Long-run Results</div>
+      <h2 class="h2 anim">累计 68 h 无崩溃，土壤通道有效 14.93 h</h2>
+    </div>
+    <div class="grow col center-v">
+      <div class="g3 anim">
+        <div class="card"><div class="idx">01</div><div class="ct">长跑数据已入库</div><div class="cb">累计 68 h、跨 3 次重启、最长单段连续 53.12 h，无崩溃、MQTT 无断连；导出 24,537 条零丢包。</div></div>
+        <div class="card"><div class="idx">02</div><div class="ct">土壤通道部分失效</div><div class="cb">11-20 12:00 起因面包板 GND 轨接触不良，读数锁死端点——是面包板不是探头；前 14.93 h 有效，中位 76%。</div></div>
+        <div class="card"><div class="idx">03</div><div class="ct">答辩日期待通知</div><div class="cb">提交截止 2026-11-24；展示分初评与晋级两阶段，英语为加分项。打印件 11/11 完成。</div></div>
+      </div>
+    </div>
+    <div class="foot"><span>数据来源：本地 LittleFS 导出 24,537 条 · 分析见 AR39</span><span class="pg"></span></div>
+  </div>
+  <div class="notes">这页是长跑验收，不是遗留。累计跑了约 68 小时，比原定的 48 小时目标超了 40%，中途 3 次重启都没崩溃、MQTT 没断连。但要如实说：土壤通道只有前 14.93 小时有效，之后是面包板 GND 轨接触不良导致读数锁死在量程端点——根因在面包板不在探头，这也是我们排查花时间的地方。被问到"系统稳不稳"时，正确答法是：整机稳定性有 68 小时证据，土壤数据的有效性有明确边界。</div>
+</section>
+
+<section class="slide" data-title="谢谢 / Q&A">
+  <div class="inner layout-end">
+    <div class="kicker plain anim">Thanks</div>
+    <h1 class="h1 anim">谢谢</h1>
+    <p class="lead anim">欢迎提问与讨论 · 实物可现场演示浇水动作</p>
+    <div class="tags anim">
+      <span class="tag solid">仓库 smart-greenhouse</span>
+      <span class="tag">R1 系统 · R2 上云 · R3 结构 · R4 文档</span>
+      <span class="tag">Introduction to Project Work · Final Project</span>
+    </div>
+  </div>
+  <div class="notes">留足答疑时间。如果没人提问，我先抛一个自己准备好的：为什么浮球用干接点而不是电阻式雨滴板——答的是失效方向，干接点断线时被 1kΩ 上拉判为没水，故障导向停泵而不是继续抽水。</div>
+</section>
+  </div>
+</div>
+
+<div class="hud" id="hud">
+  <div class="prog" id="prog"></div>
+  <div class="hint">← → 翻页 · O 目录 · F 全屏</div>
+  <div class="pgno" id="pgno">1 / 1</div>
+  <div class="btn" id="tocBtn" title="目录 (O)">☰</div>
+  <div class="toc" id="toc"></div>
+</div>
+
+<script>
+(function(){
+  var stage = document.getElementById('stage'),
+      deck  = document.getElementById('deck'),
+      slides= Array.prototype.slice.call(deck.querySelectorAll('.slide')),
+      prog  = document.getElementById('prog'),
+      pgno  = document.getElementById('pgno'),
+      toc   = document.getElementById('toc'),
+      tocBtn= document.getElementById('tocBtn'),
+      cur = 0, N = slides.length;
+
+  /* ---- 自适应缩放：保持画布比例，绝不拉伸 ---- */
+  function fit(){
+    var W = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--w')) || 1280,
+        H = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--h')) || 720,
+        padW = window.innerWidth  > 900 ? 96 : 12,
+        padH = window.innerHeight > 600 ? 76 : 12,
+        k = Math.min((window.innerWidth - padW) / W, (window.innerHeight - padH) / H);
+    deck.style.setProperty('--zoom', k);
+    deck.style.width  = W + 'px';
+    deck.style.height = H + 'px';
+    deck.style.transform = 'scale(' + k + ')';
+  }
+  window.addEventListener('resize', fit);
+
+  /* ---- 页码 / 进度 / 动画延迟 ---- */
+  function render(){
+    slides.forEach(function(s, i){
+      s.classList.toggle('active', i === cur);
+      s.classList.toggle('prev', i < cur);
+      s.classList.toggle('past', i < cur);
+      if(i === cur){
+        var items = s.querySelectorAll('.anim');
+        for(var j=0;j<items.length;j++){
+          items[j].style.transitionDelay = (j * 85) + 'ms';
+        }
+      }
+    });
+    prog.style.width = (N > 1 ? (cur / (N - 1) * 100) : 100) + '%';
+    pgno.textContent = (cur + 1) + ' / ' + N;
+    Array.prototype.forEach.call(toc.children, function(el, i){
+      el.classList.toggle('now', i === cur);
+    });
+    if(history.replaceState) history.replaceState(null, '', '#' + (cur + 1));
+  }
+  function go(i){
+    if(i < 0 || i >= N || i === cur) return;
+    cur = i; render();
+  }
+  function next(){ go(Math.min(cur + 1, N - 1)); }
+  function prev(){ go(Math.max(cur - 1, 0)); }
+
+  /* ---- 目录 ---- */
+  slides.forEach(function(s, i){
+    var d = document.createElement('div');
+    d.className = 'ti';
+    d.innerHTML = '<i>' + (i + 1) + '</i><span>' + (s.getAttribute('data-title') || '未命名') + '</span>';
+    d.onclick = function(){ go(i); toc.classList.remove('open'); };
+    toc.appendChild(d);
+  });
+  function toggleToc(){ toc.classList.toggle('open'); }
+  tocBtn.onclick = toggleToc;
+
+  /* ---- 全屏 ---- */
+  function fullscreen(){
+    if(!document.fullscreenElement){ (document.documentElement.requestFullscreen||function(){})(); }
+    else { document.exitFullscreen(); }
+  }
+
+  /* ---- 键盘 ---- */
+  document.addEventListener('keydown', function(e){
+    var k = e.key;
+    if(k === 'ArrowRight' || k === 'ArrowDown' || k === 'PageDown' || k === ' ' || k === 'Enter'){ e.preventDefault(); next(); }
+    else if(k === 'ArrowLeft' || k === 'ArrowUp' || k === 'PageUp' || k === 'Backspace'){ e.preventDefault(); prev(); }
+    else if(k === 'Home'){ e.preventDefault(); go(0); }
+    else if(k === 'End'){ e.preventDefault(); go(N - 1); }
+    else if(k === 'o' || k === 'O'){ e.preventDefault(); toggleToc(); }
+    else if(k === 'f' || k === 'F'){ e.preventDefault(); fullscreen(); }
+    else if(k === 'Escape'){ toc.classList.remove('open'); }
+  });
+
+  /* ---- 滚轮（节流，避免一次滚动跳多页） ---- */
+  var lock = 0;
+  stage.addEventListener('wheel', function(e){
+    var now = Date.now();
+    if(now - lock < 520) return;
+    if(Math.abs(e.deltaY) < 12) return;
+    lock = now;
+    e.deltaY > 0 ? next() : prev();
+  }, {passive:true});
+
+  /* ---- 触摸滑动 ---- */
+  var tx = 0, ty = 0;
+  stage.addEventListener('touchstart', function(e){
+    tx = e.touches[0].clientX; ty = e.touches[0].clientY;
+  }, {passive:true});
+  stage.addEventListener('touchend', function(e){
+    var dx = e.changedTouches[0].clientX - tx,
+        dy = e.changedTouches[0].clientY - ty;
+    if(Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)){ dx < 0 ? next() : prev(); }
+  }, {passive:true});
+
+  /* ---- 初始化 ---- */
+  fit();
+  // 自动补页脚页码，增删页后无需手改
+  slides.forEach(function(s, i){
+    var pgs = s.querySelectorAll('.foot .pg');
+    for(var j=0;j<pgs.length;j++){ pgs[j].textContent = (i+1 < 10 ? '0' : '') + (i+1) + ' / ' + N; }
+  });
+  var m = /#(\d+)/.exec(location.hash);
+  if(m){ var n = parseInt(m[1], 10) - 1; if(n >= 0 && n < N) cur = n; }
+  render();
+  window.deck = { go: go, next: next, prev: prev, total: N };
+})();
+</script>
+</body>
+</html>
