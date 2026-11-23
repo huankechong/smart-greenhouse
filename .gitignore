@@ -41,5 +41,5 @@ desktop.ini
 # 脚本备份（本地回滚用，不入库）
 *.bak
 
-# Bambu Studio 切片器在仓库根目录的残留输出（有效切片数据在 outputs/3D打印件/切片_2026-10-24/ 各件目录内）
+# Bambu Studio 切片器在仓库根目录的残留输出（gcode/3mf 已于 2026-11-08 全删，交付只给 STL）
 /result.json

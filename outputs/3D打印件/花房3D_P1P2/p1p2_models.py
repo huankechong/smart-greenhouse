@@ -516,7 +516,7 @@ def sheet_all(rows, path):
 BUILDERS = [
     ("04_oled_stand", "OLED 45°斜面支架", build_oled_stand, PARAMS["oled"]),
     ("07_dht11_holder", "DHT11 小座", build_dht_holder, PARAMS["dht"]),
-    ("08_cable_clip", "扎线固定座", build_cable_clip, PARAMS["clip3"]),
+    # ("08_cable_clip", "扎线固定座", build_cable_clip, PARAMS["clip3"]),  # 2026-11-19 废弃：扎线改扎带，STL 已删（历史可从 git 找回）
     ("11_ldr_stand", "光敏电阻小柱", build_ldr_stand, PARAMS["ldr"]),
 ]
 

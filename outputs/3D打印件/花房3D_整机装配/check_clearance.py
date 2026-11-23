@@ -21,7 +21,7 @@ PARTS = {
     "04 屏架":  ("花房3D_P1P2/STL/04_oled_stand_v1.stl", BASE_A,  -45.0,  38.0,  5.0),
     "07 DHT":   ("花房3D_P1P2/STL/07_dht11_holder_v1.stl", BASE_A, -45.0, -67.0,  3.5),
     "11 光敏":  ("花房3D_P1P2/STL/11_ldr_stand_v1.stl",  BASE_A, -110.0,  -5.0,  4.0),
-    "08 扎线":  ("花房3D_P1P2/STL/08_cable_clip_v1.stl", BASE_A,  -77.0,   8.0,  6.0),
+    # "08 扎线" 已于 2026-11-19 废弃删除（扎线改扎带），不再参与配合校验
 }
 
 _cache = {}
