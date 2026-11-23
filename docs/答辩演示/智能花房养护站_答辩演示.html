@@ -639,6 +639,39 @@ body.is-print .hud{display:none}
   .hud{display:none!important}
   *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
 }
+@media print{
+  .metric .n,
+  .slide .kicker,
+  .slide .h1,
+  .slide .h2,
+  .slide .h3,
+  .slide .big,
+  .slide .cv-t,
+  .slide .quote .qt{text-shadow:none!important}
+  .card{box-shadow:none!important}
+}
+@media print{
+  .metric .n,
+  .slide .kicker,
+  .slide .h1,
+  .slide .h2,
+  .slide .h3,
+  .slide .big,
+  .slide .cv-t,
+  .slide .quote .qt{text-shadow:none!important}
+  .card{box-shadow:none!important}
+  /* Edge 的 printToPDF 不渲染 Bahnschrift（Windows 变体字体），
+     会把整段数字/文字丢掉。打印时降级为 Arial，屏幕显示不受影响。 */
+  .metric .n,
+  .metric .l,
+  .num,
+  .tbl td.num,
+  .tbl th.num,
+  .bar-row .bv,
+  .steps .step::before,
+  .foot .pg,
+  .hud .pgno{font-family:Arial,"Helvetica Neue",Helvetica,sans-serif!important}
+}
 </style>
 </head>
 <body>
@@ -680,7 +713,7 @@ body.is-print .hud{display:none}
       <div class="row anim" style="align-items:stretch">
         <div class="card" style="flex:1"><div class="idx">感知层</div><div class="ct">采集</div><div class="cb">土壤湿度 · DHT11 · 光敏<br><span class="mono">GPIO34/35/33</span></div></div>
         <div style="display:flex;align-items:center;color:var(--accent);font-size:calc(var(--sc)*24px)">→</div>
-        <div class="card" style="flex:1"><div class="idx">决策层</div><div class="ct">判定</div><div class="cb">五态状态机<br>阈值 35% 判缺水</div></div>
+        <div class="card" style="flex:1"><div class="idx">决策层</div><div class="ct">判定</div><div class="cb">五态状态机<br>阈值 15% 判缺水</div></div>
         <div style="display:flex;align-items:center;color:var(--accent);font-size:calc(var(--sc)*24px)">→</div>
         <div class="card" style="flex:1"><div class="idx">执行层</div><div class="ct">动作</div><div class="cb">继电器 → 底吸泵<br><span class="mono">GPIO26</span></div></div>
         <div style="display:flex;align-items:center;color:var(--accent);font-size:calc(var(--sc)*24px)">→</div>
@@ -724,7 +757,7 @@ body.is-print .hud{display:none}
     </div>
     <div class="grow center-v">
       <div class="row anim" style="align-items:stretch">
-        <div class="card" style="flex:1"><div class="idx">S0</div><div class="ct">监视</div><div class="cb">判是否低于 35%</div></div>
+        <div class="card" style="flex:1"><div class="idx">S0</div><div class="ct">监视</div><div class="cb">判是否低于 15%</div></div>
         <div class="card tint" style="flex:1"><div class="idx">S1</div><div class="ct">浇水中</div><div class="cb">水泵通电 2 s</div></div>
         <div class="card" style="flex:1"><div class="idx">S2</div><div class="ct">停水复测</div><div class="cb">静置 30 s 再读</div></div>
         <div class="card" style="flex:1"><div class="idx">S3</div><div class="ct">远程手动</div><div class="cb">MQTT 触发 5 s</div></div>
@@ -732,7 +765,7 @@ body.is-print .hud{display:none}
       </div>
       <div class="rule anim"></div>
       <div class="row anim" style="gap:calc(var(--sc)*14px);flex-wrap:wrap">
-        <span class="pill">阈值 35%</span>
+        <span class="pill">阈值 15%</span>
         <span class="pill">单轮 2 s ≈ 64 ml</span>
         <span class="pill">静置 30 s 复测</span>
         <span class="pill">连浇上限 6 轮</span>
@@ -749,18 +782,18 @@ body.is-print .hud{display:none}
   <div class="inner">
     <div class="head tight">
       <div class="kicker anim">关键标定 / Soil Calibration</div>
-      <h2 class="h2 anim">干 1855 / 湿 1050 是自动闭环的分界线</h2>
+      <h2 class="h2 anim">干 1855 / 湿 857 是自动闭环的分界线</h2>
     </div>
     <div class="grow col center-v">
       <div class="g3 anim">
-        <div class="card"><div class="metric"><div class="n">1855</div><div class="l">干土 raw</div><div class="d">11-19 真干土</div></div></div>
-        <div class="card"><div class="metric"><div class="n">1050</div><div class="l">湿土 raw</div><div class="d">11-08 蘸水</div></div></div>
-        <div class="card tint"><div class="metric"><div class="n">805</div><div class="l">干湿差</div><div class="d">超 800 噪声阈值</div></div></div>
+        <div class="card"><div class="metric"><div class="n">1855</div><div class="l">干土 raw</div><div class="d">11-19 真干土实测</div></div></div>
+        <div class="card"><div class="metric"><div class="n">857</div><div class="l">湿土 raw</div><div class="d">11-19 完全浸没</div></div></div>
+        <div class="card tint"><div class="metric"><div class="n">998</div><div class="l">干湿差</div><div class="d">超 800 噪声阈值</div></div></div>
       </div>
       <div class="row anim" style="gap:calc(var(--sc)*24px);align-items:stretch">
-        <div class="card flat" style="flex:1"><div class="ct">空气悬空值</div><div class="cb">原 2372 是探头悬空取值，土永远到不了，永不浇水。</div></div>
-        <div class="card flat" style="flex:1"><div class="ct">真干土实测</div><div class="cb">11-19 复测 1849~1857 取中值，48h 起表前抓出。</div></div>
-        <div class="card flat" style="flex:1"><div class="ct">交叉验证</div><div class="cb">湿态 1050 与典型读数 ×4 折算吻合。</div></div>
+        <div class="card flat" style="flex:1;opacity:.62"><div class="ct">旧值 2372 <span style="font-size:calc(var(--sc)*13px);color:var(--ink-3);font-weight:400">（已废弃）</span></div><div class="cb">探头悬空取值，土永远到不了，永不浇水。</div></div>
+        <div class="card flat" style="flex:1;background:var(--accent-soft)"><div class="ct">现行 1855</div><div class="cb">11-19 复测 1849~1857 取中值，起表前抓出。</div></div>
+        <div class="card flat" style="flex:1"><div class="ct">现行 857</div><div class="cb">完全浸没实测；旧值 1050 是蘸水取值，<span style="opacity:.62">已废弃</span>。</div></div>
       </div>
       <p class="small anim">11-12 置 EN_WATER=1 闭环解锁；11-19 二次修正干土值——未经验证的阈值不应驱动真实动作。</p>
     </div>
@@ -779,7 +812,7 @@ body.is-print .hud{display:none}
       <div class="card anim"><div class="metric"><div class="n">32.1<small>ml/s</small></div><div class="l">出口流量</div><div class="d">250 ml ÷ 7.80 s</div></div></div>
       <div class="card anim"><div class="metric"><div class="n">2000<small>ms</small></div><div class="l">单轮浇水时长</div><div class="d">WATER_MS 定稿</div></div></div>
       <div class="card tint anim"><div class="metric"><div class="n">64<small>ml</small></div><div class="l">单轮出水量</div><div class="d">修正前估 96 ml</div></div></div>
-      <div class="card anim"><div class="metric"><div class="n">160<small>ml</small></div><div class="l">远程手动浇水</div><div class="d">5 s 触发</div></div></div>
+      <div class="card anim"><div class="metric"><div class="n">64<small>ml</small></div><div class="l">远程手动浇水</div><div class="d">2 s 触发</div></div></div>
     </div>
     <div class="foot"><span>数据来源：11-10 量筒法三轮计时，波动 &lt; 0.5%</span><span class="pg"></span></div>
   </div>
@@ -1004,22 +1037,22 @@ body.is-print .hud{display:none}
   <div class="notes">六条结论里我最想强调最后那句：模块化解耦不是为了代码好看，是为了让演示不翻车。最后一天夜里云端出问题，我们直接切局域网保底页，答辩照常进行。</div>
 </section>
 
-<section class="slide" data-title="遗留问题">
+<section class="slide" data-title="长跑实测">
   <div class="inner">
     <div class="head tight">
-      <div class="kicker anim">遗留问题 / Open Issues</div>
-      <h2 class="h2 anim">三项遗留如实披露：48 h 运行中，答辩日待通知</h2>
+      <div class="kicker anim">长跑实测 / Long-run Results</div>
+      <h2 class="h2 anim">累计 68 h 无崩溃，土壤通道有效 14.93 h</h2>
     </div>
     <div class="grow col center-v">
       <div class="g3 anim">
-        <div class="card"><div class="idx">01</div><div class="ct">48 h 连续运行曲线</div><div class="cb">整机形态 11-19 启动 → 11-21 结束，起止当天各导一次巴法云曲线；免费版保留期有限须当天导出。</div></div>
-        <div class="card"><div class="idx">02</div><div class="ct">打印件收尾</div><div class="cb">11 件打印已全部完成（06a 11-13 AR36 直口版、06b 11-13 晚重打）；08 扎线座已废弃改用扎带。</div></div>
-        <div class="card"><div class="idx">03</div><div class="ct">答辩日期待通知</div><div class="cb">提交截止 2026-11-24；展示分初评与晋级两阶段，英语展示为加分项。</div></div>
+        <div class="card"><div class="idx">01</div><div class="ct">长跑数据已入库</div><div class="cb">累计 68 h、跨 3 次重启、最长单段连续 53.12 h，无崩溃、MQTT 无断连；导出 24,537 条零丢包。</div></div>
+        <div class="card"><div class="idx">02</div><div class="ct">土壤通道部分失效</div><div class="cb">11-20 12:00 起因面包板 GND 轨接触不良，读数锁死端点——是面包板不是探头；前 14.93 h 有效，中位 76%。</div></div>
+        <div class="card"><div class="idx">03</div><div class="ct">答辩日期待通知</div><div class="cb">提交截止 2026-11-24；展示分初评与晋级两阶段，英语为加分项。打印件 11/11 完成。</div></div>
       </div>
     </div>
-    <div class="foot"><span>48h 曲线为当前唯一待补的数据证据</span><span class="pg"></span></div>
+    <div class="foot"><span>数据来源：本地 LittleFS 导出 24,537 条 · 分析见 AR39</span><span class="pg"></span></div>
   </div>
-  <div class="notes">这页我主动放在结论后面，不藏。48 小时连续运行是我们最想做但还没做的一组数据——标定刚定稿，系统刚解锁自动闭环，正好该跑一段长曲线。评审如果问"系统到底稳不稳"，这一项就是我们的答案还没交上来。</div>
+  <div class="notes">这页是长跑验收，不是遗留。累计跑了约 68 小时，比原定的 48 小时目标超了 40%，中途 3 次重启都没崩溃、MQTT 没断连。但要如实说：土壤通道只有前 14.93 小时有效，之后是面包板 GND 轨接触不良导致读数锁死在量程端点——根因在面包板不在探头，这也是我们排查花时间的地方。被问到"系统稳不稳"时，正确答法是：整机稳定性有 68 小时证据，土壤数据的有效性有明确边界。</div>
 </section>
 
 <section class="slide" data-title="谢谢 / Q&A">
