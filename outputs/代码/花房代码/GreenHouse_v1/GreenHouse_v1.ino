@@ -1,6 +1,6 @@
 /*
  * ============================================================
- *  智能花房养护站 Smart GreenHouse — 主程序框架 v1
+ *  智能花房养护站 Smart GreenHouse — 主程序 v1.9
  *  《Introduction to Project Work》Final Project
  *  Liu Junbo · DT1班
  * ============================================================
@@ -18,7 +18,7 @@
  *  手动浇水改非阻塞、凭据移入 config.h、魔法数字常量化、标定防呆自检。
  *  详见《AR01_GreenHouse代码审计修复报告_2026-10-17.md》
  *
- *  v1.5（2026-10-20 AR08 全面审计修复，详见 docs/审计报告/AR08）：
+ *  v1.5（2026-10-20 AR10 全量代码审计修复，详见 docs/审计报告/AR10）：
  *    ① [🔴高] 连浇上限计数 bug：状态2 复测后再浇时 waterRounds 未自增，恒为 1，
  *       MAX_ROUNDS_PER_CYCLE 上限永远触发不了 → 已修（再浇前 waterRounds++）
  *    ② [🟡中] 水位保护空窗：状态2 复测等待 30s / 状态3 手动浇水期间水位变低无人停泵
@@ -46,10 +46,10 @@
 #define EN_DHT  1   // 2026-11-18 启用：三针版已插 a26–a28，D33→b27，DHT lib 1.4.7 已装
 #define EN_OLED  1   // 2026-11-18 启用：屏已接（VCC/GND→下轨、SDA→D21、SCL→D22），U8g2 2.36.19 已装
 #define EN_WATER  1   // [2026-11-12 解锁] 标定 2372/1050 定稿 + 水位保护实测通过（常开型）→ 全自动闭环启用（会真实出水）
-#define EN_WIFI  0   // W3-D11：上云时改 1 → 需装 PubSubClient
-#define EN_MQTT  0   // 依赖 EN_WIFI=1：数据上报 + 远程浇水
-#define EN_WEB  0   // 依赖 EN_WIFI=1：局域网保底网页（断外网手机也能看）
-#define EN_LEVEL  1   // 2026-11-12 临时开启测浮球极性（测完视结论定稿）
+#define EN_WIFI  1   // [2026-11-19 48h 运行开启] CPE 网络，云端曲线记录
+#define EN_MQTT  1   // [2026-11-19 48h 运行开启] 10s 上行 + 远程浇水通道
+#define EN_WEB  1   // [2026-11-19 48h 运行开启] 局域网保底页
+#define EN_LEVEL  1   // [2026-11-18 定稿启用] 浮球极性三测确认 LEVEL_WET_CLOSED=false
 
 // ==================== 引脚定义（对照《花房接线规划表.md》） ====================
 #define PIN_SOIL    34   // 土壤湿度 AO → ADC1（只读脚，不能接输出设备）
@@ -60,23 +60,20 @@
 #define PIN_LED_G   27   // 双色LED 绿（13号）
 #define PIN_LEVEL   32   // v1.4 浮球开关干接点（第 10 件替换盖中心孔穿出）→ 数字输入，1kΩ 上拉到 3V3
 
-// ==================== 标定/浇水参数（到货实测后改这里） ====================
-// ⚠️ 下面两个值是按通用资料估的，**未在本模块实测**。它们只是让系统能编译运行。
-// ⛔ 在用 soil_calibrate.py 实测并回写真实值之前，**EN_WATER 必须保持 0**。
-//    原因：估偏了两种都坏——
-//      估高了：湿态算成 ~90% → 永远不判缺水 → 花一直渴着（静默失效，很难发现）
-//      估低了：干态算成 ~20% → 一直判缺水 → 反复浇水 → 水箱空、盆泡烂（危险）
-//    标定脚本会把实测中位数自动回写到下面这两行（--write 参数）。
+// ==================== 标定/浇水参数（2026-11-19 实测定稿） ====================
+// 两个标定端点已完成三轮修订：DRY 用真干土、WET 用完全浸没。
+// ⛔ 若更换土壤传感器，必须重新标定并先保持 EN_WATER=0；否则估偏会永远
+//    不浇水或反复浇水。标定脚本可用 --write 回写下面两行。
 const int SOIL_RAW_DRY = 1855;        // [2026-11-19 二次定稿] 真干土实测 1849~1857 中值——原 2372 是空气悬空值，物理上土永远到不了，导致真干土显示 40%>35% 阈值永不浇水（48h 起表前领导抓出）
-const int SOIL_RAW_WET = 1050;        // [2026-11-12 定稿] 11-08 实测蘸水值；网上典型湿~270(10bit)×4 换算吻合
-const int SOIL_THRESHOLD_PCT  = 35;   // 土壤湿度% 低于此值 → 判定缺水（标定后再按实际土壤调）
-const unsigned long WATER_MS  = 2000;    // 每轮浇水 2 秒 ≈ 64ml（2026-11-10 实测 32.1ml/s × 2s，三轮 250ml/7.80s 平均，波动<0.5%）
+const int SOIL_RAW_WET = 857;         // [2026-11-19 三次定稿] 完全浸没实测 852~862 中值（原 1050 是"蘸水"值，浸没后更低；100%=饱和）
+const int SOIL_THRESHOLD_PCT  = 15;   // [2026-11-22 演示定稿 3→15] 7% 干土可触发，答辩闭环易演示；15% 对 8x8 盆是合理下限
+const unsigned long WATER_MS  = 2000;    // [2026-11-22 领导定 1s→2s] 每轮 ≈64ml（11-10 实测 32.1ml/s），6 轮≈384ml
 const unsigned long SETTLE_MS = 30000;   // 浇完等 30 秒复测（防反复触发）
-const unsigned long MANUAL_WATER_MS = 5000; // 远程手动浇水 5 秒
+const unsigned long MANUAL_WATER_MS = 2000; // [2026-11-19 领导定 5s→2s] 远程手动浇水 2 秒 ≈60ml
 const int RELAY_ACTIVE_HIGH = 1;  // 继电器触发极性：吸合=高电平填1；实测相反就改0
 
 // ---------- v1.2 异常保护参数 ----------
-const int           MAX_ROUNDS_PER_CYCLE = 6;        // 一次处理最多连浇 6 轮（6×3s=18s 水）
+const int           MAX_ROUNDS_PER_CYCLE = 6;        // 一次处理最多连浇 6 轮（6×1s≈6s 水，WATER_MS=1000）
 const unsigned long COOLDOWN_MS  = 600000;           // 触发上限后冷却 10 分钟再恢复自动
 
 // ---------- v1.4 水位检测（浮球开关，干接点） ----------
@@ -92,6 +89,7 @@ const bool          LEVEL_USE_INTERNAL_PULLUP = false; // 外部 1kΩ 上拉时�
 const unsigned long SENSOR_INTERVAL_MS  = 5000;   // 传感器采样 + 串口打印周期
 const unsigned long OLED_INTERVAL_MS    = 1000;   // OLED 刷新周期
 const unsigned long PUBLISH_INTERVAL_MS = 10000;  // 云端上报周期
+const unsigned long LOG_INTERVAL_MS     = 10000;  // [P21] 本地 CSV 记录周期（与上报解耦）
 const unsigned long WIFI_TIMEOUT_MS     = 15000;  // 启动时连 WiFi 的超时
 const unsigned long WIFI_RETRY_MS       = 30000;  // 运行中掉线自动重连间隔
 
@@ -130,8 +128,11 @@ DHT dht(PIN_DHT, DHT11);
 #if EN_OLED
 #include <Wire.h>
 #include <U8g2lib.h>
-U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE);
+// [2026-11-22 修复] 显式指定 SCL/SDA 引脚：core 3.x 下 u8g2 内部 Wire.begin() 会重置引脚配置，
+// 导致屏能 ACK 但显示数据发不出去（黑屏）。给构造器传引脚让 U8g2 自己管 I2C 初始化。
+U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, U8X8_PIN_NONE, 22, 21);  // SCL=22, SDA=21
 #endif
+#include <LittleFS.h>    // [P9 修复] 移出 EN_WEB 条件块——本地记录独立于 Web 开关
 #if EN_WEB
 #include <WebServer.h>   // ESP32 核心自带，无需安装
 WebServer server(80);
@@ -170,10 +171,16 @@ int safeMap(int x, int inMin, int inMax, int outMin, int outMax) {
 }
 
 // ---------- 模拟口均值滤波：10 次取平均，抑制读数抖动（报告可写的技术点） ----------
-int readAverage(int pin) {
-  long sum = 0;
-  for (int i = 0; i < 10; i++) { sum += analogRead(pin); delay(5); }
-  return sum / 10;
+int readAverage(int pin) {                      // [P29/P30] v1.9：中值滤波替代均值
+  const uint8_t N = 9;                           // AR39 实测尖峰为单点错值（秒位固定），中值对单点尖刺免疫
+  int v[N];
+  for (uint8_t i = 0; i < N; i++) { v[i] = analogRead(pin); delayMicroseconds(500); }
+  for (uint8_t i = 1; i < N; i++) {              // 插入排序取中值（N=9 开销可忽略）
+    int k = v[i]; int8_t j = i - 1;
+    while (j >= 0 && v[j] > k) { v[j+1] = v[j]; j--; }
+    v[j+1] = k;
+  }
+  return v[N/2];
 }
 
 void readSensors() {
@@ -288,6 +295,7 @@ void waterTick() {
   if (waterState == 3) {
     if (now - waterTimer >= manualMs) {
       relayOff(); waterState = 0; waterTimer = now;
+      waterRounds = 0;                          // [P28] 补清零：手动打断自动周期后残留计数会让下轮连浇上限提前触发
       digitalWrite(PIN_LED_R, LOW);
       Serial.println("[远程] 手动浇水完成");
     }
@@ -350,6 +358,10 @@ void waterTick() {
 
 #if EN_WATER
 void manualWaterStart(unsigned long ms) {       // 远程手动浇水启动（v1.1 改非阻塞，实际计时在 waterTick 状态3）
+  if (waterState >= 1 && waterState <= 2) {     // [P31] 自动周期进行中拒绝手动：打断会污染状态机计数
+    Serial.println("[远程] 拒绝：自动浇水进行中，请稍后再试");
+    return;
+  }
 #if EN_LEVEL
   if (gLevelLow) {                              // v1.2：没水就别让泵空转
     Serial.println("[远程] 拒绝：水位过低，请先给蓄水瓶补水");
@@ -387,7 +399,7 @@ void mqttConnect() {                            // 非阻塞重连
   if (mqtt.connected() || now - lastMqttRetry < MQTT_RETRY_MS) return;
   lastMqttRetry = now;
   Serial.print("[MQTT] 连接巴法云...");
-  if (mqtt.connect(String(MQTT_UID).c_str())) { // 巴法云 clientID 必须等于 UID
+  if (mqtt.connect(MQTT_UID)) {                 // [P16] MQTT_UID 本就是 const char*，无需 String 中转
     Serial.println("成功");
     mqtt.subscribe(TOPIC_CMD);
   } else {
@@ -395,29 +407,48 @@ void mqttConnect() {                            // 非阻塞重连
   }
 }
 
-void publishData() {                            // 巴法云004格式：字段#值|字段#值
-  String p = "土壤#" + String(gSoilPct) + "|光照#" + String(gLightRaw);
+void publishData() {   // 巴法云面板格式：#值1#值2#...#（官方文档：单折线 #数值#，多值 #数值#数值#）
+                       // 顺序必须与小程序面板字段顺序一致：土壤/光照/温度/气湿/状态/水位
+                       // 2026-11-19 修正：原"字段#值|字段#值"致面板整体错位一格+竖线漏进显示
+  String p = "土壤#" + String(gSoilPct) + "#光照lx#" + String(gLightRaw);   // 土壤是巴法云内置字段，% 自动补，勿再写
+  String human = "土壤=" + String(gSoilPct) + " 光照=" + String(gLightRaw);   // 串口仍打可读版
 #if EN_DHT
-  if (!isnan(gTemp)) p += "|温度#" + String(gTemp, 1) + "|气湿#" + String(gHum, 0);
+  if (!isnan(gTemp) && !isnan(gHum)) {          // [P32] 双字段都有效才上报，防 String(NaN) 发出 "nan" 字面量
+    p += "#温度℃#" + String(gTemp, 1) + "#气湿%#" + String(gHum, 0);
+    human += " 温度=" + String(gTemp, 1) + " 气湿=" + String(gHum, 0);
+  } else {
+    p += "#温度℃#--#气湿%#--";                  // 面板占位，与 OLED 的 -- 口径一致
+    human += " 温度=-- 气湿=--";
+  }
 #endif
 #if EN_WATER
-  const char* st = "正常";
-  if (waterState == 1) st = "浇水中";
-  else if (waterState == 2) st = "复测中";
-  else if (waterState == 3) st = "手动";
-  else if (waterState == 4) st = "冷却保护";
-  p += "|状态#" + String(st);
+  // 2026-11-19 领导要求：用易懂标签，且与"水位=正常"区分开
+  const char* st = "待命";          // 湿度够，监视中
+  if (waterState == 1) st = "正在浇水";
+  else if (waterState == 2) st = "等土吸水";   // 浇完静置 30s 复测
+  else if (waterState == 3) st = "远程手动";
+  else if (waterState == 4) st = "保护暂停";   // 连浇 6 轮上限，冷却 10 分钟
+  p += "#状态#" + String(st);
+  human += " 状态=" + String(st);
 #endif
 #if EN_LEVEL
-  p += "|水位#" + String(gLevelLow ? "低" : "正常");
+  p += "#水位#" + String(gLevelLow ? "低" : "正常");
+  human += " 水位=" + String(gLevelLow ? "低" : "正常");
 #endif
+  p += "#";
   publishTo(TOPIC_DATA, p.c_str());
-  Serial.println("[MQTT] 上行: " + p);
+  Serial.println("[MQTT] 上行: " + p + "   (" + human + ")");
 }
 #endif
 
 #if EN_WEB
+const char* WEB_TOKEN = "gh48";                 // [P24] 简易访问令牌：/  或  /?k=gh48
+
 void handleRoot() {                             // 局域网保底网页（答辩断网兜底之一）
+  if (!server.hasArg("k") || server.arg("k") != WEB_TOKEN) {   // [P24] 无令牌 → 401
+    server.send(401, "text/plain; charset=utf-8", "需要令牌：/?k=gh48");
+    return;
+  }
   String h = "<meta charset='utf-8'><h2>智能花房养护站</h2>";
   h += "<p>土壤湿度: " + String(gSoilPct) + "%</p><p>光照raw: " + String(gLightRaw) + "</p>";
 #if EN_DHT
@@ -432,6 +463,7 @@ void handleRoot() {                             // 局域网保底网页（答�
 
 void setup() {
   Serial.begin(115200);
+  Serial.setTimeout(20);   // [P2 修复] 串口读超时 1000→20ms，避免 readStringUntil 阻塞状态机
 
   // ===== v1.6：继电器电平【第一优先】锁定 =====
   // 必须在任何可能停机的检查之前！否则 EN_WATER=1 时走到下面的标定停机分支，
@@ -439,7 +471,7 @@ void setup() {
   digitalWrite(PIN_RELAY, RELAY_ACTIVE_HIGH ? LOW : HIGH);
   pinMode(PIN_RELAY, OUTPUT);
   relayOff();
-  Serial.println("\n===== 智能花房养护站 v1.8 启动 =====");
+  Serial.println("\n===== 智能花房养护站 v1.9 启动 =====");
   Serial.printf("功能开关: DHT=%d OLED=%d WATER=%d LEVEL=%d WIFI=%d MQTT=%d WEB=%d\n",
                 EN_DHT, EN_OLED, EN_WATER, EN_LEVEL, EN_WIFI, EN_MQTT, EN_WEB);   // v1.1：排障先看烧的是哪套配置
   Serial.printf("标定: dry=%d wet=%d 缺水阈值=%d%%\n", SOIL_RAW_DRY, SOIL_RAW_WET, SOIL_THRESHOLD_PCT);
@@ -489,6 +521,7 @@ void setup() {
 #if EN_OLED
   // 11-18 加：I2C 扫描（无表环境下的屏诊断——扫到 0x3C 才说明 VCC/GND/SDA/SCL 四线全通）
   Wire.begin(21, 22);
+  Wire.setClock(100000);                        // [P35 回退] 400k 下屏能 ACK 但黑屏（11-22 实机暴露），回 100k 保显示
   Serial.print("[I2C] 扫描 0x08–0x77：");
   { uint8_t n = 0;
     for (uint8_t a = 0x08; a <= 0x77; a++) {
@@ -522,9 +555,73 @@ void setup() {
 #endif
   readSensors();
   gSensorReady = true;                          // v1.1：首次读数完成，自动浇水/状态灯从此用真值判断
+  logSetup();                                   // [2026-11-19] 本地数据记录就绪
 }
 
 unsigned long tSensor = 0, tOled = 0, tPub = 0;
+
+// ==================== 本地数据记录（2026-11-19 新增）====================
+// 背景：巴法云免费版不提供历史数据查询（getmsg 只返回最新 1 条），控制台历史曲线需付费。
+// 方案：板端写 LittleFS CSV，48h × 10s ≈ 17280 行 ≈ 700KB（4MB Flash 足够）。
+// 导出：串口发 dump → 全量打印；发 clearlog → 清空重来。
+File   logFile;
+bool   logReady = false;
+unsigned long tLog = 0, logCount = 0;
+
+void logSetup() {
+  if (!LittleFS.begin(false)) {   // [P1 修复] false=禁止自动格式化，避免掉电损坏后被清空
+    Serial.println("[记录] LittleFS 挂载失败（未格式化，数据保留）——本地记录不可用");
+    return;
+  }
+  logFile = LittleFS.open("/gh.csv", "a");
+  if (!logFile) { Serial.println("[记录] 打开 /gh.csv 失败"); return; }
+  if (logFile.size() == 0) {
+    logFile.println("sec,soil_pct,lux,temp,hum,state,level");   // 仅新建时写表头
+    logFile.flush();
+  } else {
+    logFile.println("#BOOT");    // [P3 修复] 重启分隔标记：此后 sec 重新从 0 计
+    logFile.flush();
+  }
+  logReady = true;
+  Serial.printf("[记录] 本地记录就绪，已有 %.1f KB\n", logFile.size() / 1024.0);
+}
+
+void logTick() {
+  if (!logReady) return;
+  unsigned long now = millis();
+  if (now - tLog < LOG_INTERVAL_MS) return;          // [P21] 独立周期
+  tLog = now;
+  const char* st = "待命";                     // [P11] 与 MQTT 面板标签保持一致
+  if (waterState == 1) st = "正在浇水";
+  else if (waterState == 2) st = "等土吸水";
+  else if (waterState == 3) st = "远程手动";
+  else if (waterState == 4) st = "保护暂停";
+  int wr = logFile.printf("%lu,%d,%d,%.1f,%d,%s,%s\n",
+                 now / 1000, gSoilPct, gLightRaw,
+                 isnan(gTemp) ? -999.0 : gTemp,          // [P4] -999=读失败，区别于真实 0℃
+                 isnan(gHum) ? -999 : (int)gHum, st,
+                 gLevelLow ? "低" : "正常");
+  if (wr < 0) {                                          // [P5] 写失败（多为空间满）
+    if (logCount % 60 == 0) Serial.println("[记录] 写入失败！Flash 可能已满");
+  }
+  logCount++;
+  if (logCount % 6 == 0) logFile.flush();            // 每分钟落盘一次（掉电最多丢 6 条）
+  if (logCount % 360 == 0) {                         // 每小时报一次进度
+    Serial.printf("[记录] 已存 %lu 条 / %.1f KB\n", logCount, logFile.size() / 1024.0);
+  }
+}
+
+void logDump() {
+  if (logFile) logFile.flush();
+  File f = LittleFS.open("/gh.csv", "r");
+  if (!f) { Serial.println("[记录] 无文件"); return; }
+  size_t n = f.size();
+  Serial.printf("===== BEGIN CSV (%u bytes) =====\n", (unsigned)n);
+  uint8_t buf[512];
+  while (f.available()) { size_t r = f.read(buf, sizeof(buf)); Serial.write(buf, r); }
+  f.close();
+  Serial.printf("\n===== END CSV =====\n");
+}
 
 void loop() {
 #if EN_WIFI
@@ -586,4 +683,22 @@ void loop() {
 #if EN_MQTT
   if (mqtt.connected() && now - tPub >= PUBLISH_INTERVAL_MS) { tPub = now; publishData(); }
 #endif
+  logTick();
+
+  // 串口命令：dump 导出全部 / clearlog 清空（起表前用）
+  if (Serial.available()) {
+    String cmd = Serial.readStringUntil('\n'); cmd.trim();
+    if (cmd == "dump") logDump();
+    else if (cmd == "clearlog") {
+      if (logFile) logFile.close();
+      LittleFS.remove("/gh.csv");
+      logFile = LittleFS.open("/gh.csv", "a");
+      if (!logFile) { Serial.println("[记录] 清空后重开失败！"); }
+      else {
+        logFile.println("sec,soil_pct,lux,temp,hum,state,level"); logFile.flush();
+        logCount = 0;
+        Serial.println("[记录] 已清空，重新开始");
+      }
+    }
+  }
 }
