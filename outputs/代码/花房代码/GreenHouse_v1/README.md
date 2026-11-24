@@ -1,8 +1,8 @@
 # GreenHouse_v1 使用说明
 
-> 智能花房养护站主程序 · **v1.9**（2026-11-19 起：本地 LittleFS CSV 记录、9 点中值滤波、I2C 400 kHz、Web 简易令牌）  
-> 当前定稿形态：7 个功能开关全部启用；最近一次完整编译记录 **1,122,228 B / 85% Flash**（AR38，0 error / 0 warning）  
-> 验证环境：`esp32:esp32@2.0.18-arduino.5` · Arduino CLI 1.5.2-rc.1
+> 智能花房养护站主程序 · **v1.9**（2026-11-19 起：本地 LittleFS CSV 记录、9 点中值滤波、Web 简易令牌）  
+> 当前定稿形态：7 个功能开关全部启用；最近一次完整编译 **≈1.12 MB / 85% Flash**（±数百字节属编译正常漂移，报告写"≈1.12 MB"即可）  
+> 验证环境：`esp32:esp32@3.3.12`（fqbn `esp32:esp32:esp32`）· Arduino CLI 1.5.2-rc.1
 
 ## 一、当前开关与参数（以源码为准）
 
@@ -14,11 +14,11 @@
 | `EN_WATER / EN_LEVEL` | 1 / 1 | 自动浇水与浮球水位保护已启用 |
 | `EN_WIFI / EN_MQTT / EN_WEB` | 1 / 1 / 1 | 云上报、远程浇水、局域网页面已启用 |
 | `SOIL_RAW_DRY / SOIL_RAW_WET` | 1855 / 857 | 真干土 / 完全浸没三轮实测定稿 |
-| `SOIL_THRESHOLD_PCT` | 3 | 接近全干才触发自动浇水 |
-| `WATER_MS` | 1000 | 自动每轮 1 s，约 30 ml |
+| `SOIL_THRESHOLD_PCT` | 15 | 低于 15% 触发自动浇水（2026-11-22 演示定稿，原 3%） |
+| `WATER_MS` | 2000 | 自动每轮 2 s，约 64 ml（32.1 ml/s 实测） |
 | `SETTLE_MS` | 30000 | 每轮后等 30 s 复测 |
-| `MANUAL_WATER_MS` | 2000 | 远程手动浇水 2 s，约 60 ml |
-| `MAX_ROUNDS_PER_CYCLE` | 6 | 一个周期最多 6 轮（合计约 6 s 水） |
+| `MANUAL_WATER_MS` | 2000 | 远程手动浇水 2 s，约 64 ml |
+| `MAX_ROUNDS_PER_CYCLE` | 6 | 一个周期最多 6 轮（合计约 12 s / 384 ml） |
 | `COOLDOWN_MS` | 600000 | 超上限后冷却 10 分钟 |
 | `LEVEL_WET_CLOSED` | false | 没水时触点闭合；断线会判“有水”，属已知非 fail-safe 方向 |
 | 采样 / 上报 / 本地记录 | 5 s / 10 s / 10 s | 上报与 CSV 记录相互独立 |
@@ -41,18 +41,18 @@ arduino-cli lib install "DHT sensor library@1.4.7" \
   "Adafruit Unified Sensor@1.1.15" "U8g2@2.36.19" "PubSubClient@2.8.0"
 ```
 
-ESP32 core 仍固定 **2.0.18-arduino.5** 以复现实测固件；官方 3.x 大版本升级列为截止后兼容性评估，不临期切换。
+ESP32 core 固定 **3.3.12**（2026-11-22 升级，已实测通过）。core 3.x 有三个坑（U8g2 须显式传 SCL/SDA、I2C 只能 100 kHz、不要再装 2.0.x），详见项目根 `AGENTS.md` §4.0。
 
 ## 三、凭据与联网
 
-- `config.h` 在仓库中必须保持 `<...>` 占位符；真值只存本地忽略目录和 E 盘私档。
+- `config.h` 在仓库中必须保持 `<...>` 占位符（**四个值**：WIFI_SSID / WIFI_PASS / MQTT_UID / WEB_TOKEN）；真值只存本地忽略目录和 E 盘私档。
 - 巴法云主题：上行 `cYQ9geudA004`（传感器 004）；下行 `4QT4BZIBM001`（插座 001）。
 - MQTT：`bemfa.com:9501`，明文 TCP，clientID = UID；项目结束后建议重置 UID。
 - 联调/烧录完成后，先把 `config.h` 恢复为占位符，再检查 `git status`。
 
 ## 四、局域网保底页
 
-v1.9 起页面要求简易令牌：访问格式为 `http://<ESP32_IP>/?k=<WEB_TOKEN>`。令牌值只看本机源码，不写进公开文档。
+v1.9 起页面要求简易令牌：访问格式为 `http://<ESP32_IP>/?k=<WEB_TOKEN>`。令牌值在 `config.h`（2026-11-24 从 `.ino` 挪入），不写进公开文档；401 响应不回显令牌。
 
 - 页面只读，无控制端点。
 - 无令牌或令牌错误返回 401。
@@ -61,7 +61,7 @@ v1.9 起页面要求简易令牌：访问格式为 `http://<ESP32_IP>/?k=<WEB_TO
 ## 五、控制逻辑速览
 
 ```text
-监视 → 土壤 < 3% → 浇 1 s → 停 30 s 复测
+监视 → 土壤 < 15% → 浇 2 s → 停 30 s 复测
      → 仍低于阈值且未满 6 轮 → 再浇
      → 连续 6 轮仍低 → 冷却 10 分钟
 远程 on → 手动浇 2 s → 自动回 off

@@ -1,7 +1,7 @@
-# ⚠️ [2026-11-23 AR40 P-6] 本脚本 parse() 仅适用 2026-11-19 之前的旧报文格式（字段#值|字段#值）。
-# 当前固件报文已改为 标签#值 成对格式（土壤#72#光照lx#1109#...），运行本脚本会把整串吞进 soil_pct 且不报错。
-# 48h 测试数据已用本地 LittleFS CSV（outputs/素材/素材整理_2026-11-22/48h全量.csv），不依赖本脚本。
-# 若需修复：parse() 改为 re.findall(r'([^#]+)#([^#]*)', msg) 成对提取。
+# [2026-11-23 AR41 已修复] parse() 现已同时支持两种报文：
+#   现行（11-23 起）：标签#值 严格交替  土壤#100#光照#1003#温度℃#26.5#气湿%#87#状态#待命#水位#正常#
+#   历史（≤11-19）  ：字段#值|字段#值     土壤#72|光照#1109|…
+# AR40 P-6 原本记录"整串被吞进 soil_pct"，起因是只按 '|' 切分而固件已改用 '#' 分隔。
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
@@ -69,16 +69,30 @@ def fetch(uid: str, topic: str) -> dict | None:
 
 
 def parse(msg: str) -> dict:
-    """把 `土壤#48|光照#1311|温度#21.9|气湿#62|状态#正常|水位#低` 拆成字段"""
+    """解析上行报文，返回各字段。
+
+    现行格式（2026-11-23 起，固件 v1.9+）：
+        土壤#100#光照#1003#温度℃#26.5#气湿%#87#状态#待命#水位#正常#
+        → 按 '#' 切分后两两配对（标签, 值）
+    历史格式（≤2026-11-19）：土壤#72|光照#1109|温度#21.9|…
+        → 按 '|' 切分，每段再按 '#' 拆成 标签/值
+    """
     out = {"soil_pct": "", "lux_raw": "", "temp_c": "", "hum_pct": "", "state": "", "level": ""}
-    keymap = {"土壤": "soil_pct", "光照": "lux_raw", "温度": "temp_c",
-              "气湿": "hum_pct", "状态": "state", "水位": "level"}
-    for part in msg.split("|"):
-        if "#" not in part:
-            continue
-        k, v = part.split("#", 1)
-        if k.strip() in keymap:
-            out[keymap[k.strip()]] = v.strip()
+    keymap = {"土壤": "soil_pct", "光照": "lux_raw",
+              "温度": "temp_c", "温度℃": "temp_c",
+              "气湿": "hum_pct", "气湿%": "hum_pct",
+              "状态": "state", "水位": "level"}
+
+    if "|" in msg:                                  # 历史格式
+        pairs = [p.split("#", 1) for p in msg.split("|") if "#" in p]
+    else:                                           # 现行格式：标签#值 交替
+        seg = msg.split("#")
+        pairs = list(zip(seg[0::2], seg[1::2]))
+
+    for k, v in pairs:
+        k = k.strip()
+        if k in keymap:
+            out[keymap[k]] = v.strip()
     return out
 
 

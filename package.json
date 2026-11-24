@@ -3,8 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "description": "BIUH DT 2026 秋《Introduction to Project Work》期末项目：智能花房养护站",
+  "license": "CC-BY-NC-4.0",
   "scripts": {},
-  "dependencies": {
-    "playwright": "^1.40.0"
-  }
+  "dependencies": {}
 }
