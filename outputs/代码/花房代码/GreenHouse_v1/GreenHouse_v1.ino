@@ -3,6 +3,8 @@
  *  智能花房养护站 Smart GreenHouse — 主程序 v1.9
  *  《Introduction to Project Work》Final Project
  *  Liu Junbo · DT1班
+ *  License: CC BY-NC 4.0 (https://creativecommons.org/licenses/by-nc/4.0/)
+ *           可转载、改编（须署名），不得商用；详见仓库根目录 LICENSE
  * ============================================================
  *  设计思路：一套代码从 W1 用到答辩。文件头部的"功能开关"
  *  每周开启一个，改完重新编译上传即可，代码不用大动：
@@ -69,11 +71,11 @@ const int SOIL_RAW_WET = 857;         // [2026-11-19 三次定稿] 完全浸没�
 const int SOIL_THRESHOLD_PCT  = 15;   // [2026-11-22 演示定稿 3→15] 7% 干土可触发，答辩闭环易演示；15% 对 8x8 盆是合理下限
 const unsigned long WATER_MS  = 2000;    // [2026-11-22 领导定 1s→2s] 每轮 ≈64ml（11-10 实测 32.1ml/s），6 轮≈384ml
 const unsigned long SETTLE_MS = 30000;   // 浇完等 30 秒复测（防反复触发）
-const unsigned long MANUAL_WATER_MS = 2000; // [2026-11-19 领导定 5s→2s] 远程手动浇水 2 秒 ≈60ml
+const unsigned long MANUAL_WATER_MS = 2000; // [2026-11-19 领导定 5s→2s] 远程手动浇水 2 秒 ≈64ml
 const int RELAY_ACTIVE_HIGH = 1;  // 继电器触发极性：吸合=高电平填1；实测相反就改0
 
 // ---------- v1.2 异常保护参数 ----------
-const int           MAX_ROUNDS_PER_CYCLE = 6;        // 一次处理最多连浇 6 轮（6×1s≈6s 水，WATER_MS=1000）
+const int           MAX_ROUNDS_PER_CYCLE = 6;        // 一次处理最多连浇 6 轮（6×WATER_MS，当前 6×2s≈12s≈384ml）
 const unsigned long COOLDOWN_MS  = 600000;           // 触发上限后冷却 10 分钟再恢复自动
 
 // ---------- v1.4 水位检测（浮球开关，干接点） ----------
@@ -407,10 +409,15 @@ void mqttConnect() {                            // 非阻塞重连
   }
 }
 
-void publishData() {   // 巴法云面板格式：#值1#值2#...#（官方文档：单折线 #数值#，多值 #数值#数值#）
+void publishData() {   // 巴法云 App 详情页是「左格标签 / 右格数值」两两配对的网格
+                       // 因此报文的每一段必须严格交替：标签#数值#标签#数值…
+                       // ⛔ 首字符不能是 #：多出的空段会把整排配对推歪一格（实测首页卡片变 0%|100）
                        // 顺序必须与小程序面板字段顺序一致：土壤/光照/温度/气湿/状态/水位
-                       // 2026-11-19 修正：原"字段#值|字段#值"致面板整体错位一格+竖线漏进显示
-  String p = "土壤#" + String(gSoilPct) + "#光照lx#" + String(gLightRaw);   // 土壤是巴法云内置字段，% 自动补，勿再写
+                       // 2026-11-19 第一次修正：原"字段#值|字段#值"带竖线，竖线漏进显示
+                       // 2026-11-23 第二次修正（AR41）：App 详情页实测——首段若是纯数字（如 #100#1012）
+                       //   则该数字被塞进「标签」位置，第一行显示成 "100 % | 1012" 而无字段名
+                       //   正确写法：土壤#100#光照#1012#… 让每个标签落在左格
+  String p = "土壤#" + String(gSoilPct) + "#光照#" + String(gLightRaw);
   String human = "土壤=" + String(gSoilPct) + " 光照=" + String(gLightRaw);   // 串口仍打可读版
 #if EN_DHT
   if (!isnan(gTemp) && !isnan(gHum)) {          // [P32] 双字段都有效才上报，防 String(NaN) 发出 "nan" 字面量
@@ -442,11 +449,11 @@ void publishData() {   // 巴法云面板格式：#值1#值2#...#（官方文档
 #endif
 
 #if EN_WEB
-const char* WEB_TOKEN = "gh48";                 // [P24] 简易访问令牌：/  或  /?k=gh48
+// WEB_TOKEN 定义在 config.h（2026-11-24 从这里挪走：原先硬编码且 401 正文回显，等于没有令牌）
 
 void handleRoot() {                             // 局域网保底网页（答辩断网兜底之一）
-  if (!server.hasArg("k") || server.arg("k") != WEB_TOKEN) {   // [P24] 无令牌 → 401
-    server.send(401, "text/plain; charset=utf-8", "需要令牌：/?k=gh48");
+  if (!server.hasArg("k") || server.arg("k") != WEB_TOKEN) {   // [P24] 无令牌/错令牌 → 401
+    server.send(401, "text/plain; charset=utf-8", "401 Unauthorized");   // 正文不回显令牌
     return;
   }
   String h = "<meta charset='utf-8'><h2>智能花房养护站</h2>";

@@ -5,6 +5,7 @@
  *     - 交报告 / 发同学 / 传 GitHub 前，把三个值改回 <...> 占位符
  *     - 自用真值版本只保存在本机和 E 盘私档，不外发
  * ============================================================ */
-const char* WIFI_SSID = "<你的WiFi名，用手机2.4GHz热点>";
-const char* WIFI_PASS = "<你的WiFi密码>";
-const char* MQTT_UID  = "<粘贴你的巴法云UID私钥>";  // 巴法云控制台首页可复制
+const char* WIFI_SSID = "<WIFI_SSID>";            // 48h 运行网：领导 CPE（2.4G，2026-11-19 起表用）
+const char* WIFI_PASS = "<WIFI_PASS>";           // 48h 运行网密码
+const char* MQTT_UID  = "<MQTT_UID>";  // 巴法云私钥（本地真值，禁提交——仓库版必须保持占位符）
+const char* WEB_TOKEN = "<WEB_TOKEN>";   // 局域网页令牌（2026-11-24 从 .ino 挪入；旧值 gh48 已随 #49 公开，必须换新）
