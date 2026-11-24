@@ -86,20 +86,26 @@ PARAMS = {
         # ---------- 2026-10-23 改方案 B：土插式（不夹盆沿）----------
         # 与 01b 同理：实盆壁厚 10~20mm 范围太宽，刚性双爪无法覆盖 → 改插土针
         "tube_od": 10.0,         # [2026-10-23 实测] 硅胶管外径 10mm (内径 8.5)
-        "ring_inner_d": 10.6,    # 管孔内径 = 管外径 10 + 0.6
+        "ring_inner_d": 10.4,    # [2026-11-24 改] 原 10.6 → 10.4：单边余量 0.2，插拔顺且不晃
         # 插土针：细长方条，插进土里把管环架高
-        "pin_t": 4.0,            # 针厚（X）—— 窄版
-        "pin_w": 6.0,            # 针宽（Y）
-        "pin_depth": 25.0,       # 插土深度
-        "pin_x": 5.0,            # 针中心 X（±），紧贴管环两侧
+        "pin_t": 3.2,            # [2026-11-24 改] 针厚（X）原 4.0 → 3.2（明显变细，实心 PLA 仍够）
+        "pin_w": 5.0,            # [2026-11-24 改] 针宽（Y）原 6.0 → 5.0
+        "pin_depth": 50.0,       # [2026-11-24 改] 插土深度 原 25 → 50（土层 60~65，余量 10~15）
+        "pin_tip_t": 2.0,        # [2026-11-24 新增] 针尖锥形收尖末端厚 = 2.0（降插入阻力）
+        "pin_tip_w": 3.0,        # [2026-11-24 新增] 针尖锥形收尖末端宽 = 3.0
+        "pin_tip_len": 12.0,     # [2026-11-24 新增] 锥段长度（从针尖往上 12mm 线性收径）
+        "pin_x": 7.0,            # [2026-11-24 改] 针中心 X 原 5.0 → 5.8 → 7.0：针内侧面 5.4，
+                                 #               完全落在管孔外（孔 r=5.2，留 0.2 间隙），
+                                 #               针顶不再从管孔里透出来，根部也是满截面 3.2×5.0
         "pin_y": 0.0,            # 针的 Y 中心
         # 管环：立在土面上方，孔竖直贯穿
-        "ring_rise": 16.0,       # 管孔中心离土面高度（管子出水口要在土面上方）
-        "col_x": 15.0,           # 管环柱宽 X（窄版：孔径10.6 + 两侧壁2.2）→ 占地 15×15
+        "ring_rise": 20.0,       # [2026-11-24 改] 原 16 → 20（出水口离土面更远，少溅泥）
+        "col_x": 18.0,           # [2026-11-24 改] 管环柱宽 X 原 15 → 18（单边壁厚 2.3 → 3.8，
+                                 #               让针能整个挪到管孔外侧，不再从孔里凸出来）
         "col_y": 0.0,            # 管环柱中心 Y
-        "col_d": 15.0,           # 管环柱深 Y
-        "col_h": 16.0,           # 管环柱高
-        "bridge_h": 6.0,         # 顶桥厚
+        "col_d": 18.0,           # [2026-11-24 改] 管环柱深 Y 原 15 → 18
+        "col_h": 20.0,           # [2026-11-24 改] 管环柱高 原 16 → 20
+        "bridge_h": 6.0,         # 顶桥厚（管孔全贯穿，此参数仅留档）
     },
 }
 
@@ -145,6 +151,29 @@ def _prism(pts, axis, a0, a1):
         f.append([i, j, n + j])
         f.append([i, n + j, n + i])
     m = trimesh.Trimesh(vertices=v, faces=np.asarray(f), process=True)
+    m.fix_normals()
+    return m
+
+
+def _loft_rect(cx, cy, levels):
+    """矩形截面沿 Z 分层放样（用于锥形收尖的插土针，单实体、无布尔 → 天然 watertight）。
+
+    levels: [(z, 宽X, 深Y), ...]，按 z 严格递增；相邻层之间线性过渡。
+    """
+    v, nz = [], len(levels)
+    for z, w, d in levels:
+        v += [(cx - w / 2, cy - d / 2, z), (cx + w / 2, cy - d / 2, z),
+              (cx + w / 2, cy + d / 2, z), (cx - w / 2, cy + d / 2, z)]
+    f = [[0, 2, 1], [0, 3, 2]]                                  # 底面（−Z）
+    top = (nz - 1) * 4
+    f += [[top, top + 1, top + 2], [top, top + 2, top + 3]]     # 顶面（+Z）
+    for i in range(nz - 1):
+        a, b = i * 4, (i + 1) * 4
+        for k in range(4):
+            k2 = (k + 1) % 4
+            f += [[a + k, a + k2, b + k2], [a + k, b + k2, b + k]]
+    m = trimesh.Trimesh(vertices=np.asarray(v, dtype=float),
+                        faces=np.asarray(f, dtype=np.int64), process=True)
     m.fix_normals()
     return m
 
@@ -246,9 +275,13 @@ def build_tube_clip(p):
     pt_, pw, pd = p["pin_t"], p["pin_w"], p["pin_depth"]
     ch = p["col_h"]
     ry = p["col_y"]
+    tt, tw = p.get("pin_tip_t", pt_), p.get("pin_tip_w", pw)
+    tl = p.get("pin_tip_len", 0.0)
 
-    # ---- 1) 两条插土针：从 z=-pd 插到 z=0（与管环柱叠合）----
-    pins = [B(sx * p["pin_x"], p["pin_y"], -pd / 2, pt_, pw, pd)
+    # ---- 1) 两条插土针：针尖(z=-pd) 锥形收径 → 针身(pt_×pw) → 顶端 z=+1 嵌入柱体 ----
+    # 顶端做到 +1（完全落在柱体 XY 范围内）是为了让 union 有真实重叠，避免共面接触。
+    pins = [_loft_rect(sx * p["pin_x"], p["pin_y"],
+                       [(-pd, tt, tw), (-pd + tl, pt_, pw), (1.0, pt_, pw)])
             for sx in (-1, 1)]
     body = union(pins, engine="manifold")
 
@@ -265,8 +298,10 @@ def build_tube_clip(p):
     col = B(0, ry, ch / 2, p["col_x"], p["col_d"], ch)
     body = union([body, col], engine="manifold")
 
-    # ---- 3) 管孔：从土面直通柱顶，管子在孔内全程竖直 ----
-    body = cut(body, [C(0, ry, ch / 2, p["ring_inner_d"] / 2, ch + 4, sections=64)])
+    # ---- 3) 管孔：从土面 z=0 直通柱顶，管子在孔内全程竖直 ----
+    # [2026-11-24 修] 原写法 C(0,0,ch/2,r,ch+4) 向下多吃 2mm，把插土针根部削成 1.3mm 薄片。
+    # 现改为 0 → ch+2，针身截面一直到土面都是完整的 3.2×5.0，长针弯矩不再卡在细颈上。
+    body = cut(body, [C(0, ry, ch / 2 + 1.0, p["ring_inner_d"] / 2, ch + 2.0, sections=64)])
 
     # ---- 4) 落床归一化：z_min -> 0；metadata 记录土面高度 ----
     zmin = float(body.bounds[0][2])
