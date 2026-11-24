@@ -1,0 +1,64 @@
+Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)
+
+Copyright (c) 2026 Smart GreenHouse Project Team (BIUH DT 2026)
+Source: https://github.com/huankechong/smart-greenhouse
+License: https://creativecommons.org/licenses/by-nc/4.0/
+Legal code (authoritative): https://creativecommons.org/licenses/by-nc/4.0/legalcode.en
+
+This repository — including firmware, 3D-print models (STL and their
+parametric source scripts), wiring diagrams, documentation, photographs and
+test data — is licensed under the Creative Commons
+Attribution-NonCommercial 4.0 International Public License.
+
+You should have received a copy of the license along with this work. If not,
+see the Legal code link above. The summary below is the official CC deed
+(quoted verbatim from the Canonical URL); where the deed and the Legal code
+differ, the Legal code governs.
+
+--------------------------------------------------------------------------------
+You are free to:
+
+  Share — copy and redistribute the material in any medium or format
+
+  Adapt — remix, transform, and build upon the material
+
+  The licensor cannot revoke these freedoms as long as you follow the
+  license terms.
+
+Under the following terms:
+
+  Attribution — You must give appropriate credit, provide a link to the
+  license, and indicate if changes were made. You may do so in any
+  reasonable manner, but not in any way that suggests the licensor endorses
+  you or your use.
+
+  NonCommercial — You may not use the material for commercial purposes.
+
+  No additional restrictions — You may not apply legal terms or
+  technological measures that legally restrict others from doing anything
+  the license permits.
+
+Notices:
+
+  You do not have to comply with the license for elements of the material in
+  the public domain or where your use is permitted by an applicable
+  exception or limitation.
+
+  No warranties are given. The license may not give you all of the
+  permissions necessary for your intended use. For example, other rights
+  such as publicity, privacy, or moral rights may limit how you use the
+  material.
+--------------------------------------------------------------------------------
+
+Scope notes for this repository
+
+- "Attribution" here means: credit "Smart GreenHouse Project Team (BIUH DT
+  2026)" and link to the Source URL above.
+- The work is jointly owned by the four project members; attribution is given
+  to the team as a whole rather than to individuals in this file.
+- Third-party software the firmware links against (Arduino ESP32 core,
+  PubSubClient, U8g2, DHT sensor library, Adafruit Unified Sensor) and the
+  Python libraries referenced in requirements.txt are NOT covered by this
+  license; each remains under its own license terms.
+- The Bemfa (巴法云) MQTT cloud service is a third-party commercial service
+  and is not part of this work.
