@@ -18,11 +18,43 @@ BASE_A = os.path.join(ROOT, "花房3D_整机底盘", "STL", "06a_base_left_v1.st
 BASE_B = os.path.join(ROOT, "花房3D_整机底盘", "STL", "06b_base_right_v1.stl")
 
 PARTS = {
-    "04 屏架":  ("花房3D_P1P2/STL/04_oled_stand_v1.stl", BASE_A,  -45.0,  38.0,  5.0),
-    "07 DHT":   ("花房3D_P1P2/STL/07_dht11_holder_v1.stl", BASE_A, -45.0, -67.0,  3.5),
-    "11 光敏":  ("花房3D_P1P2/STL/11_ldr_stand_v1.stl",  BASE_A, -110.0,  -5.0,  4.0),
+    # (零件, 底盘, 槽心 cx, 槽心 cy, 落座高度)
+    # ⚠ cx / cy 是从 花房3D_整机底盘/base_2pc_models.py 的 PARAMS["fits"] / ["fits_taper"] 手抄的。
+    #   2026-11-24 修正：三行坐标停在 AR36（2026-11-12）布局重排之前——04 的 y 差 46、07 落在继电器槽上、
+    #   11 差 (10,5)——导致射线在错误位置打、3/3 误报「!! 检查」。下方 _assert_coords_in_sync() 会核对，
+    #   不一致直接报错，别绕过它去改 assert。
+    "04 屏架":  ("花房3D_P1P2/STL/04_oled_stand_v1.stl", BASE_A,  -45.0,  83.8,  5.0),
+    "07 DHT":   ("花房3D_P1P2/STL/07_dht11_holder_v1.stl", BASE_A, -40.0,   0.0,  3.5),
+    "11 光敏":  ("花房3D_P1P2/STL/11_ldr_stand_v1.stl",  BASE_A, -120.0,   0.0,  4.0),
     # "08 扎线" 已于 2026-11-19 废弃删除（扎线改扎带），不再参与配合校验
 }
+
+
+def _assert_coords_in_sync():
+    """PARTS 里的槽心必须与建模参数表一致——布局一改而这里没跟，量出来的就是别处的槽（2026-11-24 踩过）。"""
+    import importlib.util, sys
+    src = os.path.join(ROOT, "花房3D_整机底盘", "base_2pc_models.py")
+    spec = importlib.util.spec_from_file_location("base_2pc_models", src)
+    mod = importlib.util.module_from_spec(spec)
+    sys.path.insert(0, os.path.dirname(src))
+    try:
+        spec.loader.exec_module(mod)
+    finally:
+        sys.path.pop(0)
+    truth = {}
+    for row in mod.P.get("fits", []) + mod.P.get("fits_taper", []):   # 注意：此模块参数表叫 P，非 PARAMS
+        truth[row[0]] = (float(row[1]), float(row[2]))
+    bad = []
+    for name, (_p, _b, cx, cy, _seat) in PARTS.items():
+        if name not in truth:
+            bad.append(f"{name}: 建模表里已无此槽（是否已废弃？从 PARTS 删掉）")
+        elif abs(truth[name][0] - cx) > 0.05 or abs(truth[name][1] - cy) > 0.05:
+            bad.append(f"{name}: PARTS 写 ({cx}, {cy})，建模表是 {truth[name]}")
+    if bad:
+        raise SystemExit("check_clearance: PARTS 坐标与建模表不一致，结果不可信：\n  - " + "\n  - ".join(bad))
+
+
+_assert_coords_in_sync()
 
 _cache = {}
 

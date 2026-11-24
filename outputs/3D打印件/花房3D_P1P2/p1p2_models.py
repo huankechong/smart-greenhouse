@@ -1,19 +1,24 @@
 # -*- coding: utf-8 -*-
 """
-花房 Final Project · P1 + P2 三件参数化建模脚本 (v1 占位版)
+花房 Final Project · P1 + P2 参数化建模脚本（现行：04 / 07 / 11 三件）
 ------------------------------------------------------------
-P1 (答辩加分件): 04 OLED 45°斜面支架
-   (05 双色LED灯罩 / 06 整合底板 已作废删除: 05 无半透明耗材取消, 06 被两片式底盘取代)
-P2 (时间富余件): 07 DHT11 小座 / 08 扎线固定座
+P1: 04 OLED 45°斜面支架
+P2: 07 DHT11 小座 / 11 光敏电阻小柱（2026-11-08 新增）
+作废件（不再生成，历史见 git）: 05 双色LED灯罩（无半透明耗材）/ 06 整合底板（被两片式底盘取代）/ 08 扎线固定座（2026-11-19 改扎带）
 
-产出: STL (mm) + 三视图预览 + 校验数据
+产出: STL (mm) + 三视图预览 + 现役件总览图 + 校验数据
+
+运行:
+    python p1p2_models.py                # 出 STL + 预览图 + 校验报告
+    python p1p2_models.py --preview-only # 只重出预览图，不碰 STL
 
 设计原则同 P0 批次:
-1. 尺寸全集中在 PARAMS, 到货实测后只改数字重跑
+1. 尺寸全集中在 PARAMS, 实测后只改数字重跑
 2. 全部走 manifold 布尔, 保证 watertight / 单体 / z_min=0
 3. 打印朝向即建模朝向 (Z 向上); 免支撑优先
 """
 import os
+import sys
 import json
 import numpy as np
 import trimesh
@@ -507,10 +512,11 @@ def sheet_all(rows, path):
         ax.imshow(render(mesh, 38, 26, 700))
         ax.set_title(f"{title}\n{sub}", fontsize=11, color="#222")
         ax.axis("off")
-    fig.suptitle(f"花房 P1+P2 {len(rows)} 件 v1 占位版  (单位 mm, Z↑ 打印朝向)", fontsize=15, color="#111")
+    fig.suptitle(f"花房 P1+P2 现役 {len(rows)} 件 · 定稿版  (单位 mm, Z↑ 打印朝向)", fontsize=15, color="#111")
     fig.tight_layout(rect=[0, 0, 1, 0.86])
     fig.savefig(path, dpi=150, facecolor="white")
     plt.close(fig)
+    return path
 
 
 BUILDERS = [
@@ -519,6 +525,9 @@ BUILDERS = [
     # ("08_cable_clip", "扎线固定座", build_cable_clip, PARAMS["clip3"]),  # 2026-11-19 废弃：扎线改扎带，STL 已删（历史可从 git 找回）
     ("11_ldr_stand", "光敏电阻小柱", build_ldr_stand, PARAMS["ldr"]),
 ]
+
+
+PREVIEW_ONLY = "--preview-only" in sys.argv
 
 
 def main():
@@ -532,7 +541,8 @@ def main():
             pass
         mesh.fix_normals()
         stl = os.path.join(STL_DIR, f"{key}_v1.stl")
-        mesh.export(stl)
+        if not PREVIEW_ONLY:
+            mesh.export(stl)
         rep = validate(mesh, f"{key} | {cn}")
         rep["stl"] = stl
         rep["preview"] = os.path.join(PREVIEW_DIR, f"{key}.png")
@@ -540,14 +550,25 @@ def main():
         reports.append(rep)
         print(json.dumps(rep, ensure_ascii=False))
 
-    with open(os.path.join(OUT, "check_report.json"), "w", encoding="utf-8") as f:
-        json.dump(reports, f, ensure_ascii=False, indent=1)
+    if not PREVIEW_ONLY:
+        with open(os.path.join(OUT, "check_report.json"), "w", encoding="utf-8") as f:
+            json.dump(reports, f, ensure_ascii=False, indent=1)
 
     print("\n=== 汇总 ===")
     for r in reports:
         flag = "OK " if (r["watertight"] and r["bodies"] == 1) else "!! "
         print(f"{flag}{r['name']}: bbox={r['bbox_mm']} ~{r['est_mass_g_PLA']}g "
               f"tri={r['triangles']} bodies={r['bodies']} watertight={r['watertight']}")
+
+    # 现役件总览图
+    rows = []
+    for (key, cn, fn, p), r in zip(BUILDERS, reports):
+        mesh = fn(p)
+        bx = r["bbox_mm"]
+        rows.append((mesh, f"{cn}", f"{bx[0]}×{bx[1]}×{bx[2]} mm   ~{r['est_mass_g_PLA']} g"))
+    print("总览图:", sheet_all(rows, os.path.join(PREVIEW_DIR, f"00_P1P2_总览.png")))
+    if PREVIEW_ONLY:
+        print("（--preview-only：未写 STL / check_report）")
 
     rows = []
     for (key, cn, fn, p), r in zip(BUILDERS, reports):

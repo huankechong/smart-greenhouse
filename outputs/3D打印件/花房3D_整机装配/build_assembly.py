@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-花房 Final Project · 整机系统示意模型（装配态）
+花房 Final Project · 整机装配几何（校验链几何源）
 ================================================
-基础: import 前面三批的参数化建模脚本, 复用同一份几何函数
-      -> 装配图里的打印件与送打 STL 完全一致, 不是另画一套
+基础: import 前面几批的参数化建模脚本, 复用同一份几何函数
+      -> 装配里的打印件与送打 STL 完全一致, 不是另画一套
 
-产出:
-  花房整机示意模型.glb      (可旋转查看)
-  preview/00_整机四视图.png  + 单张视角
+用途（2026-11-24 起）:
+  仅作为模块被 check_base_fit / check_wires / audit / check_occlusion import，
+  提供模块级 items（装配几何）与 WIRES（走线）。直接运行不产出文件。
+  旧展示产出（glb / preview 四视图）已退役，现行整机展示在 outputs/3D打印件/整机场景/。
 
 坐标系: 与整机底盘一致, 底板 z=0 为桌面, X 右为正, Y 前为正
 """
@@ -19,9 +20,8 @@ from trimesh.creation import box, cylinder, icosphere
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
-OUT_PREVIEW = os.path.join(HERE, "preview")
-FAST = os.environ.get("GH_FAST") == "1"   # 快模式：跳过 AO 烘焙与预览渲染（几何迭代用，约 40 秒）
-os.makedirs(OUT_PREVIEW, exist_ok=True)
+FAST = os.environ.get("GH_FAST") == "1"   # 快模式：跳过 AO 烘焙（几何迭代用，约 40 秒）
+# 2026-11-24：不再创建 preview/ 目录（展示产出已退役，见文末 main 注释）
 
 
 def load(path, name):
@@ -370,7 +370,7 @@ _ldr_mod.apply_translation([LDR[0], LDR[1] + 0.21, PT + 26.21 - 4.0])
 add(_ldr_mod, "pcb_green", "光敏模块")
 
 # ---------- 13. P2: 扎线固定座 ----------
-add(place(M_P1.build_cable_clip(M_P1.PARAMS["clip3"]), -77.0, 8.0, PT - 2.0, rz=0), "white", "扎线座")   # 嵌槽 2.0（不转角：避开继电器槽与 11 槽）
+# add(place(M_P1.build_cable_clip(M_P1.PARAMS["clip3"]), -77.0, 8.0, PT - 2.0, rz=0), "white", "扎线座")   # 2026-11-19 废弃：扎线改扎带，STL 已删
 
 
 # ============================================================
@@ -689,50 +689,13 @@ def render_scene(azim=42.0, elev=26.0, size=1100, bg=(1, 1, 1)):
 
 
 def main():
-    scene = trimesh.Scene()
-    for i, (mesh, ck, nm) in enumerate(items):
-        m = mesh.copy()
-        col = np.array(list(C[ck]) + [1.0])
-        ao = get_ao()[i]
-        face_col = np.tile(col, (len(m.faces), 1))
-        face_col[:, :3] *= (0.35 + 0.65 * ao)[:, None]
-        m.visual = trimesh.visual.ColorVisuals(mesh=m, face_colors=face_col)
-        scene.add_geometry(m, geom_name=f"{i:02d}_{nm or ck}")
-
-    glb = os.path.join(HERE, "花房整机示意模型.glb")
-    with open(glb, "wb") as f:
-        f.write(trimesh.exchange.gltf.export_glb(scene))
-    print("glb: %s  %.2f MB  几何体 %d 个" % (glb, os.path.getsize(glb) / 1024 / 1024, len(items)))
-
-    if FAST:
-        print("FAST 模式：跳过预览渲染（只出 glb）")
-        return
-
-    import matplotlib
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-    plt.rcParams["font.sans-serif"] = ["Microsoft YaHei", "SimHei", "DejaVu Sans"]
-    plt.rcParams["axes.unicode_minus"] = False
-
-    views = [((42, 26), "整体轴测  42°/26°"),
-             ((8, 16), "正前视角  8°/16°"),
-             ((0, 89.5), "俯视 TOP"),
-             ((-58, 24), "左后轴测  −58°/24°")]
-
-    for (az, el), _ in views:
-        plt.imsave(os.path.join(OUT_PREVIEW, f"view_az{az:+.0f}_el{el:+.0f}.png"),
-                   render_scene(az, el, 1000))
-
-    fig, axes = plt.subplots(2, 2, figsize=(16, 16), facecolor="white")
-    for ax, ((az, el), name) in zip(axes.ravel(), views):
-        ax.imshow(render_scene(az, el, 780))
-        ax.set_title(name, fontsize=15, color="#222")
-        ax.axis("off")
-    fig.suptitle("智能花房养护站 Smart GreenHouse · 整机示意图", fontsize=20, color="#111")
-    fig.tight_layout(rect=[0, 0, 1, 0.95])
-    fig.savefig(os.path.join(OUT_PREVIEW, "00_整机四视图.png"), dpi=150, facecolor="white")
-    plt.close(fig)
-    print("preview:", OUT_PREVIEW)
+    # 2026-11-24：展示产出（glb + preview 四视图）已退役——现行整机展示在
+    # outputs/3D打印件/整机场景/（独立程序化场景），不再由本脚本生成。
+    # 本模块保留的唯一用途：被 check_base_fit / check_wires / audit / check_occlusion
+    # import，提供模块级的 items（装配几何）与 WIRES（走线）。直接运行不产出任何文件。
+    # 如需恢复旧展示管线，见 git 历史（build_html.py / render_hi.py / annotate.py 同批退役）。
+    print("build_assembly：几何已构建（%d 个几何体，%d 根走线）。展示产出已退役，"
+          "本脚本现仅供校验链 import；现行展示见 outputs/3D打印件/整机场景/。" % (len(items), len(WIRES)))
 
 
 if __name__ == "__main__":

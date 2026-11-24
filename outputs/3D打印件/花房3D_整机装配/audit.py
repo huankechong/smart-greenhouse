@@ -5,7 +5,7 @@ import numpy as np
 import trimesh
 from trimesh.boolean import intersection
 
-ROOT = r"D:/Documents/workbuddydocument/2026-10-17-08-59-13/outputs/3D打印件"  # 2026-11-09 修：11-08 重组后 3D 件在 3D打印件/ 下
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # .../outputs/3D打印件（相对定位，换机器可用）
 sys.path.insert(0, os.path.join(ROOT, "花房3D_整机装配"))
 
 print("=" * 70)

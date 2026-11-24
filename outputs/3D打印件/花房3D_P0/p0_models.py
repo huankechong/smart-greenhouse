@@ -1,20 +1,25 @@
 # -*- coding: utf-8 -*-
 """
-花房 Final Project · P0 三件参数化建模脚本 (v1 占位版)
+花房 Final Project · P0 参数化建模脚本（现行：01b 土插支架 + 03 水管夹）
 ------------------------------------------------------
 产出: STL (mm) + 预览渲染图 + 尺寸/校验报告
+      01b 的几何由同目录 p0b_sensor_hook.py 定义（唯一真相源），本脚本 import 后一并出图/出 STL。
+      02 水泵座已于 2026-10-24 作废（泵自带吸盘），不再生成。
 
 设计原则
-1. 全部尺寸集中在 PARAMS 里 —— 到货实测后只改数字, 重跑即得 v2
+1. 全部尺寸集中在 PARAMS 里 —— 实测后只改数字, 重跑即得新版
 2. 所有实体走 CSG 布尔 (manifold3d 内核), 保证 watertight / manifold, 可直接切片
 3. 打印朝向即建模朝向 (Z 向上 = 热床上表面法向), 无需在切片软件里翻转
-4. 每条关键尺寸标注来源: [实测待填] / [市售常见值] / [设计决策]
+4. 每条关键尺寸标注来源: [实测] / [市售常见值] / [设计决策]
 
 运行:
-    python p0_models.py
+    python p0_models.py                # 出 STL + 预览图 + 校验报告
+    python p0_models.py --preview-only # 只重出预览图，不碰 STL
 """
 import os
+import sys
 import json
+import importlib.util
 import numpy as np
 import trimesh
 from trimesh.creation import box, cylinder
@@ -400,7 +405,7 @@ def sheet_all(rows):
         ax.imshow(render(mesh, azim=38, elev=26, size=760))
         ax.set_title(f"{title}\n{sub}", fontsize=12, color="#222")
         ax.axis("off")
-    fig.suptitle(f"花房 Final Project · P0 {len(rows)} 件 v1 占位版  (单位 mm, Z↑ 为打印朝向)",
+    fig.suptitle(f"花房 Final Project · P0 现役 {len(rows)} 件 · 定稿版  (单位 mm, Z↑ 为打印朝向)",
                  fontsize=15, color="#111")
     fig.tight_layout(rect=[0, 0, 1, 0.86])
     path = os.path.join(PREVIEW_DIR, f"00_P0_{len(rows)}件总览.png")
@@ -410,10 +415,29 @@ def sheet_all(rows):
 
 
 
+def _load_p0b():
+    """import 同目录 p0b_sensor_hook（01b 唯一真相源），不触发其 __main__ 出 STL"""
+    spec = importlib.util.spec_from_file_location(
+        "p0b_sensor_hook", os.path.join(OUT, "p0b_sensor_hook.py"))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def build_01b(_p=None):
+    """01b 适配器：p0b.build() 返回 (mesh, gc, axis)，这里只取 mesh"""
+    mesh, _gc, _axis = _load_p0b().build()
+    return mesh
+
+
+PREVIEW_ONLY = "--preview-only" in sys.argv
+
+
 BUILDERS = [
-    # ("01_sensor_L_bracket", ...) 已作废删除 2026-10-20 (被 01b 盆沿挂钩取代, 历史见 git)
-    ("02_pump_mount", "水泵固定座", build_pump_mount, PARAMS["pump"]),
-    ("03_tube_clip", "水管末端固定夹", build_tube_clip, PARAMS["clip"]),
+    ("01b_sensor_rim_hook_v2", "01b 土壤传感器土插支架", build_01b, None),
+    # ("01_sensor_L_bracket", ...) 已作废删除 2026-10-20 (被 01b 取代, 历史见 git)
+    # ("02_pump_mount", "水泵固定座", build_pump_mount, PARAMS["pump"]),  # 2026-10-24 作废：泵自带吸盘直吸桶底（历史见 git）
+    ("03_tube_clip", "03 水管末端固定夹", build_tube_clip, PARAMS["clip"]),
 ]
 
 
@@ -427,8 +451,11 @@ def main():
         except Exception:
             pass
         mesh.fix_normals()
-        stl = os.path.join(STL_DIR, f"{key}_v1.stl")
-        mesh.export(stl)
+        # 01b 的 STL 归 p0b_sensor_hook.py 管（文件名 _v2）；本脚本对 01b 只出图与校验，不写 STL
+        owns_stl = not key.startswith("01b")
+        stl = os.path.join(STL_DIR, f"{key}_v1.stl") if owns_stl else os.path.join(STL_DIR, f"{key}.stl")
+        if owns_stl and not PREVIEW_ONLY:
+            mesh.export(stl)
         rep = validate(mesh, f"{key} | {cn}")
         rep["stl"] = stl
         rep["preview"] = os.path.join(PREVIEW_DIR, f"{key}.png")
@@ -436,8 +463,9 @@ def main():
         reports.append(rep)
         print(json.dumps(rep, ensure_ascii=False, indent=1))
 
-    with open(os.path.join(OUT, "check_report.json"), "w", encoding="utf-8") as f:
-        json.dump(reports, f, ensure_ascii=False, indent=1)
+    if not PREVIEW_ONLY:
+        with open(os.path.join(OUT, "check_report.json"), "w", encoding="utf-8") as f:
+            json.dump(reports, f, ensure_ascii=False, indent=1)
     print("\n=== 汇总 ===")
     for r in reports:
         flag = "OK " if (r["watertight"] and r["bodies"] == 1) else "!! "
@@ -445,13 +473,15 @@ def main():
               f"~{r['est_mass_g_PLA']}g tri={r['triangles']} bodies={r['bodies']} "
               f"watertight={r['watertight']}")
 
-    # 三件总览图
+    # 现役件总览图
     rows = []
     for (key, cn, fn, p), r in zip(BUILDERS, reports):
         mesh = fn(p)
         bx = r["bbox_mm"]
         rows.append((mesh, f"{cn}", f"{bx[0]}×{bx[1]}×{bx[2]} mm   ~{r['est_mass_g_PLA']} g"))
     print("总览图:", sheet_all(rows))
+    if PREVIEW_ONLY:
+        print("（--preview-only：未写 STL / check_report）")
 
 
 if __name__ == "__main__":
